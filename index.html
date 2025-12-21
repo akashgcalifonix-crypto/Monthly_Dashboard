@@ -15,25 +15,17 @@
     <style>
         :root { --primary: #0f172a; --accent: #2563eb; --success: #10b981; --danger: #ef4444; }
         body { background-color: #f1f5f9; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background: var(--primary); color: white; padding: 12px 30px; border-bottom: 3px solid var(--accent); }
-        .logo { height: 45px; background: white; padding: 5px; border-radius: 5px; }
-        
-        /* KPI Cards */
-        .stat-card { background: white; border-radius: 12px; padding: 20px; border-top: 5px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.08); text-align: center; height: 100%; }
-        .stat-label { font-size: 13px; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; display: block; }
-        .stat-value { font-size: 28px; font-weight: 800; color: #1e293b; display: block; }
-
-        /* Chart Containers */
-        .chart-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 20px; position: relative; height: 350px; width: 100%; }
-        
-        /* Tables */
-        .card-table { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 30px; }
-        .table thead { background: #f8fafc; }
-        .table th { font-size: 12px; text-transform: uppercase; color: #64748b; }
-        
-        .btn-main { border-radius: 8px; font-weight: 600; padding: 8px 18px; }
+        .navbar { background: var(--primary); color: white; padding: 10px 30px; border-bottom: 3px solid var(--accent); }
+        .logo { height: 40px; background: white; padding: 5px; border-radius: 5px; }
+        .stat-card { background: white; border-radius: 12px; padding: 15px; border-top: 5px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.08); text-align: center; }
+        .stat-label { font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 24px; font-weight: 800; color: #1e293b; }
+        .chart-container { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); height: 320px; margin-bottom: 20px; }
+        .card-table { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 25px; }
+        .btn-main { border-radius: 6px; font-weight: 600; padding: 6px 15px; }
         #fileInput { display: none; }
-        .preview-mode-alert { background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; display: none; border: 1px solid #ffeeba; }
+        .table th { background: #f8fafc; font-size: 11px; }
+        .preview-badge { background: #ffc107; color: #000; padding: 4px 12px; border-radius: 4px; font-size: 12px; display: none; }
     </style>
 </head>
 <body>
@@ -41,319 +33,200 @@
 <nav class="navbar d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-3">
         <img src="https://i.postimg.cc/5y7SN4xc/logo.png" class="logo">
-        <h4 class="mb-0">QUALITY <span style="color: #38bdf8;">PORTAL</span></h4>
+        <h5 class="mb-0">QUALITY <span style="color: #38bdf8;">DASHBOARD</span></h5>
     </div>
     <div class="d-flex gap-2">
-        <label for="fileInput" class="btn btn-outline-light btn-main"><i class="bi bi-file-earmark-arrow-up"></i> Upload Excel</label>
+        <div id="pTag" class="preview-badge mt-1"><i class="bi bi-eye"></i> PREVIEW MODE</div>
+        <label for="fileInput" class="btn btn-outline-light btn-main"><i class="bi bi-upload"></i> Upload</label>
         <input type="file" id="fileInput" accept=".xlsx, .xls">
-        
-        <button id="saveBtn" class="btn btn-success btn-main" onclick="confirmSave()" style="display:none;">
-            <i class="bi bi-cloud-check"></i> Save Data
-        </button>
-        
-        <button class="btn btn-danger btn-main" onclick="exportToPPT()"><i class="bi bi-file-earmark-ppt"></i> Export PPT</button>
+        <button id="saveBtn" class="btn btn-success btn-main" onclick="saveData()" style="display:none;">Save</button>
+        <button class="btn btn-danger btn-main" onclick="exportToPPT()">PPT</button>
     </div>
 </nav>
 
-<div class="container-fluid mt-4 px-4">
-    
-    <div id="previewAlert" class="preview-mode-alert">
-        <i class="bi bi-info-circle-fill"></i> PREVIEWING NEW DATA: Please check the dashboard below and click 'Save Data' to store it.
-    </div>
-
+<div class="container-fluid mt-3 px-4">
     <!-- Filters -->
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6 d-flex gap-3 align-items-center">
-            <h5 class="mb-0 fw-bold">Performance Summary</h5>
-            <select id="monthFilter" class="form-select w-auto shadow-sm" onchange="loadSavedData()">
-                <option value="All">All Months</option>
-                <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
-                <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
-                <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
-                <option value="9">Oct</option><option value="10" selected>Nov</option><option value="11">Dec</option>
-            </select>
-            <select id="yearFilter" class="form-select w-auto shadow-sm" onchange="loadSavedData()">
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-            </select>
-        </div>
-        <div class="col-md-6 text-end">
-             <button class="btn btn-sm btn-outline-danger" onclick="resetDatabase()">Reset All Records</button>
-        </div>
+    <div class="d-flex gap-3 mb-3 align-items-center bg-white p-2 rounded shadow-sm">
+        <span class="fw-bold ms-2">Filters:</span>
+        <select id="monthFilter" class="form-select form-select-sm w-auto" onchange="renderFromStorage()">
+            <option value="All">All Months</option>
+            <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+            <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+            <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+            <option value="9">October</option><option value="10" selected>November</option><option value="11">December</option>
+        </select>
+        <select id="yearFilter" class="form-select form-select-sm w-auto" onchange="renderFromStorage()">
+            <option value="2025" selected>2025</option>
+            <option value="2024">2024</option>
+        </select>
+        <button class="btn btn-sm text-danger ms-auto" onclick="clearDB()">Delete All Saved Data</button>
     </div>
 
-    <!-- KPI Row -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="stat-card" style="border-top-color: #2563eb;">
-                <span class="stat-label">First Pass Yield (FPY)</span>
-                <span class="stat-value text-primary" id="kpi-fpy">0%</span>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="border-top-color: #ef4444;">
-                <span class="stat-label">Rejection Rate</span>
-                <span class="stat-value text-danger" id="kpi-rej">0%</span>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="border-top-color: #10b981;">
-                <span class="stat-label">Monthly Total Input</span>
-                <span class="stat-value" id="kpi-input">0</span>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="border-top-color: #f59e0b;">
-                <span class="stat-label">Monthly Total Defects</span>
-                <span class="stat-value" id="kpi-defects">0</span>
-            </div>
-        </div>
+    <!-- KPIs -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-3"><div class="stat-card"><span class="stat-label">FPY %</span><span class="stat-value text-primary" id="k-fpy">0%</span></div></div>
+        <div class="col-md-3"><div class="stat-card" style="border-top-color:#ef4444"><span class="stat-label">Rejection %</span><span class="stat-value text-danger" id="k-rej">0%</span></div></div>
+        <div class="col-md-3"><div class="stat-card" style="border-top-color:#10b981"><span class="stat-label">Total Input</span><span class="stat-value" id="k-in">0</span></div></div>
+        <div class="col-md-3"><div class="stat-card" style="border-top-color:#f59e0b"><span class="stat-label">Total Defects</span><span class="stat-value" id="k-def">0</span></div></div>
     </div>
 
-    <!-- Charts Row -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-7">
-            <div class="chart-container">
-                <h6 class="fw-bold mb-3">Top 5 Defects (Pareto)</h6>
-                <canvas id="paretoChart"></canvas>
-            </div>
-        </div>
-        <div class="col-md-5">
-            <div class="chart-container">
-                <h6 class="fw-bold mb-3">Defect Distribution by Category</h6>
-                <canvas id="categoryChart"></canvas>
-            </div>
-        </div>
+    <!-- Charts -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-7"><div class="chart-container"><h6>Top 5 Defects</h6><canvas id="pChart"></canvas></div></div>
+        <div class="col-md-5"><div class="chart-container"><h6>Category Contribution</h6><canvas id="cChart"></canvas></div></div>
     </div>
 
     <!-- Line Wise Table -->
     <div class="card-table">
-        <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Line-Wise Performance Details</h6>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle text-center border">
-                <thead>
-                    <tr>
-                        <th>Line No</th>
-                        <th>Input Qty</th>
-                        <th>Defect Qty</th>
-                        <th>FPY %</th>
-                        <th>Rejection %</th>
-                        <th>Major Defect Issue</th>
-                    </tr>
-                </thead>
-                <tbody id="lineBody">
-                    <tr><td colspan="6" class="text-muted">No data found.</td></tr>
-                </tbody>
-            </table>
-        </div>
+        <h6 class="fw-bold mb-3 text-primary">Line-Wise Performance</h6>
+        <table class="table table-sm table-hover border">
+            <thead>
+                <tr>
+                    <th>Line No</th><th>Input</th><th>Defects</th><th>FPY %</th><th>Rej %</th><th>Top Defect</th>
+                </tr>
+            </thead>
+            <tbody id="lineTable"></tbody>
+        </table>
     </div>
 
-    <!-- Action Plan Section -->
+    <!-- Action Plan -->
     <div class="card-table">
-        <h6 class="fw-bold mb-3 text-danger"><i class="bi bi- lightning-fill me-2"></i>Top 5 Defect Action Plan</h6>
-        <div class="table-responsive">
-            <table class="table table-bordered align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th width="20%">Defect Name</th>
-                        <th width="10%">Count</th>
-                        <th>Root Cause Analysis</th>
-                        <th>Corrective Action Plan</th>
-                        <th width="10%">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="actionPlanBody">
-                    <!-- Top 5 defects will appear here -->
-                </tbody>
-            </table>
-        </div>
+        <h6 class="fw-bold mb-3 text-danger">Defect Action Plan</h6>
+        <table class="table table-bordered table-sm">
+            <thead class="table-light">
+                <tr><th>Defect</th><th>Qty</th><th>Root Cause</th><th>Corrective Action</th><th>Status</th></tr>
+            </thead>
+            <tbody id="planTable"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    let masterData = JSON.parse(localStorage.getItem('califonix_v3_db')) || [];
-    let uploadBuffer = [];
-    let chartP, chartC;
+    let db = JSON.parse(localStorage.getItem('califonix_v4')) || [];
+    let uploadData = [];
+    let cp, cc;
 
-    window.onload = () => { if(masterData.length > 0) loadSavedData(); };
+    window.onload = () => { if(db.length > 0) renderFromStorage(); };
 
-    // --- 1. File Upload & Processing ---
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = function(evt) {
-            const workbook = XLSX.read(evt.target.result, { type: 'binary', cellDates: true });
-            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            const wb = XLSX.read(evt.target.result, { type: 'binary', cellDates: true });
+            const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
             
-            uploadBuffer = json.map(row => {
+            // Smart Cleaning: Convert all headers to lowercase and trim spaces
+            uploadData = data.map(row => {
                 let cleanRow = {};
-                for (let key in row) cleanRow[key.trim()] = row[key];
+                for (let key in row) {
+                    let k = key.trim().toLowerCase().replace(/\s+/g, '');
+                    cleanRow[k] = row[key];
+                }
                 return cleanRow;
             });
 
             document.getElementById('saveBtn').style.display = 'inline-block';
-            document.getElementById('previewAlert').style.display = 'block';
-            
-            updateDashboard(uploadBuffer); // Show Preview
+            document.getElementById('pTag').style.display = 'block';
+            process(uploadData);
         };
         reader.readAsBinaryString(file);
     });
 
-    function confirmSave() {
-        if(confirm("Save this data to the permanent database?")) {
-            masterData = [...uploadBuffer, ...masterData];
-            localStorage.setItem('califonix_v3_db', JSON.stringify(masterData));
-            uploadBuffer = [];
-            document.getElementById('saveBtn').style.display = 'none';
-            document.getElementById('previewAlert').style.display = 'none';
-            loadSavedData();
-        }
+    function saveData() {
+        db = [...uploadData, ...db];
+        localStorage.setItem('califonix_v4', JSON.stringify(db));
+        uploadData = [];
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('pTag').style.display = 'none';
+        renderFromStorage();
+        alert("Data Saved!");
     }
 
-    function loadSavedData() {
+    function renderFromStorage() {
         const m = document.getElementById('monthFilter').value;
         const y = document.getElementById('yearFilter').value;
-
-        let filtered = masterData.filter(r => {
-            const d = new Date(r.Date);
+        const filtered = db.filter(r => {
+            const d = new Date(r.date);
             return (m === "All" || d.getMonth() == m) && d.getFullYear() == y;
         });
-
-        updateDashboard(filtered);
+        process(filtered);
     }
 
-    // --- 2. Dashboard Rendering Engine ---
-    function updateDashboard(data) {
-        let totalInput = 0, totalDefects = 0;
-        let defMap = {}, catMap = {}, lineMap = {};
+    function process(data) {
+        let tIn = 0, tDef = 0, defs = {}, cats = {}, lines = {};
 
         data.forEach(r => {
-            const qty = parseInt(r["Defect Qty"]) || 0;
-            const inp = parseInt(r.Input) || 0;
-            const line = r.Line || "Unknown";
-            const cat = r.Category || "Process";
+            // Field mapping based on cleaned keys
+            let qty = parseInt(r.defectqty || r["defectqty"] || 0);
+            let inp = parseInt(r.input || r["input"] || 0);
+            let line = r.line || "N/A";
+            let cat = r.category || "Other";
+            let defName = r.defect || "None";
 
-            totalInput += inp;
-            totalDefects += qty;
+            tIn += inp;
+            tDef += qty;
 
-            // Pareto data
-            if(r.Defect) defMap[r.Defect] = (defMap[r.Defect] || 0) + qty;
-            // Pie data
-            catMap[cat] = (catMap[cat] || 0) + qty;
-            // Line wise
-            if(!lineMap[line]) lineMap[line] = { inp: 0, def: 0, defs: {} };
-            lineMap[line].inp += inp;
-            lineMap[line].def += qty;
-            if(r.Defect) lineMap[line].defs[r.Defect] = (lineMap[line].defs[r.Defect] || 0) + qty;
+            if(defName !== "None") defs[defName] = (defs[defName] || 0) + qty;
+            cats[cat] = (cats[cat] || 0) + qty;
+
+            if(!lines[line]) lines[line] = { i:0, d:0, ds:{} };
+            lines[line].i += inp;
+            lines[line].d += qty;
+            if(defName !== "None") lines[line].ds[defName] = (lines[line].ds[defName] || 0) + qty;
         });
 
         // Update KPIs
-        document.getElementById('kpi-input').innerText = totalInput.toLocaleString();
-        document.getElementById('kpi-defects').innerText = totalDefects.toLocaleString();
-        const fpyVal = totalInput > 0 ? (((totalInput - totalDefects)/totalInput)*100).toFixed(2) : 0;
-        const rejVal = totalInput > 0 ? ((totalDefects/totalInput)*100).toFixed(2) : 0;
-        
-        document.getElementById('kpi-fpy').innerText = fpyVal + "%";
-        document.getElementById('kpi-rej').innerText = rejVal + "%";
+        document.getElementById('k-in').innerText = tIn.toLocaleString();
+        document.getElementById('k-def').innerText = tDef.toLocaleString();
+        document.getElementById('k-fpy').innerText = tIn > 0 ? (((tIn-tDef)/tIn)*100).toFixed(2)+"%" : "0%";
+        document.getElementById('k-rej').innerText = tIn > 0 ? ((tDef/tIn)*100).toFixed(2)+"%" : "0%";
 
-        renderCharts(defMap, catMap);
-        renderLineTable(lineMap);
-        renderActionPlan(defMap);
+        updateCharts(defs, cats);
+        updateTables(lines, defs);
     }
 
-    function renderCharts(defMap, catMap) {
-        if(chartP) chartP.destroy();
-        if(chartC) chartC.destroy();
-
-        const sortedDef = Object.entries(defMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
-
-        const ctxP = document.getElementById('paretoChart').getContext('2d');
-        chartP = new Chart(ctxP, {
+    function updateCharts(defs, cats) {
+        if(cp) cp.destroy(); if(cc) cc.destroy();
+        const top5 = Object.entries(defs).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        
+        cp = new Chart(document.getElementById('pChart'), {
             type: 'bar',
-            data: {
-                labels: sortedDef.map(x=>x[0]),
-                datasets: [{ 
-                    label: 'Count', 
-                    data: sortedDef.map(x=>x[1]), 
-                    backgroundColor: '#2563eb',
-                    borderRadius: 5
-                }]
-            },
+            data: { labels: top5.map(x=>x[0]), datasets: [{ label:'Qty', data: top5.map(x=>x[1]), backgroundColor:'#2563eb' }]},
             options: { responsive: true, maintainAspectRatio: false }
         });
 
-        const ctxC = document.getElementById('categoryChart').getContext('2d');
-        chartC = new Chart(ctxC, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(catData),
-                datasets: [{ 
-                    data: Object.values(catData), 
-                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899'] 
-                }]
-            },
+        cc = new Chart(document.getElementById('cChart'), {
+            type: 'pie',
+            data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#10b981','#f59e0b','#ef4444','#6366f1','#8b5cf6'] }]},
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
     }
 
-    function renderLineTable(lineMap) {
-        const body = document.getElementById('lineBody');
-        body.innerHTML = '';
-        const sortedLines = Object.keys(lineMap).sort();
+    function updateTables(lines, defs) {
+        const lt = document.getElementById('lineTable');
+        lt.innerHTML = '';
+        Object.keys(lines).sort().forEach(l => {
+            const row = lines[l];
+            const fpy = row.i > 0 ? (((row.i - row.d)/row.i)*100).toFixed(2) : "0.00";
+            const top = Object.entries(row.ds).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-";
+            lt.innerHTML += `<tr><td><b>${l}</b></td><td>${row.i}</td><td>${row.d}</td><td class="text-primary">${fpy}%</td><td class="text-danger">${(row.i>0?(row.d/row.i*100).toFixed(2):0)}%</td><td>${top}</td></tr>`;
+        });
 
-        sortedLines.forEach(l => {
-            const ld = lineMap[l];
-            const fpy = ld.inp > 0 ? (((ld.inp - ld.def)/ld.inp)*100).toFixed(2) : "0.00";
-            const rej = ld.inp > 0 ? ((ld.def/ld.inp)*100).toFixed(2) : "0.00";
-            const topDef = Object.entries(ld.defs).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-";
-
-            body.innerHTML += `
-                <tr>
-                    <td class="fw-bold">${l}</td>
-                    <td>${ld.inp.toLocaleString()}</td>
-                    <td>${ld.def.toLocaleString()}</td>
-                    <td class="text-primary fw-bold">${fpy}%</td>
-                    <td class="text-danger fw-bold">${rej}%</td>
-                    <td class="text-muted small">${topDef}</td>
-                </tr>`;
+        const pt = document.getElementById('planTable');
+        pt.innerHTML = '';
+        Object.entries(defs).sort((a,b)=>b[1]-a[1]).slice(0,5).forEach(d => {
+            pt.innerHTML += `<tr><td><b>${d[0]}</b></td><td>${d[1]}</td><td><input class="form-control form-control-sm"></td><td><input class="form-control form-control-sm"></td><td><span class="badge bg-warning">Open</span></td></tr>`;
         });
     }
 
-    function renderActionPlan(defMap) {
-        const body = document.getElementById('actionPlanBody');
-        body.innerHTML = '';
-        const top5 = Object.entries(defMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
-
-        top5.forEach(item => {
-            body.innerHTML += `
-                <tr>
-                    <td class="fw-bold">${item[0]}</td>
-                    <td class="text-center">${item[1]}</td>
-                    <td><input type="text" class="form-control form-control-sm" placeholder="Reason for ${item[0]}..."></td>
-                    <td><input type="text" class="form-control form-control-sm" placeholder="Action taken..."></td>
-                    <td class="text-center"><span class="badge bg-warning">Open</span></td>
-                </tr>`;
-        });
-    }
-
-    // --- Helpers ---
-    function resetDatabase() {
-        if(confirm("This will permanently delete all saved records. Continue?")) {
-            localStorage.removeItem('califonix_v3_db');
-            location.reload();
-        }
-    }
+    function clearDB() { if(confirm("Delete All?")) { localStorage.removeItem('califonix_v4'); location.reload(); } }
 
     function exportToPPT() {
         let pptx = new PptxGenJS();
-        let slide = pptx.addSlide();
-        slide.addText("QUALITY ANALYTICS REPORT - CALIFONIX", { x:0.5, y:0.5, fontSize:24, bold:true, color:'0f172a' });
-        slide.addText(`Generated on: ${new Date().toLocaleDateString()}`, { x:0.5, y:1.0, fontSize:14 });
-        
-        slide.addText("FPY: " + document.getElementById('kpi-fpy').innerText, { x:0.5, y:2, w:3, h:1, fill:{color:'F1F5F9'}, align:'center', bold:true });
-        slide.addText("REJ%: " + document.getElementById('kpi-rej').innerText, { x:4, y:2, w:3, h:1, fill:{color:'F1F5F9'}, align:'center', bold:true });
-        
-        pptx.writeFile({ fileName: "Quality_Performance_Report.pptx" });
+        let s = pptx.addSlide();
+        s.addText("QUALITY REPORT", { x:1, y:1, fontSize:24, bold:true });
+        s.addText("FPY: " + document.getElementById('k-fpy').innerText, { x:1, y:2 });
+        pptx.writeFile({ fileName: "Report.pptx" });
     }
 </script>
 </body>
