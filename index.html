@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Pro Dashboard - Califonix</title>
+    
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- JS Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
+    <style>
+        :root { --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; }
+        body { background-color: #f8fafc; font-family: 'Segoe UI', sans-serif; }
+        
+        .sidebar { background: var(--primary); min-height: 100vh; color: white; transition: 0.3s; }
+        .nav-link { color: #94a3b8; border-radius: 8px; margin: 5px 15px; transition: 0.2s; }
+        .nav-link.active { background: var(--accent); color: white; }
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.1); }
+
+        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-top: 4px solid var(--accent); }
+        .stat-val { font-size: 24px; font-weight: 800; color: #1e293b; }
+        .stat-label { font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+
+        .chart-box { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); height: 100%; }
+        .btn-action { border-radius: 20px; padding: 8px 20px; font-weight: 600; }
+        
+        #fileInput { display: none; }
+        .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #334155; margin-bottom: 20px; }
+        .logo-img { height: 40px; background: white; padding: 5px; border-radius: 5px; }
+
+        .table-responsive { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <div class="logo-area">
+                <img src="https://i.postimg.cc/5y7SN4xc/logo.png" class="logo-img mb-2" alt="Califonix">
+                <h6 class="text-uppercase tracking-widest">Quality Control</h6>
+            </div>
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="#"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a class="nav-link" href="#" onclick="alert('Phase 2 में आएगा')"><i class="bi bi-list-check me-2"></i> Line Wise</a>
+                <a class="nav-link" href="#" onclick="exportToPPT()"><i class="bi bi-file-earmark-ppt me-2"></i> Export PPT</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10">
+            <!-- Header Bar -->
+            <div class="bg-white p-3 border-bottom d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-3 align-items-center">
+                    <label class="fw-bold"><i class="bi bi-calendar-event me-1"></i> Filter:</label>
+                    <select id="monthFilter" class="form-select form-select-sm w-auto" onchange="processLocalData()">
+                        <option value="10">November 2025</option>
+                        <option value="11">December 2025</option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2">
+                    <label for="fileInput" class="btn btn-primary btn-sm btn-action"><i class="bi bi-plus-lg"></i> Import Data (Excel)</label>
+                    <input type="file" id="fileInput">
+                    <button class="btn btn-outline-danger btn-sm" onclick="clearData()"><i class="bi bi-trash"></i> Clear All</button>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <!-- KPI Section -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-top-color: #3b82f6;">
+                            <div class="stat-label">FPY (First Pass Yield)</div>
+                            <div class="stat-val" id="fpy-val">0%</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-top-color: #ef4444;">
+                            <div class="stat-label">Rejection Rate</div>
+                            <div class="stat-val" id="rej-val">0%</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-top-color: #10b981;">
+                            <div class="stat-label">Total Input</div>
+                            <div class="stat-val" id="input-val">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-top-color: #f59e0b;">
+                            <div class="stat-label">Total Defects</div>
+                            <div class="stat-val" id="def-val">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <div class="chart-box">
+                            <h6 class="fw-bold mb-3">Top 5 Defects (Pareto Analysis)</h6>
+                            <div style="height: 300px;"><canvas id="paretoChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="chart-box">
+                            <h6 class="fw-bold mb-3">Defect Category Contribution</h6>
+                            <div style="height: 300px;"><canvas id="pieChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-responsive">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="fw-bold">Monthly Data Summary</h6>
+                    </div>
+                    <table class="table table-hover table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th><th>Model</th><th>Line</th><th>Defect</th><th>Qty</th><th>Category</th><th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- Rows will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let globalData = JSON.parse(localStorage.getItem('qualityData')) || [];
+    let charts = {};
+
+    window.onload = () => {
+        if(globalData.length > 0) processLocalData();
+    };
+
+    // 1. File Upload Logic
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const workbook = XLSX.read(evt.target.result, { type: 'binary', cellDates: true });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(sheet);
+            
+            // Clean data
+            const cleaned = json.map(row => {
+                let obj = {};
+                for (let k in row) obj[k.trim()] = row[k];
+                return obj;
+            });
+
+            // Merge and save
+            globalData = [...cleaned, ...globalData];
+            localStorage.setItem('qualityData', JSON.stringify(globalData));
+            processLocalData();
+            alert("Data Uploaded and Saved Locally!");
+        };
+        reader.readAsBinaryString(file);
+    });
+
+    // 2. Data Processing & Filtering
+    function processLocalData() {
+        const selMonth = document.getElementById('monthFilter').value;
+        
+        const filtered = globalData.filter(r => {
+            const d = new Date(r.Date);
+            return d.getMonth() == selMonth;
+        });
+
+        renderUI(filtered);
+    }
+
+    // 3. UI Update
+    function renderUI(data) {
+        let tInput = 0, tDefects = 0;
+        let defectMap = {}, catMap = {};
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';
+
+        data.forEach((r, idx) => {
+            const dQty = parseInt(r["Defect Qty"]) || 0;
+            const input = parseInt(r.Input) || 0;
+            
+            tInput += input;
+            tDefects += dQty;
+
+            if(r.Defect) defectMap[r.Defect] = (defectMap[r.Defect] || 0) + dQty;
+            if(r.Category) catMap[r.Category] = (catMap[r.Category] || 0) + dQty;
+
+            // Row in table
+            tbody.innerHTML += `
+                <tr>
+                    <td>${new Date(r.Date).toLocaleDateString()}</td>
+                    <td>${r.Model || '-'}</td>
+                    <td>${r.Line || '-'}</td>
+                    <td>${r.Defect || '-'}</td>
+                    <td>${dQty}</td>
+                    <td><span class="badge bg-light text-dark border">${r.Category || 'Process'}</span></td>
+                    <td><i class="bi bi-trash text-danger pointer" onclick="deleteItem(${idx})"></i></td>
+                </tr>`;
+        });
+
+        // Update KPIs
+        const fpy = tInput > 0 ? (((tInput - tDefects)/tInput)*100).toFixed(2) : 0;
+        const rej = tInput > 0 ? ((tDefects/tInput)*100).toFixed(2) : 0;
+
+        document.getElementById('fpy-val').innerText = fpy + "%";
+        document.getElementById('rej-val').innerText = rej + "%";
+        document.getElementById('input-val').innerText = tInput.toLocaleString();
+        document.getElementById('def-val').innerText = tDefects.toLocaleString();
+
+        renderCharts(defectMap, catMap);
+    }
+
+    // 4. Charting (Pareto & Pie)
+    function renderCharts(defData, catData) {
+        if(charts.p) charts.p.destroy();
+        if(charts.c) charts.c.destroy();
+
+        const sorted = Object.entries(defData).sort((a,b) => b[1]-a[1]).slice(0,5);
+        
+        // Pareto
+        charts.p = new Chart(document.getElementById('paretoChart'), {
+            type: 'bar',
+            data: {
+                labels: sorted.map(x=>x[0]),
+                datasets: [{ label: 'Qty', data: sorted.map(x=>x[1]), backgroundColor: '#3b82f6' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // Pie
+        charts.c = new Chart(document.getElementById('pieChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(catData),
+                datasets: [{ data: Object.values(catData), backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // 5. Functions
+    function deleteItem(idx) {
+        if(confirm("Delete this row?")) {
+            globalData.splice(idx, 1);
+            localStorage.setItem('qualityData', JSON.stringify(globalData));
+            processLocalData();
+        }
+    }
+
+    function clearData() {
+        if(confirm("यह सारा डेटा डिलीट कर देगा। क्या आप तैयार हैं?")) {
+            localStorage.removeItem('qualityData');
+            location.reload();
+        }
+    }
+
+    function exportToPPT() {
+        let pptx = new PptxGenJS();
+        let slide = pptx.addSlide();
+        slide.addText("QUALITY REPORT - CALIFONIX", { x:0.5, y:0.5, fontSize:22, bold:true, color:'1e293b' });
+        
+        slide.addText(`FPY: ${document.getElementById('fpy-val').innerText}`, { x:0.5, y:1.5, fontSize:18, color:'3b82f6' });
+        slide.addText(`Rejection: ${document.getElementById('rej-val').innerText}`, { x:0.5, y:2.0, fontSize:18, color:'ef4444' });
+        
+        alert("PPT Downloading...");
+        pptx.writeFile({ fileName: "Quality_Report_Nov_2025" });
+    }
+</script>
+
+</body>
+</html>
