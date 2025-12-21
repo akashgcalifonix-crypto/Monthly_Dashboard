@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Califonix Quality Pro Dashboard</title>
+    <title>Califonix Quality Dashboard</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -15,83 +15,87 @@
     <style>
         :root { --primary: #0f172a; --accent: #2563eb; --success: #10b981; --danger: #ef4444; }
         body { background-color: #f1f5f9; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background: var(--primary); color: white; padding: 12px 30px; }
+        .navbar { background: var(--primary); color: white; padding: 12px 30px; border-bottom: 3px solid var(--accent); }
         .logo { height: 45px; background: white; padding: 5px; border-radius: 5px; }
         
-        .stat-card { background: white; border-radius: 12px; padding: 20px; border-left: 6px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
-        .stat-label { font-size: 13px; color: #64748b; font-weight: 700; text-transform: uppercase; }
-        .stat-value { font-size: 26px; font-weight: 800; color: #1e293b; }
+        .stat-card { background: white; border-radius: 12px; padding: 15px; border-top: 5px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
+        .stat-label { font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 24px; font-weight: 800; color: #1e293b; }
 
-        .chart-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-height: 380px; margin-bottom: 20px; }
-        .line-table-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .chart-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-height: 350px; }
+        .line-table-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 40px; }
         
-        .btn-main { border-radius: 8px; font-weight: 600; padding: 8px 20px; }
+        .btn-main { border-radius: 8px; font-weight: 600; padding: 8px 18px; transition: 0.3s; }
         #fileInput { display: none; }
-        .filter-bar { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .preview-badge { background: #fff3cd; color: #856404; padding: 5px 15px; border-radius: 20px; font-weight: bold; display: none; border: 1px solid #ffeeba; }
     </style>
 </head>
 <body>
 
-<nav class="navbar d-flex justify-content-between">
+<nav class="navbar d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-3">
         <img src="https://i.postimg.cc/5y7SN4xc/logo.png" class="logo">
-        <h4 class="mb-0">QUALITY <span style="color: #38bdf8;">DASHBOARD</span></h4>
+        <h4 class="mb-0">QUALITY <span style="color: #38bdf8;">INSIGHTS</span></h4>
     </div>
-    <div class="d-flex gap-2">
-        <label for="fileInput" class="btn btn-outline-light btn-main"><i class="bi bi-file-earmark-excel"></i> Step 1: Select File</label>
+    <div class="d-flex gap-2 align-items-center">
+        <div id="previewLabel" class="preview-badge"><i class="bi bi-eye"></i> PREVIEW MODE</div>
+        
+        <label for="fileInput" class="btn btn-outline-light btn-main"><i class="bi bi-file-earmark-plus"></i> Upload & Preview</label>
         <input type="file" id="fileInput" accept=".xlsx, .xls">
         
-        <button id="saveBtn" class="btn btn-success btn-main" onclick="saveToLocalStorage()" style="display:none;">
-            <i class="bi bi-cloud-upload"></i> Step 2: Save Data
+        <button id="saveBtn" class="btn btn-success btn-main" onclick="confirmSave()" style="display:none;">
+            <i class="bi bi-check-circle"></i> Save to Database
         </button>
         
         <button class="btn btn-danger btn-main" onclick="exportToPPT()"><i class="bi bi-file-earmark-ppt"></i> Export PPT</button>
     </div>
 </nav>
 
-<div class="container-fluid mt-4">
-    <!-- Filter Section -->
-    <div class="filter-bar">
-        <span><strong><i class="bi bi-funnel"></i> View Analytics:</strong></span>
-        <select id="monthFilter" class="form-select w-auto" onchange="runAnalysis()">
-            <option value="All">All Months</option>
-            <option value="0">January</option><option value="1">February</option>
-            <option value="2">March</option><option value="3">April</option>
-            <option value="4">May</option><option value="5">June</option>
-            <option value="6">July</option><option value="7">August</option>
-            <option value="8">September</option><option value="9">October</option>
-            <option value="10" selected>November</option><option value="11">December</option>
-        </select>
-        <select id="yearFilter" class="form-select w-auto" onchange="runAnalysis()">
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-        </select>
-        <button class="btn btn-sm btn-link text-danger ms-auto" onclick="clearSystem()">Reset System</button>
+<div class="container-fluid mt-3">
+    <!-- Header Controls -->
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-8 d-flex gap-3 align-items-center">
+            <h5 class="mb-0 fw-bold text-secondary">Dashboard Overview</h5>
+            <select id="monthFilter" class="form-select w-auto shadow-sm" onchange="loadSavedData()">
+                <option value="All">All Months</option>
+                <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+                <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+                <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+                <option value="9">October</option><option value="10" selected>November</option><option value="11">December</option>
+            </select>
+            <select id="yearFilter" class="form-select w-auto shadow-sm" onchange="loadSavedData()">
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+            </select>
+        </div>
+        <div class="col-md-4 text-end">
+             <button class="btn btn-sm btn-link text-danger" onclick="resetDatabase()">Clear Database</button>
+        </div>
     </div>
 
-    <!-- Top KPI Cards -->
+    <!-- KPI Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="stat-card" style="border-left-color: #2563eb;">
-                <div class="stat-label">Total FPY %</div>
+            <div class="stat-card" style="border-top: 5px solid #2563eb;">
+                <div class="stat-label">FPY %</div>
                 <div class="stat-value" id="kpi-fpy">0%</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card" style="border-left-color: #ef4444;">
+            <div class="stat-card" style="border-top: 5px solid #ef4444;">
                 <div class="stat-label">Rejection Rate %</div>
                 <div class="stat-value" id="kpi-rej">0%</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card" style="border-left-color: #10b981;">
-                <div class="stat-label">Total Input Qty</div>
+            <div class="stat-card" style="border-top: 5px solid #10b981;">
+                <div class="stat-label">Total Input</div>
                 <div class="stat-value" id="kpi-input">0</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card" style="border-left-color: #f59e0b;">
-                <div class="stat-label">Total Defect Qty</div>
+            <div class="stat-card" style="border-top: 5px solid #f59e0b;">
+                <div class="stat-label">Total Defects</div>
                 <div class="stat-value" id="kpi-defects">0</div>
             </div>
         </div>
@@ -99,13 +103,13 @@
 
     <!-- Charts Row -->
     <div class="row g-3 mb-4">
-        <div class="col-md-8">
+        <div class="col-md-7">
             <div class="chart-container">
                 <h6 class="fw-bold"><i class="bi bi-bar-chart-fill me-2"></i>Top 5 Defects (Pareto)</h6>
                 <canvas id="paretoChart"></canvas>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="chart-container">
                 <h6 class="fw-bold"><i class="bi bi-pie-chart-fill me-2"></i>Contribution by Category</h6>
                 <canvas id="categoryChart"></canvas>
@@ -113,23 +117,23 @@
         </div>
     </div>
 
-    <!-- Line-wise Analysis Table -->
-    <div class="line-table-container mb-5">
-        <h6 class="fw-bold mb-3"><i class="bi bi-hdd-stack-fill me-2"></i>Line-Wise Performance Summary</h6>
+    <!-- Line-wise Table -->
+    <div class="line-table-container">
+        <h6 class="fw-bold mb-3"><i class="bi bi-list-stars me-2"></i>Line-Wise Analysis</h6>
         <div class="table-responsive">
-            <table class="table table-bordered table-hover text-center">
+            <table class="table table-hover align-middle text-center">
                 <thead class="table-light">
                     <tr>
                         <th>Line No</th>
-                        <th>Total Input</th>
-                        <th>Total Defects</th>
-                        <th>Yield (FPY %)</th>
+                        <th>Input Qty</th>
+                        <th>Defect Qty</th>
+                        <th>FPY %</th>
                         <th>Rejection %</th>
-                        <th>Top Defect</th>
+                        <th>Major Defect</th>
                     </tr>
                 </thead>
-                <tbody id="lineTableBody">
-                    <tr><td colspan="6" class="text-muted">Upload data to see line-wise report</td></tr>
+                <tbody id="lineBody">
+                    <!-- Lines data -->
                 </tbody>
             </table>
         </div>
@@ -137,13 +141,14 @@
 </div>
 
 <script>
-    let masterData = JSON.parse(localStorage.getItem('califonix_db')) || [];
-    let tempUploadData = [];
+    let masterData = JSON.parse(localStorage.getItem('califonix_data_v2')) || [];
+    let currentData = []; // Data being viewed
     let chartP, chartC;
 
-    window.onload = () => { if(masterData.length > 0) runAnalysis(); };
+    // Load data on start
+    window.onload = () => { loadSavedData(); };
 
-    // --- 1. File Handling ---
+    // --- 1. File Upload & Automatic Preview ---
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         const reader = new FileReader();
@@ -151,95 +156,96 @@
             const workbook = XLSX.read(evt.target.result, { type: 'binary', cellDates: true });
             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
             
-            // Clean headers (remove spaces)
-            tempUploadData = json.map(row => {
+            // Clean headers and store in currentData for preview
+            currentData = json.map(row => {
                 let cleanRow = {};
                 for (let key in row) cleanRow[key.trim()] = row[key];
                 return cleanRow;
             });
-            
+
+            // Show Preview Mode
             document.getElementById('saveBtn').style.display = 'inline-block';
-            alert("File loaded! Click 'Save Data' to update the dashboard.");
+            document.getElementById('previewLabel').style.display = 'block';
+            
+            // Immediately run analysis on the new data
+            updateDashboard(currentData);
+            alert("Preview generated! Check the dashboard and click 'Save to Database' to keep it.");
         };
         reader.readAsBinaryString(file);
     });
 
-    // --- 2. Save Logic ---
-    function saveToLocalStorage() {
-        if(tempUploadData.length === 0) return;
-        // Append new data to existing
-        masterData = [...tempUploadData, ...masterData];
-        localStorage.setItem('califonix_db', JSON.stringify(masterData));
-        tempUploadData = [];
-        document.getElementById('saveBtn').style.display = 'none';
-        runAnalysis();
-        alert("Data successfully saved to system!");
+    // --- 2. Database Functions ---
+    function confirmSave() {
+        if(confirm("Do you want to save this data permanently?")) {
+            masterData = [...currentData, ...masterData];
+            localStorage.setItem('califonix_data_v2', JSON.stringify(masterData));
+            
+            document.getElementById('saveBtn').style.display = 'none';
+            document.getElementById('previewLabel').style.display = 'none';
+            alert("Data saved successfully!");
+            loadSavedData();
+        }
     }
 
-    // --- 3. Analytics Logic ---
-    function runAnalysis() {
+    function loadSavedData() {
         const m = document.getElementById('monthFilter').value;
         const y = document.getElementById('yearFilter').value;
 
-        const filtered = masterData.filter(r => {
+        let filtered = masterData.filter(r => {
             const d = new Date(r.Date);
-            return (m === "All" || d.getMonth() == m) && d.getFullYear() == y;
+            const mMatch = m === "All" || d.getMonth() == m;
+            const yMatch = d.getFullYear() == y;
+            return mMatch && yMatch;
         });
 
-        calculateKPIs(filtered);
+        updateDashboard(filtered);
     }
 
-    function calculateKPIs(data) {
-        let totalInput = 0;
-        let totalDefects = 0;
-        let defectsMap = {};
-        let categoryMap = {};
-        let lineMap = {};
+    // --- 3. The Dashboard Engine ---
+    function updateDashboard(data) {
+        let tInput = 0, tDefects = 0;
+        let defMap = {}, catMap = {}, lineMap = {};
 
         data.forEach(r => {
             const qty = parseInt(r["Defect Qty"]) || 0;
             const inp = parseInt(r.Input) || 0;
-            const line = r.Line || "Unknown";
+            const line = r.Line || "NA";
             const cat = r.Category || "Process";
 
-            totalInput += inp;
-            totalDefects += qty;
+            tInput += inp;
+            tDefects += qty;
 
-            // Pareto Data
-            if(r.Defect) defectsMap[r.Defect] = (defectsMap[r.Defect] || 0) + qty;
-            
-            // Pie Data
-            categoryMap[cat] = (categoryMap[cat] || 0) + qty;
+            // Grouping
+            if(r.Defect) defMap[r.Defect] = (defMap[r.Defect] || 0) + qty;
+            catMap[cat] = (catMap[cat] || 0) + qty;
 
-            // Line Wise Data
-            if(!lineMap[line]) lineMap[line] = { input: 0, defects: 0, topDef: {}, defs: {} };
-            lineMap[line].input += inp;
-            lineMap[line].defects += qty;
+            if(!lineMap[line]) lineMap[line] = { inp: 0, def: 0, defs: {} };
+            lineMap[line].inp += inp;
+            lineMap[line].def += qty;
             if(r.Defect) lineMap[line].defs[r.Defect] = (lineMap[line].defs[r.Defect] || 0) + qty;
         });
 
-        // Update KPI Text
-        document.getElementById('kpi-input').innerText = totalInput.toLocaleString();
-        document.getElementById('kpi-defects').innerText = totalDefects.toLocaleString();
-        document.getElementById('kpi-fpy').innerText = totalInput > 0 ? (((totalInput - totalDefects)/totalInput)*100).toFixed(2) + "%" : "0%";
-        document.getElementById('kpi-rej').innerText = totalInput > 0 ? ((totalDefects/totalInput)*100).toFixed(2) + "%" : "0%";
+        // Update KPIs
+        document.getElementById('kpi-input').innerText = tInput.toLocaleString();
+        document.getElementById('kpi-defects').innerText = tDefects.toLocaleString();
+        document.getElementById('kpi-fpy').innerText = tInput > 0 ? (((tInput - tDefects)/tInput)*100).toFixed(2) + "%" : "0%";
+        document.getElementById('kpi-rej').innerText = tInput > 0 ? ((tDefects/tInput)*100).toFixed(2) + "%" : "0%";
 
-        renderCharts(defectsMap, categoryMap);
+        renderCharts(defMap, catMap);
         renderLineTable(lineMap);
     }
 
-    // --- 4. Render Charts ---
-    function renderCharts(defData, catData) {
+    function renderCharts(defMap, catMap) {
         if(chartP) chartP.destroy();
         if(chartC) chartC.destroy();
 
-        const sortedDef = Object.entries(defData).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        const sortedDef = Object.entries(defMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
 
         chartP = new Chart(document.getElementById('paretoChart'), {
             type: 'bar',
             data: {
                 labels: sortedDef.map(x=>x[0]),
-                datasets: [{ label: 'Defect Quantity', data: sortedDef.map(x=>x[1]), backgroundColor: '#2563eb' }]
+                datasets: [{ label: 'Defect Qty', data: sortedDef.map(x=>x[1]), backgroundColor: '#2563eb' }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
@@ -247,46 +253,38 @@
         chartC = new Chart(document.getElementById('categoryChart'), {
             type: 'doughnut',
             data: {
-                labels: Object.keys(catData),
-                datasets: [{ data: Object.values(catData), backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1'] }]
+                labels: Object.keys(catMap),
+                datasets: [{ data: Object.values(catMap), backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1'] }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
     }
 
-    // --- 5. Line-wise Table ---
     function renderLineTable(lineMap) {
-        const tbody = document.getElementById('lineTableBody');
-        tbody.innerHTML = '';
+        const body = document.getElementById('lineBody');
+        body.innerHTML = '';
+        
+        Object.keys(lineMap).sort().forEach(l => {
+            const ld = lineMap[l];
+            const fpy = ld.inp > 0 ? (((ld.inp - ld.def)/ld.inp)*100).toFixed(2) : "0.00";
+            const rej = ld.inp > 0 ? ((ld.def/ld.inp)*100).toFixed(2) : "0.00";
+            const topDef = Object.entries(ld.defs).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-";
 
-        Object.keys(lineMap).sort().forEach(line => {
-            const d = lineMap[line];
-            const fpy = d.input > 0 ? (((d.input - d.defects)/d.input)*100).toFixed(2) : "0.00";
-            const rej = d.input > 0 ? ((d.defects/d.input)*100).toFixed(2) : "0.00";
-            
-            // Find top defect for this line
-            let topDef = "-";
-            if(Object.keys(d.defs).length > 0) {
-                topDef = Object.entries(d.defs).sort((a,b)=>b[1]-a[1])[0][0];
-            }
-
-            tbody.innerHTML += `
+            body.innerHTML += `
                 <tr>
-                    <td class="fw-bold">${line}</td>
-                    <td>${d.input}</td>
-                    <td>${d.defects}</td>
+                    <td><strong>${l}</strong></td>
+                    <td>${ld.inp}</td>
+                    <td>${ld.def}</td>
                     <td class="text-primary fw-bold">${fpy}%</td>
                     <td class="text-danger fw-bold">${rej}%</td>
-                    <td class="small">${topDef}</td>
-                </tr>
-            `;
+                    <td>${topDef}</td>
+                </tr>`;
         });
     }
 
-    // --- 6. Helpers ---
-    function clearSystem() {
-        if(confirm("Are you sure? This will delete all your data!")) {
-            localStorage.removeItem('califonix_db');
+    function resetDatabase() {
+        if(confirm("Warning! This will clear all data from the system.")) {
+            localStorage.removeItem('califonix_data_v2');
             location.reload();
         }
     }
@@ -294,11 +292,12 @@
     function exportToPPT() {
         let pptx = new PptxGenJS();
         let slide = pptx.addSlide();
-        slide.addText("MONTHLY QUALITY PERFORMANCE", { x:0.5, y:0.5, fontSize:24, bold:true, color:'0f172a' });
-        slide.addText("FPY: " + document.getElementById('kpi-fpy').innerText, { x:0.5, y:1.5, fontSize:20, color:'2563eb' });
-        slide.addText("Total Rejection: " + document.getElementById('kpi-rej').innerText, { x:0.5, y:2.2, fontSize:20, color:'ef4444' });
-        pptx.writeFile({ fileName: "Quality_Report.pptx" });
+        slide.addText("QUALITY REPORT - CALIFONIX", { x:0.5, y:0.5, fontSize:22, bold:true });
+        slide.addText("FPY: " + document.getElementById('kpi-fpy').innerText, { x:0.5, y:1.5, fontSize:18 });
+        slide.addText("Rejection: " + document.getElementById('kpi-rej').innerText, { x:0.5, y:2.1, fontSize:18 });
+        pptx.writeFile({ fileName: "Quality_Dashboard.pptx" });
     }
 </script>
+
 </body>
 </html>
