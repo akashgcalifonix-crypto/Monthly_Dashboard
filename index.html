@@ -3,157 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quality & Scrap Dashboard</title>
+    <title>Quality Scrap Review Dashboard</title>
     
-    <!-- CSS Libraries -->
+    <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- JS Libraries -->
+    <!-- Chart JS & Excel Libs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        :root { --primary: #4e73df; --secondary: #858796; --success: #1cc88a; --danger: #e74a3b; --bg: #f8f9fc; }
-        body { background-color: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f3f4f6; font-family: 'Nunito', sans-serif; }
         
-        /* Sidebar */
-        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #4e73df 10%, #224abe 100%); color: white; }
-        .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 5px; cursor: pointer; }
-        .nav-link:hover, .nav-link.active { color: white; background: rgba(255,255,255,0.2); border-radius: 5px; font-weight: bold; }
+        /* Sidebar Styling */
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #4e73df 0%, #224abe 100%);
+            color: #fff;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+        .logo-container { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .logo-container img { max-height: 50px; }
         
-        /* Cards */
-        .card { border: none; border-radius: 10px; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15); margin-bottom: 20px; }
-        .card-header { background: white; border-bottom: 1px solid #e3e6f0; font-weight: bold; color: #4e73df; }
+        .nav-link { color: rgba(255,255,255,0.8); font-size: 1.1rem; padding: 15px 20px; cursor: pointer; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.2); color: #fff; border-right: 5px solid #fff; }
         
-        /* Loading */
-        #loading { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; text-align: center; padding-top: 20%; }
+        /* Dashboard Cards */
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .card-header { background: #fff; border-bottom: 2px solid #f8f9fc; font-weight: 700; color: #4e73df; }
         
-        .logo-area { text-align: center; padding: 20px; }
-        .logo-area img { max-width: 120px; background: white; padding: 5px; border-radius: 5px; }
+        /* Loading Overlay */
+        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
-<!-- Loading Spinner -->
-<div id="loading"><div class="spinner-border text-primary" role="status"></div><h3>Processing Data...</h3></div>
+<!-- Loader -->
+<div id="loader">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    <h5 class="mt-3 text-primary">Fetching & Calculating Data...</h5>
+</div>
 
 <div class="container-fluid">
     <div class="row">
-        
         <!-- SIDEBAR -->
-        <div class="col-md-2 sidebar p-3">
-            <div class="logo-area">
-                <img src="https://i.postimg.cc/5y7SN4xc/logo.png" alt="Logo">
-                <h6 class="mt-2 small">Quality Control Tool</h6>
+        <div class="col-md-2 sidebar p-0">
+            <div class="p-4">
+                <div class="logo-container">
+                    <img src="https://i.postimg.cc/5y7SN4xc/logo.png" alt="Logo">
+                </div>
+                <h6 class="text-center mb-4">Quality Control System</h6>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" onclick="switchTab('dashboard')"><i class="fas fa-chart-pie me-3"></i>Dashboard</a>
+                    <a class="nav-link" onclick="switchTab('production')"><i class="fas fa-industry me-3"></i>Production Entry</a>
+                    <a class="nav-link" onclick="switchTab('upload')"><i class="fas fa-file-upload me-3"></i>Bulk Upload</a>
+                </nav>
             </div>
-            <hr>
-            <nav class="nav flex-column">
-                <a class="nav-link active" onclick="showSection('dashboard')"><i class="fas fa-chart-line me-2"></i> Dashboard</a>
-                <a class="nav-link" onclick="showSection('production')"><i class="fas fa-plus-circle me-2"></i> Production Entry</a>
-                <a class="nav-link" onclick="showSection('upload')"><i class="fas fa-file-excel me-2"></i> Bulk Upload</a>
-            </nav>
         </div>
 
         <!-- MAIN CONTENT -->
         <div class="col-md-10 p-4">
             
-            <!-- SECTION: DASHBOARD -->
-            <div id="dashboard-section">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3 text-gray-800">Review Dashboard</h1>
-                    <button class="btn btn-primary btn-sm" onclick="fetchDashboardData()"><i class="fas fa-sync"></i> Refresh Data</button>
+            <!-- VIEW: DASHBOARD -->
+            <div id="dashboard-view">
+                <div class="d-flex justify-content-between mb-4">
+                    <h2 class="text-dark fw-bold">Scrap Review Dashboard</h2>
+                    <button class="btn btn-primary" onclick="loadData()"><i class="fas fa-sync-alt me-2"></i>Refresh Data</button>
                 </div>
 
-                <!-- 1. LINE WISE SCRAP RATE -->
+                <!-- Chart 1: Line Wise Analysis -->
                 <div class="card">
-                    <div class="card-header">1. Line Wise Scrap Rate & Value</div>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-chart-bar me-2"></i>Line Wise Scrap Rate & Value</span>
+                    </div>
                     <div class="card-body">
-                        <canvas id="lineChart" height="80"></canvas>
-                        <div class="table-responsive mt-3">
-                            <table class="table table-bordered table-sm text-center" id="lineTable">
+                        <canvas id="lineChart" style="max-height: 400px;"></canvas>
+                        
+                        <!-- Detailed Table -->
+                        <div class="table-responsive mt-4">
+                            <table class="table table-bordered table-hover text-center align-middle">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Line</th><th>Prod Value</th><th>Scrap Value</th><th>Rate %</th>
-                                        <th>PCBA</th><th>Speaker</th><th>Battery</th><th>Magnet</th><th>Other</th>
+                                        <th>Line No</th>
+                                        <th>Total Prod Value</th>
+                                        <th>Total Scrap Value</th>
+                                        <th>Scrap Rate %</th>
+                                        <th class="bg-secondary">PCBA Loss</th>
+                                        <th class="bg-secondary">Speaker Loss</th>
+                                        <th class="bg-secondary">Battery Loss</th>
+                                        <th class="bg-secondary">Other Loss</th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody id="lineTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
                 <div class="row">
-                    <!-- 2. MODEL WISE -->
+                    <!-- Chart 2: Model Wise -->
                     <div class="col-md-6">
                         <div class="card h-100">
-                            <div class="card-header">2. Model Wise Performance</div>
+                            <div class="card-header">Model Wise Scrap Value</div>
                             <div class="card-body">
                                 <canvas id="modelChart"></canvas>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- 4. PART WISE TOP 5 -->
+                    <!-- Chart 3: Part Wise -->
                     <div class="col-md-6">
                         <div class="card h-100">
-                            <div class="card-header">4. Top 5 High Scrap Parts</div>
+                            <div class="card-header">Top 5 Parts Contributing to Scrap</div>
                             <div class="card-body">
                                 <canvas id="partChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- 3. DATE WISE TREND -->
-                <div class="card mt-4">
-                    <div class="card-header">3. Date / Month Wise Trend (Last 30 Days)</div>
-                    <div class="card-body">
-                        <canvas id="dateChart" height="60"></canvas>
-                    </div>
+            <!-- VIEW: PRODUCTION ENTRY -->
+            <div id="production-view" style="display:none;">
+                <h3 class="mb-3">Daily Production Entry</h3>
+                <div class="card p-4" style="max-width: 600px;">
+                    <form id="prodForm">
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" id="pDate" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Model Name</label>
+                            <select id="pModel" class="form-select"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Line No (e.g., L-11)</label>
+                            <input type="text" id="pLine" class="form-control" placeholder="L-11" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Good Output Qty</label>
+                            <input type="number" id="pOut" class="form-control" placeholder="0" required>
+                        </div>
+                        <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Save Entry</button>
+                    </form>
                 </div>
             </div>
 
-            <!-- SECTION: PRODUCTION ENTRY -->
-            <div id="production-section" style="display:none;">
-                <h3><i class="fas fa-edit"></i> Daily Production Entry</h3>
-                <div class="card mt-3" style="max-width: 600px;">
-                    <div class="card-body">
-                        <form id="prodForm">
-                            <div class="mb-3">
-                                <label>Date</label>
-                                <input type="date" id="pDate" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label>Model</label>
-                                <select id="pModel" class="form-select"></select>
-                            </div>
-                            <div class="mb-3">
-                                <label>Line No</label>
-                                <input type="text" id="pLine" class="form-control" placeholder="L-01" required>
-                            </div>
-                            <div class="mb-3">
-                                <label>Output Qty</label>
-                                <input type="number" id="pOut" class="form-control" placeholder="0" required>
-                            </div>
-                            <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Save Data</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION: BULK UPLOAD -->
-            <div id="upload-section" style="display:none;">
-                <h3><i class="fas fa-file-upload"></i> Bulk Scrap Upload</h3>
-                <div class="card mt-3">
-                    <div class="card-body text-center p-5">
-                        <i class="fas fa-cloud-upload-alt fa-4x text-primary mb-3"></i>
-                        <h5>Select Excel File</h5>
-                        <p class="text-muted">Columns: Doc Date, Line No, Material, Part Code, Price, Reject Qty, etc.</p>
+            <!-- VIEW: BULK UPLOAD -->
+            <div id="upload-view" style="display:none;">
+                <h3 class="mb-3">Bulk Data Upload</h3>
+                <div class="card p-5 text-center">
+                    <div class="border dashed p-5" style="border: 2px dashed #4e73df; border-radius: 10px; background: #f8f9fc;">
+                        <i class="fas fa-file-excel fa-4x text-success mb-3"></i>
+                        <h5>Upload Daily Scrap Report (.xlsx)</h5>
+                        <p class="text-muted">Ensure columns match: Doc Date, Line No, Price, Reject Qty, Material...</p>
                         <input type="file" id="uploadFile" class="form-control w-50 mx-auto mb-3" accept=".xlsx">
-                        <button class="btn btn-primary" onclick="processExcel()">Upload Data</button>
+                        <button class="btn btn-primary" onclick="processExcelUpload()">Upload & Process</button>
                     </div>
                 </div>
             </div>
@@ -163,201 +171,216 @@
 </div>
 
 <script>
-    // ******************************************************
-    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-    // ******************************************************
-    const API_URL = "https://script.google.com/macros/s/AKfycbw_odWVTIL3i5ibw22TzBo6SluKgHKoiLg6rk3WIn_lrHWnyCtZ1A5Ayc1aXPQBfuMh-w/exec"; 
+    // ********************************************************
+    // PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+    // ********************************************************
+    const API_URL = "https://script.google.com/macros/s/AKfycbwWTb0jH6XlmDRgaTLEiDex-S-vKE1dqY364UaFo9CFhsL0NQ0bSbKyqfzBRcCEYJ0bjA/exec"; 
 
-    // --- NAVIGATION ---
-    function showSection(id) {
-        document.getElementById('dashboard-section').style.display = 'none';
-        document.getElementById('production-section').style.display = 'none';
-        document.getElementById('upload-section').style.display = 'none';
-        document.getElementById(id + '-section').style.display = 'block';
+    // Global Data Holders
+    let modelPrices = {}; 
+
+    // --- INITIALIZE ---
+    window.onload = loadData;
+
+    function switchTab(tabId) {
+        document.getElementById('dashboard-view').style.display = 'none';
+        document.getElementById('production-view').style.display = 'none';
+        document.getElementById('upload-view').style.display = 'none';
+        document.getElementById(tabId + '-view').style.display = 'block';
         
-        // Update active sidebar
+        // Update Sidebar Active State
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
         event.target.classList.add('active');
-
-        if(id === 'dashboard') fetchDashboardData();
     }
 
-    // --- 1. FETCH & PROCESS DATA FOR DASHBOARD ---
-    async function fetchDashboardData() {
-        document.getElementById('loading').style.display = 'block';
+    // --- 1. FETCH DATA (SMART COLUMN MAPPING) ---
+    async function loadData() {
+        document.getElementById('loader').style.display = 'flex';
         try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            processDataForCharts(data);
-        } catch (error) {
-            Swal.fire("Error", "Failed to fetch data", "error");
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            processData(data);
+        } catch (err) {
+            Swal.fire("Connection Error", "Check your internet or API URL.", "error");
         }
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loader').style.display = 'none';
     }
 
-    // --- 2. CALCULATE LOGIC (THE BRAINS) ---
-    function processDataForCharts(data) {
-        // Data Structure helpers
-        let models = {}; // Model Name -> Price
-        data.models.forEach(m => models[m[0]] = m[1]);
-        
-        let lineData = {}; // Key: LineNo -> { prodVal: 0, scrapVal: 0, cat: {} }
-        let modelStats = {}; // Key: Model -> { prodVal: 0, scrapVal: 0 }
-        let partStats = {}; // Key: PartDesc -> scrapVal
-        let dateStats = {}; // Key: Date -> scrapVal
+    function processData(data) {
+        // A. Process Model Prices (Col 0 = Name, Col 1 = Price)
+        // Adjust based on your Model_List sheet structure
+        if(data.models && data.models.length > 0) {
+             const mHeader = data.models[0].map(h => h.toString().toLowerCase());
+             const mIdxPrice = mHeader.indexOf("price") > -1 ? mHeader.indexOf("price") : 1; 
+             
+             for(let i=1; i<data.models.length; i++){
+                 let row = data.models[i];
+                 if(row[0]) modelPrices[row[0]] = parseFloat(row[mIdxPrice]) || 0;
+             }
+             
+             // Populate Dropdown
+             const sel = document.getElementById('pModel');
+             sel.innerHTML = "";
+             Object.keys(modelPrices).forEach(m => sel.add(new Option(m, m)));
+        }
 
-        // 1. Process Production (Good Qty)
-        // Col: 2=Model, 3=Line, 5=Qty
-        data.production.forEach(row => {
-            let model = row[2];
-            let line = row[3];
-            let qty = parseFloat(row[5]) || 0;
-            let price = models[model] || 0;
-            let val = qty * price;
+        // B. Process Production (Good Value)
+        let prodStats = {}; // { LineNo: Value }
+        if(data.production && data.production.length > 0) {
+            // Find columns dynamically
+            let headers = data.production[0].map(x => x.toString().toLowerCase());
+            let iMod = headers.indexOf('model') > -1 ? headers.indexOf('model') : 2;
+            let iLine = headers.indexOf('line') > -1 ? headers.indexOf('line') : 3; // loose match
+            if (iLine === -1) iLine = headers.findIndex(h => h.includes('line'));
+            let iQty = headers.indexOf('output') > -1 ? headers.indexOf('output') : headers.length - 1;
 
-            // Line Logic
-            if(!lineData[line]) lineData[line] = { prodVal: 0, scrapVal: 0, cat: {} };
-            lineData[line].prodVal += val;
+            for(let i=1; i<data.production.length; i++) {
+                let row = data.production[i];
+                let line = (row[iLine] || "Unknown").toString();
+                let model = row[iMod];
+                let qty = parseFloat(row[iQty]) || 0;
+                let price = modelPrices[model] || 0;
+                
+                if(!prodStats[line]) prodStats[line] = 0;
+                prodStats[line] += (qty * price);
+            }
+        }
 
-            // Model Logic
-            if(!modelStats[model]) modelStats[model] = { prodVal: 0, scrapVal: 0 };
-            modelStats[model].prodVal += val;
-        });
+        // C. Process Scrap (Bad Value) - THIS IS THE CRITICAL FIX
+        let lineStats = {}; // { L-01: { scrapVal: 0, cat: {} } }
+        let modelStats = {}; 
+        let partStats = {}; 
 
-        // 2. Process Scrap (Bad Qty)
-        // Col: 3=Line, 7=Category, 8=Desc, 9=Model, 11=Price, 12=Qty
-        data.scrap.forEach(row => {
-            let line = row[3];
-            let cat = row[7] || "Other";
-            let desc = row[8];
-            let model = row[9];
-            let price = parseFloat(row[11]) || 0;
-            let qty = parseFloat(row[12]) || 0;
-            let val = qty * price;
-            let date = new Date(row[1]).toLocaleDateString();
+        if(data.scrap && data.scrap.length > 0) {
+            // SMART COLUMN DETECTION
+            let headers = data.scrap[0].map(x => x.toString().toLowerCase().trim());
+            
+            // Find Index of specific columns
+            let idxLine = headers.findIndex(h => h.includes("line"));
+            let idxMat = headers.indexOf("material");
+            let idxCat = headers.indexOf("category");
+            let idxDesc = headers.indexOf("material description");
+            let idxModel = headers.indexOf("model");
+            let idxPrice = headers.indexOf("price");
+            let idxQty = headers.indexOf("reject qty");
 
-            // Line Logic
-            if(!lineData[line]) lineData[line] = { prodVal: 0, scrapVal: 0, cat: {} };
-            lineData[line].scrapVal += val;
-            if(!lineData[line].cat[cat]) lineData[line].cat[cat] = 0;
-            lineData[line].cat[cat] += val;
+            // Loop Data
+            for(let i=1; i<data.scrap.length; i++) {
+                let row = data.scrap[i];
+                
+                // Get Price and Qty safely
+                let price = (idxPrice > -1) ? parseFloat(row[idxPrice]) : 0;
+                let qty = (idxQty > -1) ? parseFloat(row[idxQty]) : 0;
+                
+                // If Price is NaN (maybe "$500"), clean it
+                if(isNaN(price) && idxPrice > -1) {
+                    price = parseFloat(row[idxPrice].toString().replace(/[^0-9.]/g, '')) || 0;
+                }
 
-            // Model Logic
-            if(!modelStats[model]) modelStats[model] = { prodVal: 0, scrapVal: 0 };
-            modelStats[model].scrapVal += val;
+                let totalVal = price * qty;
+                if(totalVal === 0) continue; // Skip empty rows
 
-            // Part Logic
-            if(!partStats[desc]) partStats[desc] = 0;
-            partStats[desc] += val;
+                let line = (idxLine > -1) ? row[idxLine] : "Unknown";
+                let model = (idxModel > -1) ? row[idxModel] : "Unknown";
+                let cat = (idxCat > -1) ? row[idxCat] : "Other";
+                let desc = (idxDesc > -1) ? row[idxDesc] : row[idxMat];
 
-            // Date Logic
-            if(!dateStats[date]) dateStats[date] = 0;
-            dateStats[date] += val;
-        });
+                // Aggregations
+                if(!lineStats[line]) lineStats[line] = { scrapVal: 0, cat: {} };
+                lineStats[line].scrapVal += totalVal;
+                if(!lineStats[line].cat[cat]) lineStats[line].cat[cat] = 0;
+                lineStats[line].cat[cat] += totalVal;
 
-        // 3. RENDER CHARTS
-        renderLineChart(lineData);
-        renderModelChart(modelStats);
-        renderPartChart(partStats);
-        renderDateChart(dateStats);
+                if(!modelStats[model]) modelStats[model] = 0;
+                modelStats[model] += totalVal;
 
-        // Populate Model Dropdown for Entry Form
-        const sel = document.getElementById('pModel');
-        sel.innerHTML = "";
-        Object.keys(models).forEach(m => {
-            let opt = document.createElement('option');
-            opt.value = m; opt.text = m;
-            sel.add(opt);
-        });
+                if(!partStats[desc]) partStats[desc] = 0;
+                partStats[desc] += totalVal;
+            }
+        }
+
+        updateCharts(prodStats, lineStats, modelStats, partStats);
     }
 
-    // --- CHART RENDERING ---
-    let chartInstance = {};
+    // --- 2. RENDER CHARTS ---
+    let charts = {};
 
-    function renderLineChart(data) {
-        // Prepare arrays
-        let labels = Object.keys(data).sort();
-        let rates = [];
-        let html = "";
-        
-        labels.forEach(line => {
-            let pVal = data[line].prodVal;
-            let sVal = data[line].scrapVal;
+    function updateCharts(prodData, scrapData, modelData, partData) {
+        // 1. Line Chart & Table
+        const lines = Object.keys(scrapData).sort();
+        const tbody = document.getElementById('lineTableBody');
+        tbody.innerHTML = "";
+
+        let chartLabels = [];
+        let chartRates = [];
+
+        lines.forEach(line => {
+            let sVal = scrapData[line].scrapVal;
+            let pVal = prodData[line] || 0;
             let rate = pVal > 0 ? (sVal / pVal) * 100 : 0;
-            rates.push(rate.toFixed(2));
+            
+            chartLabels.push(line);
+            chartRates.push(rate.toFixed(2));
 
-            // Table Row
-            let cat = data[line].cat;
-            html += `<tr>
-                <td>${line}</td>
-                <td>${pVal.toFixed(0)}</td>
-                <td>${sVal.toFixed(0)}</td>
-                <td class="${rate > 2 ? 'text-danger fw-bold' : 'text-success'}">${rate.toFixed(2)}%</td>
-                <td>${(cat['PCBA'] || 0).toFixed(0)}</td>
-                <td>${(cat['Speaker'] || 0).toFixed(0)}</td>
-                <td>${(cat['Battery'] || 0).toFixed(0)}</td>
-                <td>${(cat['Magnet'] || 0).toFixed(0)}</td>
-                <td>${(cat['Other'] || cat['Other Parts'] || 0).toFixed(0)}</td>
+            // Breakdown
+            let cats = scrapData[line].cat;
+            
+            let row = `<tr>
+                <td><strong>${line}</strong></td>
+                <td>${pVal.toLocaleString()}</td>
+                <td class="text-danger fw-bold">${sVal.toLocaleString()}</td>
+                <td><span class="badge ${rate > 2 ? 'bg-danger' : 'bg-success'}">${rate.toFixed(2)}%</span></td>
+                <td>${(cats['PCBA'] || 0).toLocaleString()}</td>
+                <td>${(cats['Speaker'] || 0).toLocaleString()}</td>
+                <td>${(cats['Battery'] || 0).toLocaleString()}</td>
+                <td>${(cats['Other Parts'] || cats['Other'] || 0).toLocaleString()}</td>
             </tr>`;
+            tbody.innerHTML += row;
         });
 
-        document.querySelector('#lineTable tbody').innerHTML = html;
-
-        // Chart
-        const ctx = document.getElementById('lineChart');
-        if(chartInstance.line) chartInstance.line.destroy();
-        chartInstance.line = new Chart(ctx, {
+        // Bar Chart
+        if(charts.line) charts.line.destroy();
+        charts.line = new Chart(document.getElementById('lineChart'), {
             type: 'bar',
             data: {
-                labels: labels,
-                datasets: [{ label: 'Scrap Rate %', data: rates, backgroundColor: '#4e73df' }]
+                labels: chartLabels,
+                datasets: [{ 
+                    label: 'Scrap Rate %', 
+                    data: chartRates, 
+                    backgroundColor: '#4e73df',
+                    borderRadius: 5 
+                }]
+            },
+            options: { responsive: true, plugins: { legend: {display: false} } }
+        });
+
+        // 2. Model Chart (Doughnut)
+        const models = Object.keys(modelData);
+        const mVals = Object.values(modelData);
+        
+        if(charts.model) charts.model.destroy();
+        charts.model = new Chart(document.getElementById('modelChart'), {
+            type: 'doughnut',
+            data: {
+                labels: models,
+                datasets: [{ data: mVals, backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'] }]
             }
         });
-    }
 
-    function renderModelChart(data) {
-        let labels = Object.keys(data);
-        let sVals = labels.map(k => data[k].scrapVal);
-        
-        const ctx = document.getElementById('modelChart');
-        if(chartInstance.model) chartInstance.model.destroy();
-        chartInstance.model = new Chart(ctx, {
-            type: 'doughnut',
-            data: { labels: labels, datasets: [{ data: sVals, backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'] }] }
-        });
-    }
-
-    function renderPartChart(data) {
-        // Sort top 5
-        let sorted = Object.entries(data).sort((a,b) => b[1] - a[1]).slice(0, 5);
-        
-        const ctx = document.getElementById('partChart');
-        if(chartInstance.part) chartInstance.part.destroy();
-        chartInstance.part = new Chart(ctx, {
+        // 3. Part Chart (Horizontal Bar)
+        const sortedParts = Object.entries(partData).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        if(charts.part) charts.part.destroy();
+        charts.part = new Chart(document.getElementById('partChart'), {
             type: 'bar',
             data: {
-                labels: sorted.map(i => i[0].substring(0, 15)+'...'),
-                datasets: [{ label: 'Loss Value', data: sorted.map(i => i[1]), backgroundColor: '#e74a3b' }]
+                labels: sortedParts.map(x => x[0].substring(0, 20) + '...'),
+                datasets: [{ label: 'Loss Value', data: sortedParts.map(x => x[1]), backgroundColor: '#e74a3b' }]
             },
             options: { indexAxis: 'y' }
         });
     }
 
-    function renderDateChart(data) {
-        let sortedDates = Object.keys(data).sort((a,b) => new Date(a) - new Date(b));
-        
-        const ctx = document.getElementById('dateChart');
-        if(chartInstance.date) chartInstance.date.destroy();
-        chartInstance.date = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: sortedDates,
-                datasets: [{ label: 'Daily Scrap Value', data: sortedDates.map(d => data[d]), borderColor: '#f6c23e', fill: false }]
-            }
-        });
-    }
-
-    // --- 3. SAVE FUNCTIONS (Production & Bulk) ---
+    // --- 3. UPLOAD & SAVE ---
     function saveProduction() {
         const payload = {
             action: 'production',
@@ -366,40 +389,37 @@
             lineNo: document.getElementById('pLine').value,
             output: document.getElementById('pOut').value
         };
-        
         sendData(payload);
     }
 
-    function processExcel() {
+    function processExcelUpload() {
         const file = document.getElementById('uploadFile').files[0];
-        if(!file) return alert("Select file");
-        
+        if(!file) return Swal.fire("Error", "Please select a file", "warning");
+
         const reader = new FileReader();
         reader.onload = function(e) {
-            const workbook = XLSX.read(e.target.result, {type: 'array', cellDates: true});
-            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            const wb = XLSX.read(e.target.result, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
             
+            // Send JSON to Backend
             sendData({ action: 'bulk_scrap', rows: json });
         };
         reader.readAsArrayBuffer(file);
     }
 
     function sendData(payload) {
-        document.getElementById('loading').style.display = 'block';
+        document.getElementById('loader').style.display = 'flex';
         fetch(API_URL, {
             method: 'POST',
-            mode: 'no-cors', // Important for Apps Script
-            headers: { 'Content-Type': 'text/plain' },
+            mode: 'no-cors',
+            headers: {'Content-Type': 'text/plain'},
             body: JSON.stringify(payload)
         }).then(() => {
-            document.getElementById('loading').style.display = 'none';
-            Swal.fire("Success", "Data sent to Google Sheet", "success");
+            document.getElementById('loader').style.display = 'none';
+            Swal.fire("Success", "Data has been submitted!", "success");
             if(payload.action === 'production') document.getElementById('prodForm').reset();
         });
     }
-
-    // Initial Load
-    window.onload = fetchDashboardData;
 </script>
 
 </body>
