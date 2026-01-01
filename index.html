@@ -10,7 +10,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -31,7 +31,7 @@
         /* Scorecard (8-Box Layout) */
         .scorecard-container { background: white; padding: 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
         .score-box { text-align: center; padding: 15px 5px; border-right: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; }
-        .score-val { font-weight: 700; font-size: 1.2rem; color: #2c3e50; margin-bottom: 5px; }
+        .score-val { font-weight: 700; font-size: 1.1rem; color: #2c3e50; margin-bottom: 5px; }
         .score-label { font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; font-weight: 600; }
         
         /* Colors */
@@ -191,9 +191,9 @@
                     <div class="col-md-6"><div class="comp-card"><div class="comp-header">Daily Scrap Value Trend</div><div class="p-2"><canvas id="lineTrendChart" height="150"></canvas></div></div></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">PCBA Qty Trend</div><div class="p-2"><canvas id="linePCBAChart" height="150"></canvas></div></div></div>
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">Speaker Qty Trend</div><div class="p-2"><canvas id="lineSpkChart" height="150"></canvas></div></div></div>
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">Battery Qty Trend</div><div class="p-2"><canvas id="lineBatChart" height="150"></canvas></div></div></div>
+                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">PCBA Qty Trend (Date Wise)</div><div class="p-2"><canvas id="linePCBAChart" height="150"></canvas></div></div></div>
+                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">Speaker Qty Trend (Date Wise)</div><div class="p-2"><canvas id="lineSpkChart" height="150"></canvas></div></div></div>
+                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">Battery Qty Trend (Date Wise)</div><div class="p-2"><canvas id="lineBatChart" height="150"></canvas></div></div></div>
                 </div>
             </div>
 
@@ -211,7 +211,7 @@
                 </div>
             </div>
 
-            <!-- ========================= 4. COMPONENT REPORTS (PCBA/SPK/BAT) ========================= -->
+            <!-- ========================= 4. COMPONENT REPORTS ========================= -->
             <div id="component-container" class="content-section" style="display:none;"></div>
 
             <!-- ========================= 5. ENTRY FORMS ========================= -->
@@ -255,12 +255,28 @@
     let lineFilter = { type: 'ALL', storage: 'ALL' };
     let currentCompFilter = { type: 'ALL', storage: 'ALL' };
 
+    // Register DataLabels
+    Chart.register(ChartDataLabels);
+    Chart.defaults.set('plugins.datalabels', {
+        display: 'auto',
+        color: '#444',
+        align: 'end',
+        anchor: 'end',
+        formatter: function(value, context) {
+            // Format only if value is significant
+            if(value === 0) return '';
+            if(context.dataset.label && context.dataset.label.includes('%')) return value + '%';
+            if(value > 1000) return formatCompact(value, false);
+            return value;
+        },
+        font: { weight: 'bold', size: 10 }
+    });
+
     window.onload = loadData;
 
     function switchSection(id) {
         document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
-        let activeFunc = null;
-
+        
         if(['pcba','speaker','battery'].includes(id)) {
             currentCompFilter = { type: 'ALL', storage: 'ALL' };
             renderComponentDashboard(id);
@@ -309,12 +325,10 @@
                 if(idx === 0) return true;
                 let dStr = row[1]; // Doc Date
                 if(!dStr) return false;
-                // Handle different date formats if needed, assumes ISO or parsable
                 return new Date(dStr).toISOString().slice(0, 7) === selMonth;
             });
         }
         
-        // Trigger re-render of current active tab
         let active = document.querySelector('.nav-link.active').innerText;
         if(active.includes('Main')) processAndRender();
         else if(active.includes('Line')) renderLineFloorAnalysis();
@@ -338,7 +352,7 @@
             filteredData.scrap.slice(1).forEach(row => {
                 let lineRaw = (row[idx.line] || "").toString().toUpperCase().trim();
                 let baseLine = normalizeLine(lineRaw);
-                let isCase = lineRaw.includes('C'); 
+                let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C'); 
                 let storeVal = (row[idx.store] || "").toString().toLowerCase();
                 let isProcess = storeVal.includes('6003') || storeVal.includes('process');
                 let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
@@ -478,7 +492,7 @@
         renderChart('modBatChart', 'bar', models, [{label:'Qty', data:models.map(m=>compByModel.bat[m]), backgroundColor:'#858796'}]);
     }
 
-    /* === COMPONENT REPORTS (RESTORED) === */
+    /* === COMPONENT REPORTS === */
     function renderComponentDashboard(compName) {
         const container = document.getElementById('component-container');
         let title = compName.toUpperCase();
@@ -528,7 +542,14 @@
         charts[id] = new Chart(document.getElementById(id), {
             type: type,
             data: { labels: labels, datasets: datasets },
-            options: { responsive: true, plugins: { datalabels: { display: false }, tooltip: { callbacks: { label: ctx => (ctx.dataset.label.includes('Value')?formatCompact(ctx.raw,true):ctx.raw.toLocaleString()) } } }, scales: { y: { ticks: { callback: v => formatCompact(v, false) }, position:'left' }, y1: { position:'right', grid:{drawOnChartArea:false}, display: type==='bar' && datasets.length>1 } } }
+            options: { 
+                responsive: true, 
+                plugins: { 
+                    datalabels: { display: 'auto', align: 'end', anchor: 'end', formatter: (val, ctx) => ctx.dataset.label.includes('%') ? val+'%' : formatCompact(val, false) }, 
+                    tooltip: { callbacks: { label: ctx => (ctx.dataset.label.includes('Value')?formatCompact(ctx.raw,true):ctx.raw.toLocaleString()) } } 
+                }, 
+                scales: { y: { ticks: { callback: v => formatCompact(v, false) }, position:'left' }, y1: { position:'right', grid:{drawOnChartArea:false}, display: datasets.length>1 } } 
+            }
         });
     }
     
