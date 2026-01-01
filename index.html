@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; }
+        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; --danger: #e74a3b; --success: #1cc88a; }
         body { background-color: var(--bg); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
         
         /* Sidebar */
@@ -22,7 +22,6 @@
         .nav-link { color: rgba(255,255,255,0.8); padding: 12px 20px; cursor: pointer; border-left: 4px solid transparent; }
         .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: #fff; border-left-color: var(--accent); }
         .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sub-menu { padding-left: 20px; font-size: 0.85em; background: rgba(0,0,0,0.1); }
 
         /* Scorecard (Top Header) */
         .scorecard-container { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -31,20 +30,23 @@
         .score-val { font-weight: 700; font-size: 1.1rem; color: #2c3e50; }
         .score-label { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Controls */
-        .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; }
-        .toggle-btn { cursor: pointer; padding: 5px 15px; border: 1px solid var(--accent); border-radius: 20px; color: var(--accent); transition: 0.3s; }
-        .toggle-btn.active { background: var(--accent); color: white; }
+        /* High Stats Cards */
+        .high-stat-card { background: white; border-radius: 8px; padding: 15px; border-left: 5px solid var(--danger); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .high-stat-title { font-size: 0.75rem; color: #777; text-transform: uppercase; }
+        .high-stat-val { font-size: 1.1rem; font-weight: bold; color: #333; }
+        .high-stat-sub { font-size: 0.8rem; color: var(--danger); }
 
-        /* Cards & Tables */
-        .card { border: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        .card-header { background: white; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #2c3e50; }
+        /* Controls */
+        .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; }
+        .toggle-btn { cursor: pointer; padding: 5px 15px; border: 1px solid var(--primary); border-radius: 4px; color: var(--primary); transition: 0.3s; background: white; }
+        .toggle-btn.active { background: var(--primary); color: white; }
+
+        /* Tables */
         .table thead { background-color: #2c3e50; color: white; }
-        .table th, .table td { vertical-align: middle; padding: 8px; font-size: 0.85rem; }
+        .table th, .table td { vertical-align: middle; padding: 10px; font-size: 0.85rem; }
+        .badge-lg { font-size: 0.9rem; padding: 6px 10px; }
         
-        /* Utility */
         #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .badge-lg { font-size: 1rem; padding: 8px 12px; }
     </style>
 </head>
 <body>
@@ -93,74 +95,89 @@
                         </div>
                         <div class="col score-box">
                             <div class="score-val text-primary" id="sc-total-val">₹0</div>
-                            <div class="score-label">Total Value</div>
-                        </div>
-                        <div class="col score-box">
-                            <div class="score-val text-warning" id="sc-proc-scrap">₹0</div>
-                            <div class="score-label">Process Scrap</div>
-                        </div>
-                        <div class="col score-box">
-                            <div class="score-val text-info" id="sc-rmd-scrap">₹0</div>
-                            <div class="score-label">RMD Scrap</div>
+                            <div class="score-label">Total Prod Value</div>
                         </div>
                         <div class="col score-box">
                             <div class="score-val text-danger" id="sc-tot-scrap">₹0</div>
                             <div class="score-label">Total Scrap</div>
                         </div>
-                        <div class="col score-box" style="background: #fff3cd;">
-                            <div class="score-val text-dark" id="sc-proc-rate">0%</div>
-                            <div class="score-label">Process Rate</div>
-                        </div>
-                        <div class="col score-box" style="background: #cff4fc;">
-                            <div class="score-val text-dark" id="sc-rmd-rate">0%</div>
-                            <div class="score-label">RMD Rate</div>
-                        </div>
-                        <div class="col score-box" style="background: #2c3e50;">
-                            <div class="score-val text-white" id="sc-ovr-rate">0%</div>
-                            <div class="score-label text-white-50">Overall Rate</div>
+                        <div class="col score-box" style="background: #e8f5e9;">
+                            <div class="score-val text-success" id="sc-ovr-rate">0%</div>
+                            <div class="score-label">Overall Scrap Rate</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. CONTROLS -->
+                <!-- 2. HIGH SCRAP STATS (Top Line, Model, Floor) -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="high-stat-card">
+                            <div class="high-stat-title">Highest Scrap Line</div>
+                            <div class="high-stat-val" id="high-line">N/A</div>
+                            <div class="high-stat-sub" id="high-line-rate">0% Rate</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="high-stat-card" style="border-left-color: #f6c23e;">
+                            <div class="high-stat-title">Highest Scrap Model</div>
+                            <div class="high-stat-val" id="high-model">N/A</div>
+                            <div class="high-stat-sub" id="high-model-val">₹0 Loss</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="high-stat-card" style="border-left-color: #4e73df;">
+                            <div class="high-stat-title">Highest Scrap Floor</div>
+                            <div class="high-stat-val" id="high-floor">N/A</div>
+                            <div class="high-stat-sub" id="high-floor-val">₹0 Loss</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. CONTROLS -->
                 <div class="controls-bar">
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-dark btn-sm active" id="btn-overall" onclick="setLineType('OVERALL')">Overall</button>
+                    <!-- Line Type Toggle -->
+                    <div class="btn-group">
                         <button class="btn btn-outline-dark btn-sm" id="btn-earbuds" onclick="setLineType('EARBUDS')">Earbuds</button>
                         <button class="btn btn-outline-dark btn-sm" id="btn-case" onclick="setLineType('CASE')">Charging Case</button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="setLineType('ALL')">Reset</button>
                     </div>
 
-                    <div class="d-flex gap-3 align-items-center">
+                    <div class="d-flex gap-2 align-items-center">
+                        <!-- Storage Filter (Restored) -->
+                        <select id="storageFilter" class="form-select form-select-sm" style="width: 150px; border-color: #3498db;" onchange="processAndRender()">
+                            <option value="ALL">All Storage</option>
+                            <option value="PROCESS">Process (6003)</option>
+                            <option value="RMD">RMD (6002)</option>
+                        </select>
+
+                        <!-- View Mode Toggle -->
                         <div class="btn-group btn-group-sm">
                             <button type="button" class="btn btn-outline-primary active" id="view-val" onclick="toggleViewMode('VALUE')">₹ Value</button>
                             <button type="button" class="btn btn-outline-primary" id="view-qty" onclick="toggleViewMode('QTY')">123 Qty</button>
                         </div>
                         
-                        <select id="sortFilter" class="form-select form-select-sm" style="width: 150px;" onchange="processAndRender()">
+                        <!-- Sort -->
+                        <select id="sortFilter" class="form-select form-select-sm" style="width: 140px;" onchange="processAndRender()">
                             <option value="DESC">Rate: High to Low</option>
                             <option value="ASC">Rate: Low to High</option>
                         </select>
-                        <button class="btn btn-primary btn-sm" onclick="loadData()"><i class="fas fa-sync"></i> Refresh</button>
+                        <button class="btn btn-primary btn-sm" onclick="loadData()"><i class="fas fa-sync"></i></button>
                     </div>
                 </div>
 
-                <!-- 3. MAIN LINE TABLE -->
+                <!-- 4. MAIN LINE TABLE -->
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between">
-                        <span id="chartTitle">Line Wise Analysis</span>
-                    </div>
-                    <div class="card-body">
+                    <div class="card-header">Line Wise Analysis</div>
+                    <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-hover text-center align-middle">
+                            <table class="table table-bordered table-striped table-hover text-center align-middle mb-0">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th rowspan="2">Line No</th>
-                                        <th rowspan="2">Prod Value</th>
-                                        <th rowspan="2">Scrap Value</th>
-                                        <th rowspan="2">Rate %</th>
-                                        <th colspan="5" id="breakdown-header">Defect Breakdown (Value ₹)</th>
-                                    </tr>
-                                    <tr>
+                                        <th>Line No</th>
+                                        <th>Prod Value</th>
+                                        <th>Scrap Value</th>
+                                        <th>Rate %</th>
+                                        <th id="breakdown-header">Defect Breakdown (Value ₹)</th> <!-- merged for cleaner look, handled in row -->
                                         <th>PCBA</th><th>Speaker</th><th>Battery</th><th>Magnet</th><th>Other</th>
                                     </tr>
                                 </thead>
@@ -171,12 +188,12 @@
                 </div>
             </div>
 
-            <!-- SECTIONS: COMPONENT ANALYSIS (PCBA, SPEAKER, BATTERY) -->
+            <!-- COMPONENT REPORTS -->
             <div id="pcba-section" class="content-section" style="display:none;"></div>
             <div id="speaker-section" class="content-section" style="display:none;"></div>
             <div id="battery-section" class="content-section" style="display:none;"></div>
 
-            <!-- SECTIONS: ENTRY & UPLOAD -->
+            <!-- ENTRY & UPLOAD -->
             <div id="production-section" class="content-section" style="display:none;">
                 <h3>Production Entry</h3>
                 <div class="card p-4 shadow-sm" style="max-width: 600px;">
@@ -219,7 +236,7 @@
     // STATE
     let rawData = { production: [], scrap: [], models: [] };
     let modelPrices = {};
-    let currentLineType = 'OVERALL'; // OVERALL, EARBUDS, CASE
+    let currentLineType = 'ALL'; // ALL, EARBUDS, CASE
     let viewMode = 'VALUE'; // VALUE, QTY
 
     window.onload = loadData;
@@ -227,7 +244,6 @@
     function switchSection(id) {
         document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
         
-        // Handle Component Reports specifically
         if(['pcba','speaker','battery'].includes(id)) {
             renderComponentReport(id);
             document.getElementById(id+'-section').style.display = 'block';
@@ -239,7 +255,6 @@
         event.currentTarget.classList.add('active');
     }
 
-    // --- DATA LOADING ---
     async function loadData() {
         document.getElementById('loader').style.display = 'flex';
         try {
@@ -247,7 +262,6 @@
             let json = await res.json();
             rawData = json;
             
-            // Build Model Prices
             if(json.models) {
                 let pSelect = document.getElementById('pModel');
                 pSelect.innerHTML = "";
@@ -261,9 +275,10 @@
         document.getElementById('loader').style.display = 'none';
     }
 
-    // --- MAIN PROCESSING LOGIC ---
     function processAndRender() {
-        // 1. Calculate Unified Production (Base Line ID)
+        const storageFilter = document.getElementById('storageFilter').value;
+
+        // 1. CALCULATE PRODUCTION (Unified Baseline)
         let prodMap = {}; // Key: "1", "2", "3" (Base Number) -> { val: 0, qty: 0 }
         
         if(rawData.production.length > 0) {
@@ -274,106 +289,142 @@
 
             rawData.production.slice(1).forEach(row => {
                 let lineRaw = (row[iLine] || "").toString();
-                let baseLine = normalizeLine(lineRaw); // "L-11C" -> "11"
+                let baseLine = normalizeLine(lineRaw); 
                 let model = row[iMod];
                 let qty = parseFloat(row[iOut]) || 0;
                 let price = modelPrices[model] || 0;
                 
                 if(!prodMap[baseLine]) prodMap[baseLine] = { val: 0, qty: 0 };
-                prodMap[baseLine].val += (qty * price); // Full Price
+                prodMap[baseLine].val += (qty * price); 
                 prodMap[baseLine].qty += qty;
             });
         }
 
-        // 2. Calculate Scrap (Earbud vs Case vs Overall)
+        // 2. CALCULATE SCRAP & HIGH STATS
         let scrapMap = {}; 
-        let scorecard = { out:0, prodVal:0, procScrap:0, rmdScrap:0, totScrap:0 };
+        let modelStats = {};
+        let floorStats = { 'First Floor':0, 'Second Floor':0, 'Basement':0, 'Other':0 };
+        let totalStats = { out:0, prodVal:0, totScrap:0 };
 
-        // Pre-fill scorecard production
-        Object.values(prodMap).forEach(p => {
-            scorecard.out += p.qty;
-            scorecard.prodVal += p.val;
-        });
+        // Add Prod Totals
+        Object.values(prodMap).forEach(p => { totalStats.out += p.qty; totalStats.prodVal += p.val; });
 
         if(rawData.scrap.length > 0) {
             let h = rawData.scrap[0].map(x=>x.toString().toLowerCase());
             let iLine = h.findIndex(x=>x.includes('line'));
             let iStore = h.findIndex(x=>x.includes('storage'));
             let iCat = h.indexOf('category');
-            let iDesc = h.indexOf('material description') > -1 ? h.indexOf('material description') : h.indexOf('material');
             let iPrice = h.indexOf('price');
             let iQty = h.findIndex(x=>x.includes('reject') || x.includes('qty'));
+            let iModel = h.indexOf('model');
 
             rawData.scrap.slice(1).forEach(row => {
-                let lineRaw = (row[iLine] || "").toString().toUpperCase();
+                let lineRaw = (row[iLine] || "").toString().toUpperCase().trim();
                 let baseLine = normalizeLine(lineRaw);
-                let isCase = lineRaw.includes('C'); // Identification
-                
+                let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C'); 
+
+                // STORAGE FILTER
                 let storeVal = (row[iStore] || "").toString().toLowerCase();
-                let isProcess = storeVal.includes('6003') || storeVal.includes('process');
-                let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
+                if(storageFilter === 'PROCESS' && !storeVal.includes('6003') && !storeVal.includes('process')) return;
+                if(storageFilter === 'RMD' && !storeVal.includes('6002') && !storeVal.includes('rmd')) return;
+
+                // TYPE FILTER
+                if(currentLineType === 'EARBUDS' && isCase) return;
+                if(currentLineType === 'CASE' && !isCase) return;
 
                 let price = parseFloat(row[iPrice]) || 0;
                 let qty = parseFloat(row[iQty]) || 0;
                 let val = price * qty;
                 if(val === 0) return;
 
-                // Scorecard Calculation
-                scorecard.totScrap += val;
-                if(isProcess) scorecard.procScrap += val;
-                if(isRMD) scorecard.rmdScrap += val;
+                totalStats.totScrap += val;
 
-                // Filter for Table View
-                if(currentLineType === 'EARBUDS' && isCase) return;
-                if(currentLineType === 'CASE' && !isCase) return;
-
+                // Map Scrap to Line
                 let cat = row[iCat] || "Other Parts";
-                
-                // Init Line Data
                 if(!scrapMap[baseLine]) scrapMap[baseLine] = { total:0, cats:{}, catsQty:{} };
-                
                 scrapMap[baseLine].total += val;
-                
-                // Category Breakdown (Value)
                 if(!scrapMap[baseLine].cats[cat]) scrapMap[baseLine].cats[cat] = 0;
                 scrapMap[baseLine].cats[cat] += val;
-
-                // Category Breakdown (Qty)
                 if(!scrapMap[baseLine].catsQty[cat]) scrapMap[baseLine].catsQty[cat] = 0;
                 scrapMap[baseLine].catsQty[cat] += qty;
+
+                // Map Scrap to Model
+                let model = row[iModel] || "Unknown";
+                if(!modelStats[model]) modelStats[model] = 0;
+                modelStats[model] += val;
+
+                // Map Scrap to Floor
+                let floor = getFloor(baseLine);
+                if(!floorStats[floor]) floorStats[floor] = 0;
+                floorStats[floor] += val;
             });
         }
 
-        renderScorecard(scorecard);
+        renderScorecard(totalStats);
+        renderHighStats(scrapMap, prodMap, modelStats, floorStats);
         renderTable(prodMap, scrapMap);
     }
 
+    // --- HELPER LOGIC ---
+
     function normalizeLine(str) {
-        // Extract numbers only to link L-1, L-01, L-1C -> "1"
-        return str.replace(/[^0-9]/g, '');
+        // Fix for IQC, PDI, TRC: Return as is if no numbers, or specific text
+        if(str.match(/IQC|PDI|TRC/i)) return str.toUpperCase();
+        // Else extract numbers for unifying L-1 and L-1C
+        let nums = str.replace(/[^0-9]/g, '');
+        return nums ? nums : str; // If empty (like "L-"), return original
+    }
+
+    function getFloor(lineStr) {
+        let num = parseInt(lineStr);
+        if(isNaN(num)) return "Other";
+        if(num >= 1 && num <= 8) return "First Floor";
+        if(num >= 9 && num <= 16) return "Second Floor";
+        if(num >= 17 && num <= 24) return "Basement";
+        return "Other";
     }
 
     function renderScorecard(s) {
         document.getElementById('sc-total-out').innerText = s.out.toLocaleString();
         document.getElementById('sc-total-val').innerText = "₹" + (s.prodVal/100000).toFixed(2) + " L";
-        document.getElementById('sc-proc-scrap').innerText = "₹" + s.procScrap.toLocaleString();
-        document.getElementById('sc-rmd-scrap').innerText = "₹" + s.rmdScrap.toLocaleString();
         document.getElementById('sc-tot-scrap').innerText = "₹" + s.totScrap.toLocaleString();
-        
-        let pRate = s.prodVal > 0 ? (s.procScrap/s.prodVal)*100 : 0;
-        let rRate = s.prodVal > 0 ? (s.rmdScrap/s.prodVal)*100 : 0;
-        let oRate = s.prodVal > 0 ? (s.totScrap/s.prodVal)*100 : 0;
+        let rate = s.prodVal > 0 ? (s.totScrap/s.prodVal)*100 : 0;
+        document.getElementById('sc-ovr-rate').innerText = rate.toFixed(2) + "%";
+    }
 
-        document.getElementById('sc-proc-rate').innerText = pRate.toFixed(2) + "%";
-        document.getElementById('sc-rmd-rate').innerText = rRate.toFixed(2) + "%";
-        document.getElementById('sc-ovr-rate').innerText = oRate.toFixed(2) + "%";
+    function renderHighStats(lineScrap, prodMap, modelScrap, floorStats) {
+        // 1. High Line
+        let topLine = "N/A", topRate = 0;
+        Object.keys(lineScrap).forEach(ln => {
+            let p = prodMap[ln] ? prodMap[ln].val : 0;
+            let s = lineScrap[ln].total;
+            let r = p > 0 ? (s/p)*100 : 0;
+            if(r > topRate) { topRate = r; topLine = "Line " + ln; }
+        });
+        document.getElementById('high-line').innerText = topLine;
+        document.getElementById('high-line-rate').innerText = topRate.toFixed(2) + "% Rate";
+
+        // 2. High Model (by Value)
+        let topMod = "N/A", topModVal = 0;
+        Object.entries(modelScrap).forEach(([m, v]) => {
+            if(v > topModVal) { topModVal = v; topMod = m; }
+        });
+        document.getElementById('high-model').innerText = topMod;
+        document.getElementById('high-model-val').innerText = "₹" + topModVal.toLocaleString();
+
+        // 3. High Floor
+        let topFlr = "N/A", topFlrVal = 0;
+        Object.entries(floorStats).forEach(([f, v]) => {
+            if(v > topFlrVal) { topFlrVal = v; topFlr = f; }
+        });
+        document.getElementById('high-floor').innerText = topFlr;
+        document.getElementById('high-floor-val').innerText = "₹" + topFlrVal.toLocaleString();
     }
 
     function renderTable(prodMap, scrapMap) {
         const tbody = document.getElementById('lineTableBody');
         tbody.innerHTML = "";
         
-        // Get all base lines
         let allLines = new Set([...Object.keys(prodMap), ...Object.keys(scrapMap)]);
         let lineArray = [];
 
@@ -381,6 +432,8 @@
             let pVal = prodMap[ln] ? prodMap[ln].val : 0;
             let sVal = scrapMap[ln] ? scrapMap[ln].total : 0;
             let rate = pVal > 0 ? (sVal/pVal)*100 : 0;
+            if(pVal === 0 && sVal > 0) rate = 100; // IQC/PDI case
+
             let cats = scrapMap[ln] ? scrapMap[ln].cats : {};
             let catsQty = scrapMap[ln] ? scrapMap[ln].catsQty : {};
             
@@ -395,17 +448,22 @@
             let src = viewMode === 'VALUE' ? item.cats : item.catsQty;
             let sym = viewMode === 'VALUE' ? '₹' : '';
             
+            // Safe access
             let cPCBA = (src['PCBA']||0);
             let cSpk = (src['Speaker']||0);
             let cBat = (src['Battery']||0);
             let cMag = (src['Magnet']||0);
             let cOth = (src['Other Parts']||src['Other']||0);
 
+            // Display Logic for Line Name
+            let displayLine = isNaN(item.ln) ? item.ln : "Line " + item.ln;
+
             let row = `<tr>
-                <td class="fw-bold">Line ${item.ln}</td>
+                <td class="fw-bold text-start ps-3">${displayLine}</td>
                 <td>₹${item.pVal.toLocaleString()}</td>
                 <td class="text-danger fw-bold">₹${item.sVal.toLocaleString()}</td>
-                <td><span class="badge ${item.rate>2?'bg-danger':'bg-success'} badge-lg">${item.rate.toFixed(2)}%</span></td>
+                <td><span class="badge ${item.rate>5?'bg-danger':'bg-success'} badge-lg">${item.rate.toFixed(2)}%</span></td>
+                <td></td>
                 <td>${sym}${cPCBA.toLocaleString()}</td>
                 <td>${sym}${cSpk.toLocaleString()}</td>
                 <td>${sym}${cBat.toLocaleString()}</td>
@@ -416,12 +474,12 @@
         });
     }
 
-    // --- COMPONENT REPORTS (New Feature) ---
+    // --- COMPONENT REPORTS ---
     function renderComponentReport(compName) {
-        let title = compName.toUpperCase() + " Analysis";
+        let title = compName.toUpperCase() + " Daily Report";
         let targetDiv = document.getElementById(compName + '-section');
         
-        // Filter Scrap Data for this Component
+        // Filter Scrap Data
         let filtered = [];
         if(rawData.scrap.length > 0) {
             let h = rawData.scrap[0].map(x=>x.toLowerCase());
@@ -435,9 +493,8 @@
                 let cat = (row[iCat]||"").toLowerCase();
                 if(cat.includes(compName)) {
                     filtered.push({
-                        date: new Date(row[iDate]).toLocaleDateString(),
+                        date: new Date(row[iDate]),
                         line: row[iLine],
-                        price: row[iPrice],
                         qty: row[iQty],
                         val: row[iPrice]*row[iQty]
                     });
@@ -445,31 +502,18 @@
             });
         }
 
-        // Generate HTML
-        let html = `<h3><i class="fas fa-search me-2"></i> ${title}</h3>
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <table class="table table-striped table-sm text-center">
-                                <thead class="table-dark">
-                                    <tr><th>Date</th><th>Line</th><th>Reject Qty</th><th>Loss Value (₹)</th></tr>
-                                </thead>
-                                <tbody>`;
+        // HTML Build
+        let html = `<h3>${title}</h3><div class="card mt-3"><div class="card-body">
+            <table class="table table-striped table-sm text-center">
+            <thead class="table-dark"><tr><th>Date</th><th>Line</th><th>Qty</th><th>Value (₹)</th></tr></thead><tbody>`;
         
-        if(filtered.length === 0) {
-            html += `<tr><td colspan="4">No data found for ${title}</td></tr>`;
-        } else {
-            // Sort by Date Desc
-            filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+        if(filtered.length === 0) html += `<tr><td colspan="4">No data found</td></tr>`;
+        else {
+            filtered.sort((a,b) => b.date - a.date); // Sort desc
             filtered.forEach(f => {
-                html += `<tr>
-                    <td>${f.date}</td>
-                    <td>${f.line}</td>
-                    <td>${f.qty}</td>
-                    <td class="fw-bold text-danger">${f.val.toLocaleString()}</td>
-                </tr>`;
+                html += `<tr><td>${f.date.toLocaleDateString()}</td><td>${f.line}</td><td>${f.qty}</td><td class="fw-bold">₹${f.val.toLocaleString()}</td></tr>`;
             });
         }
-        
         html += `</tbody></table></div></div>`;
         targetDiv.innerHTML = html;
     }
@@ -477,11 +521,10 @@
     // --- UTILS ---
     function setLineType(type) {
         currentLineType = type;
-        document.querySelectorAll('.controls-bar button').forEach(b => b.classList.remove('active'));
-        if(type==='OVERALL') document.getElementById('btn-overall').classList.add('active');
+        document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
         if(type==='EARBUDS') document.getElementById('btn-earbuds').classList.add('active');
         if(type==='CASE') document.getElementById('btn-case').classList.add('active');
-        
+        // 'ALL' has no specific button highlight or reset button logic
         processAndRender();
     }
 
@@ -493,7 +536,7 @@
         processAndRender();
     }
 
-    // --- SAVE / UPLOAD (Standard) ---
+    // --- SAVE / UPLOAD ---
     function saveProduction() {
         sendData({
             action: 'production',
