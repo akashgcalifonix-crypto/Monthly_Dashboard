@@ -17,33 +17,24 @@
         body { background-color: #f0f2f5; font-family: 'Poppins', sans-serif; }
         
         /* Sidebar */
-        .sidebar {
-            min-height: 100vh;
-            background: linear-gradient(180deg, #2c3e50 0%, #4ca1af 100%);
-            color: #fff;
-        }
+        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #4ca1af 100%); color: #fff; }
         .nav-link { color: rgba(255,255,255,0.85); padding: 15px; cursor: pointer; transition: 0.2s; }
         .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.2); color: #fff; font-weight: 600; border-radius: 0 25px 25px 0; }
         
-        /* Dashboard Header */
+        /* Header & Filters */
         .dash-header { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .filter-group { display: flex; gap: 10px; align-items: center; }
         
-        /* Tabs for Earbuds/Case */
-        .type-tabs .nav-link { 
-            color: #555; font-weight: 600; border: 1px solid #ddd; margin-right: 5px; border-radius: 5px; 
-        }
-        .type-tabs .nav-link.active { 
-            background-color: #4ca1af; color: white; border-color: #4ca1af; 
-        }
+        /* Type Tabs */
+        .type-tabs .nav-link { color: #555; font-weight: 600; border: 1px solid #ddd; margin-right: 5px; border-radius: 5px; background: white; }
+        .type-tabs .nav-link.active { background-color: #4ca1af; color: white; border-color: #4ca1af; }
 
-        /* Cards & Charts */
+        /* Cards & Table */
         .card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card-header { background: white; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #2c3e50; }
-        
-        /* Table */
         .table thead { background-color: #2c3e50; color: white; }
         .badge-rate { font-size: 0.9em; padding: 6px 10px; }
-        
+
         #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     </style>
 </head>
@@ -74,53 +65,64 @@
         <!-- MAIN CONTENT -->
         <div class="col-md-10 p-4">
 
-            <!-- SECTION: DASHBOARD -->
+            <!-- DASHBOARD SECTION -->
             <div id="dashboard-section">
                 
-                <!-- Controls Header -->
+                <!-- HEADER & FILTERS -->
                 <div class="dash-header d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div>
                         <h3 class="m-0 text-dark">Review Dashboard</h3>
-                        <small class="text-muted">Overview of Production vs Scrap</small>
                     </div>
                     
-                    <div class="d-flex gap-3 align-items-center">
+                    <div class="filter-group">
+                        <!-- SORT FILTER -->
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-sort text-primary"></i></span>
+                            <select id="sortFilter" class="form-select" onchange="processAndRender()">
+                                <option value="DESC" selected>Scrap Rate: High to Low</option>
+                                <option value="ASC">Scrap Rate: Low to High</option>
+                            </select>
+                        </div>
+
                         <!-- STORAGE FILTER -->
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="fas fa-filter text-primary"></i></span>
                             <select id="storageFilter" class="form-select" onchange="processAndRender()">
-                                <option value="ALL" selected>All Storage Locations</option>
+                                <option value="ALL" selected>All Locations</option>
                                 <option value="PROCESS">Process (6003)</option>
                                 <option value="RMD">RMD (6002)</option>
                             </select>
                         </div>
-                        <button class="btn btn-primary" onclick="loadData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+
+                        <button class="btn btn-primary" onclick="loadData()"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
 
-                <!-- Type Tabs (Earbuds vs Case) -->
+                <!-- TABS (OVERALL / EARBUDS / CASE) -->
                 <ul class="nav nav-pills type-tabs mb-4">
                     <li class="nav-item">
-                        <button class="nav-link active" onclick="setLineType('EARBUDS')">
+                        <button class="nav-link active" onclick="setLineType('OVERALL')">
+                            <i class="fas fa-globe me-2"></i> Overall
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="setLineType('EARBUDS')">
                             <i class="fas fa-headphones me-2"></i> Earbuds Lines
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" onclick="setLineType('CASE')">
-                            <i class="fas fa-battery-half me-2"></i> Charging Case (C)
+                            <i class="fas fa-battery-half me-2"></i> Charging Case
                         </button>
                     </li>
                 </ul>
 
-                <!-- Charts Area -->
+                <!-- LINE WISE TABLE & CHART -->
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between">
-                        <span id="chartTitle">Line Wise Analysis (Earbuds)</span>
-                    </div>
+                    <div class="card-header"><span id="chartTitle">Line Wise Analysis (Overall)</span></div>
                     <div class="card-body">
                         <canvas id="lineChart" style="max-height: 350px;"></canvas>
                         
-                        <!-- Data Table -->
                         <div class="table-responsive mt-4">
                             <table class="table table-bordered table-hover text-center align-middle text-sm">
                                 <thead class="table-dark">
@@ -133,7 +135,7 @@
                                         <th>Speaker</th>
                                         <th>Battery</th>
                                         <th>Magnet</th>
-                                        <th>Other</th>
+                                        <th>Other Parts</th>
                                     </tr>
                                 </thead>
                                 <tbody id="lineTableBody"></tbody>
@@ -142,6 +144,7 @@
                     </div>
                 </div>
 
+                <!-- OTHER CHARTS -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card h-100">
@@ -156,44 +159,33 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
-            <!-- SECTION: PRODUCTION -->
+            <!-- PRODUCTION ENTRY SECTION -->
             <div id="production-section" style="display:none;">
                 <h3 class="mb-3">Production Entry</h3>
                 <div class="card p-4" style="max-width: 600px;">
                     <form id="prodForm">
-                        <div class="mb-3">
-                            <label>Date</label>
-                            <input type="date" id="pDate" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label>Model</label>
-                            <select id="pModel" class="form-select"></select>
-                        </div>
+                        <div class="mb-3"><label>Date</label><input type="date" id="pDate" class="form-control" required></div>
+                        <div class="mb-3"><label>Model</label><select id="pModel" class="form-select"></select></div>
                         <div class="mb-3">
                             <label>Line No</label>
                             <input type="text" id="pLine" class="form-control" placeholder="e.g. L-11 or L-11C" required>
-                            <small class="text-muted">Add 'C' at end for Charging Case lines (e.g., L-11C)</small>
+                            <small class="text-muted">Use 'C' for Case lines (e.g., L-11C)</small>
                         </div>
-                        <div class="mb-3">
-                            <label>Output Qty</label>
-                            <input type="number" id="pOut" class="form-control" required>
-                        </div>
+                        <div class="mb-3"><label>Output Qty</label><input type="number" id="pOut" class="form-control" required></div>
                         <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Submit</button>
                     </form>
                 </div>
             </div>
 
-            <!-- SECTION: UPLOAD -->
+            <!-- UPLOAD SECTION -->
             <div id="upload-section" style="display:none;">
                 <h3 class="mb-3">Bulk Scrap Upload</h3>
                 <div class="card p-5 text-center">
                     <div class="border dashed p-5 bg-white rounded">
                         <i class="fas fa-file-excel fa-4x text-success mb-3"></i>
                         <h5>Upload .xlsx File</h5>
-                        <p class="text-muted">Columns: Doc Date, Storage location, Line No, Price, Reject Qty, etc.</p>
                         <input type="file" id="uploadFile" class="form-control w-50 mx-auto mb-3" accept=".xlsx">
                         <button class="btn btn-primary" onclick="uploadExcel()">Process & Upload</button>
                     </div>
@@ -208,12 +200,12 @@
     // ********************************************************
     // PASTE YOUR GOOGLE APPS SCRIPT URL HERE
     // ********************************************************
-    const API_URL = "https://script.google.com/macros/s/AKfycbzfjYPvmCF3662_oC5nl9KR32MkxiOv4G-5BK_XxbJl5HVzBgNpy8nEPkPgbweSQHJq/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbxORlGyUqvMJaNXJ2NDzWH97l-vD_7g35yR--3Qd0caQw9kwYyEpgLuK817OnFzJGr6Jw/exec"; 
 
-    // STATE VARIABLES
+    // STATE
     let rawData = { production: [], scrap: [], models: [] };
     let modelPrices = {};
-    let currentLineType = 'EARBUDS'; // 'EARBUDS' or 'CASE'
+    let currentLineType = 'OVERALL'; // Default
     let charts = {};
 
     window.onload = loadData;
@@ -227,10 +219,14 @@
 
     function setLineType(type) {
         currentLineType = type;
-        // Update Tabs UI
         document.querySelectorAll('.type-tabs .nav-link').forEach(l => l.classList.remove('active'));
         event.currentTarget.classList.add('active');
-        document.getElementById('chartTitle').innerText = type === 'EARBUDS' ? "Line Wise Analysis (Earbuds)" : "Line Wise Analysis (Charging Case)";
+        
+        let title = "Line Wise Analysis ";
+        if(type === 'OVERALL') title += "(Overall)";
+        if(type === 'EARBUDS') title += "(Earbuds Only)";
+        if(type === 'CASE') title += "(Charging Case Only)";
+        document.getElementById('chartTitle').innerText = title;
         
         processAndRender();
     }
@@ -240,32 +236,28 @@
         try {
             let res = await fetch(API_URL);
             let json = await res.json();
-            
             rawData = json;
             
-            // Build Model Price Map
+            // Build Model Prices
             if(json.models) {
-                let mHeaders = json.models[0].map(h => h.toString().toLowerCase());
-                let idxP = mHeaders.indexOf("price") > -1 ? mHeaders.indexOf("price") : 1;
-                
                 let pSelect = document.getElementById('pModel');
                 pSelect.innerHTML = "";
-
+                // Assumes Col 0 is Name, Col 1 is Price
                 json.models.slice(1).forEach(r => {
-                    modelPrices[r[0]] = parseFloat(r[idxP]) || 0;
+                    modelPrices[r[0]] = parseFloat(r[1]) || 0;
                     pSelect.add(new Option(r[0], r[0]));
                 });
             }
-
             processAndRender();
         } catch(e) { Swal.fire("Error", "Failed to load data", "error"); }
         document.getElementById('loader').style.display = 'none';
     }
 
     function processAndRender() {
-        const filterStorage = document.getElementById('storageFilter').value; // ALL, PROCESS, RMD
+        const filterStorage = document.getElementById('storageFilter').value;
+        const filterSort = document.getElementById('sortFilter').value;
         
-        // --- 1. CALCULATE PRODUCTION VALUE PER LINE ---
+        // --- 1. CALCULATE PRODUCTION VALUE ---
         let lineProdVal = {}; 
         
         if(rawData.production.length > 0) {
@@ -276,23 +268,24 @@
 
             rawData.production.slice(1).forEach(row => {
                 let lineRaw = (row[iLine] || "").toString().toUpperCase().trim();
-                let lineClean = lineRaw.replace(/\s/g, ''); // Remove spaces for checking
-                
-                // TYPE CHECK (Earbud vs Case)
+                let lineClean = lineRaw.replace(/\s/g, ''); 
                 let isCase = lineClean.endsWith('C') || lineClean.includes('-C');
+
+                // FILTER TYPE
                 if(currentLineType === 'EARBUDS' && isCase) return;
                 if(currentLineType === 'CASE' && !isCase) return;
+                // If OVERALL, we take everything
 
                 let model = row[iMod];
                 let qty = parseFloat(row[iOut]) || 0;
-                let price = modelPrices[model] || 0;
+                let price = modelPrices[model] || 0; // SAME PRICE FOR BOTH
                 
                 if(!lineProdVal[lineRaw]) lineProdVal[lineRaw] = 0;
                 lineProdVal[lineRaw] += (qty * price);
             });
         }
 
-        // --- 2. CALCULATE SCRAP VALUE PER LINE ---
+        // --- 2. CALCULATE SCRAP VALUE ---
         let lineScrapData = {};
         let modelScrap = {};
         let partScrap = {};
@@ -301,9 +294,8 @@
             let h = rawData.scrap[0].map(x=>x.toString().toLowerCase());
             let iLine = h.findIndex(x=>x.includes('line'));
             let iStore = h.findIndex(x=>x.includes('storage'));
-            let iMat = h.indexOf('material');
-            let iDesc = h.indexOf('material description');
             let iCat = h.indexOf('category');
+            let iDesc = h.indexOf('material description') > -1 ? h.indexOf('material description') : h.indexOf('material');
             let iModel = h.indexOf('model');
             let iPrice = h.indexOf('price');
             let iQty = h.findIndex(x=>x.includes('reject') || x.includes('qty'));
@@ -311,13 +303,13 @@
             rawData.scrap.slice(1).forEach(row => {
                 let lineRaw = (row[iLine] || "").toString().toUpperCase().trim();
                 let lineClean = lineRaw.replace(/\s/g, '');
-
-                // TYPE CHECK
                 let isCase = lineClean.endsWith('C') || lineClean.includes('-C');
+
+                // FILTER TYPE
                 if(currentLineType === 'EARBUDS' && isCase) return;
                 if(currentLineType === 'CASE' && !isCase) return;
 
-                // FILTER CHECK (Process vs RMD)
+                // FILTER STORAGE
                 let storeVal = (row[iStore] || "").toString();
                 if(filterStorage === 'PROCESS' && !storeVal.includes('6003') && !storeVal.toLowerCase().includes('process')) return;
                 if(filterStorage === 'RMD' && !storeVal.includes('6002') && !storeVal.toLowerCase().includes('rmd')) return;
@@ -327,61 +319,80 @@
                 let val = price * qty;
                 if(val === 0) return;
 
-                let cat = row[iCat] || "Other";
-                let desc = row[iDesc] || row[iMat];
+                let cat = row[iCat] || "Other Parts";
+                let desc = row[iDesc] || "Unknown";
                 let model = row[iModel];
 
-                // Line Aggregation
+                // Data Aggregation
                 if(!lineScrapData[lineRaw]) lineScrapData[lineRaw] = { total: 0, cats: {} };
                 lineScrapData[lineRaw].total += val;
                 if(!lineScrapData[lineRaw].cats[cat]) lineScrapData[lineRaw].cats[cat] = 0;
                 lineScrapData[lineRaw].cats[cat] += val;
 
-                // Model Aggregation
                 modelScrap[model] = (modelScrap[model] || 0) + val;
-
-                // Part Aggregation
                 partScrap[desc] = (partScrap[desc] || 0) + val;
             });
         }
 
-        renderCharts(lineProdVal, lineScrapData, modelScrap, partScrap);
+        renderCharts(lineProdVal, lineScrapData, modelScrap, partScrap, filterSort);
     }
 
-    function renderCharts(prodData, scrapData, modelData, partData) {
-        // --- 1. Line Chart & Table ---
-        const tbody = document.getElementById('lineTableBody');
-        tbody.innerHTML = "";
-        
+    function renderCharts(prodData, scrapData, modelData, partData, sortOrder) {
+        // --- PREPARE DATA FOR SORTING ---
         let allLines = new Set([...Object.keys(prodData), ...Object.keys(scrapData)]);
-        let sortedLines = Array.from(allLines).sort();
-        
-        let labels = [];
-        let rates = [];
+        let lineArray = [];
 
-        sortedLines.forEach(line => {
+        allLines.forEach(line => {
             let pVal = prodData[line] || 0;
             let sVal = scrapData[line] ? scrapData[line].total : 0;
             let rate = pVal > 0 ? (sVal/pVal)*100 : 0;
             let cats = scrapData[line] ? scrapData[line].cats : {};
+            
+            lineArray.push({ line, pVal, sVal, rate, cats });
+        });
 
-            labels.push(line);
-            rates.push(rate.toFixed(2));
+        // --- SORTING LOGIC ---
+        lineArray.sort((a, b) => {
+            if(sortOrder === 'DESC') return b.rate - a.rate; // High to Low
+            return a.rate - b.rate; // Low to High
+        });
+
+        // --- RENDER TABLE ---
+        const tbody = document.getElementById('lineTableBody');
+        tbody.innerHTML = "";
+        
+        let labels = [];
+        let rates = [];
+
+        lineArray.forEach(item => {
+            labels.push(item.line);
+            rates.push(item.rate.toFixed(2));
+
+            let cats = item.cats;
+            // FIXED SEQUENCE: PCBA, Speaker, Battery, Magnet, Other Parts
+            let valPCBA = (cats['PCBA']||0);
+            let valSpk = (cats['Speaker']||0);
+            let valBat = (cats['Battery']||0);
+            let valMag = (cats['Magnet']||0);
+            
+            // "Other Parts" logic: Sum of everything else, or specific key
+            let valOther = (cats['Other Parts'] || cats['Other'] || 0);
 
             let row = `<tr>
-                <td><strong>${line}</strong></td>
-                <td>${pVal.toLocaleString('en-IN')}</td>
-                <td class="text-danger fw-bold">${sVal.toLocaleString('en-IN')}</td>
-                <td><span class="badge ${rate > 2 ? 'bg-danger' : 'bg-success'} badge-rate">${rate.toFixed(2)}%</span></td>
-                <td>${(cats['PCBA']||0).toFixed(0)}</td>
-                <td>${(cats['Speaker']||0).toFixed(0)}</td>
-                <td>${(cats['Battery']||0).toFixed(0)}</td>
-                <td>${(cats['Magnet']||0).toFixed(0)}</td>
-                <td>${(cats['Other Parts']||cats['Other']||0).toFixed(0)}</td>
+                <td><strong>${item.line}</strong></td>
+                <td>${item.pVal.toLocaleString('en-IN')}</td>
+                <td class="text-danger fw-bold">${item.sVal.toLocaleString('en-IN')}</td>
+                <td><span class="badge ${item.rate > 2 ? 'bg-danger' : 'bg-success'} badge-rate">${item.rate.toFixed(2)}%</span></td>
+                <td>${valPCBA.toLocaleString()}</td>
+                <td>${valSpk.toLocaleString()}</td>
+                <td>${valBat.toLocaleString()}</td>
+                <td>${valMag.toLocaleString()}</td>
+                <td>${valOther.toLocaleString()}</td>
             </tr>`;
             tbody.innerHTML += row;
         });
 
+        // --- RENDER LINE CHART ---
         if(charts.line) charts.line.destroy();
         charts.line = new Chart(document.getElementById('lineChart'), {
             type: 'bar',
@@ -392,7 +403,7 @@
             options: { responsive:true, plugins:{legend:{display:false}} }
         });
 
-        // --- 2. Model Chart ---
+        // --- RENDER MODEL CHART ---
         if(charts.model) charts.model.destroy();
         charts.model = new Chart(document.getElementById('modelChart'), {
             type: 'doughnut',
@@ -402,7 +413,7 @@
             }
         });
 
-        // --- 3. Part Chart ---
+        // --- RENDER PART CHART ---
         let topParts = Object.entries(partData).sort((a,b)=>b[1]-a[1]).slice(0,5);
         if(charts.part) charts.part.destroy();
         charts.part = new Chart(document.getElementById('partChart'), {
