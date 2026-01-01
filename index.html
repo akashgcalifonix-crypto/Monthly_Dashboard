@@ -4,150 +4,186 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quality & Scrap Master Dashboard</title>
+
+<!-- CSS & JS Libraries -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js & Plugins -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<!-- Export Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; --danger: #e74a3b; --success: #1cc88a; }
+    body { background-color: var(--bg); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
     
-    <!-- CSS & JS Libraries -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    /* Sidebar */
+    .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%); color: #fff; position: fixed; width: 16.66%; height: 100%; overflow-y: auto; }
+    .nav-link { color: rgba(255,255,255,0.8); padding: 12px 20px; cursor: pointer; border-left: 4px solid transparent; }
+    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: #fff; border-left-color: var(--accent); }
+    .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
 
-    <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; --danger: #e74a3b; --success: #1cc88a; }
-        body { background-color: var(--bg); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
-        
-        /* Sidebar */
-        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%); color: #fff; position: fixed; width: 18%; height: 100%; overflow-y: auto; z-index: 1000; }
-        .nav-link { color: rgba(255,255,255,0.8); padding: 12px 20px; cursor: pointer; border-left: 4px solid transparent; }
-        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: #fff; border-left-color: var(--accent); }
-        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .month-selector { padding: 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        
-        /* Main Content */
-        .main-content { margin-left: 18%; padding: 20px; width: 82%; }
+    /* Main Content Wrapper */
+    .main-content { margin-left: 16.66%; padding: 20px; width: 83.34%; }
 
-        /* Scorecard (8-Box Layout) */
-        .scorecard-container { background: white; padding: 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
-        .score-box { text-align: center; padding: 15px 5px; border-right: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; }
-        .score-val { font-weight: 700; font-size: 1.1rem; color: #2c3e50; margin-bottom: 5px; }
-        .score-label { font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; font-weight: 600; }
-        
-        /* Colors */
-        .text-blue { color: #2980b9; } .text-yellow { color: #f1c40f; } .text-cyan { color: #00bcd4; } .text-red { color: #e74a3b; }
-        .bg-yellow-light { background-color: #fff3cd; } .bg-cyan-light { background-color: #e0f7fa; } .bg-dark-blue { background-color: #2c3e50; color: white; }
-        .bg-dark-blue .score-val { color: white; } .bg-dark-blue .score-label { color: rgba(255,255,255,0.7); }
+    /* Scorecard (Top Header) */
+    .scorecard-container { background: white; padding: 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
+    .score-box { text-align: center; padding: 15px 5px; border-right: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; }
+    .score-box:last-child { border-right: none; }
+    .score-val { font-weight: 700; font-size: 1.2rem; color: #2c3e50; margin-bottom: 5px; }
+    .score-label { font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    
+    /* Scorecard Colors */
+    .text-blue { color: #2980b9; }
+    .text-yellow { color: #f1c40f; }
+    .text-cyan { color: #00bcd4; }
+    .text-red { color: #e74a3b; }
+    .bg-yellow-light { background-color: #fff3cd; }
+    .bg-cyan-light { background-color: #e0f7fa; }
+    .bg-dark-blue { background-color: #2c3e50; color: white; }
+    .bg-dark-blue .score-val { color: white; }
+    .bg-dark-blue .score-label { color: rgba(255,255,255,0.7); }
 
-        /* Cards & Tables */
-        .comp-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .comp-header { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #444; display: flex; justify-content: space-between; align-items: center; }
-        .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; }
-        .table thead { background-color: #2c3e50; color: white; }
-        .table th, .table td { vertical-align: middle; padding: 8px; font-size: 0.85rem; }
-        .badge-lg { font-size: 0.85rem; padding: 5px 8px; }
-        
-        /* High Stats */
-        .high-stat-card { background: white; border-radius: 8px; padding: 15px; border-left: 5px solid var(--danger); box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .high-stat-title { font-size: 0.75rem; color: #777; text-transform: uppercase; }
-        .high-stat-val { font-size: 1.1rem; font-weight: bold; color: #333; }
-        .high-stat-sub { font-size: 0.8rem; color: var(--danger); }
+    /* Component Cards */
+    .comp-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .comp-header { padding: 15px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #555; display: flex; justify-content: space-between; align-items: center; }
+    
+    /* High Stats */
+    .high-stat-card { background: white; border-radius: 8px; padding: 15px; border-left: 5px solid var(--danger); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .high-stat-title { font-size: 0.75rem; color: #777; text-transform: uppercase; }
+    .high-stat-val { font-size: 1.1rem; font-weight: bold; color: #333; }
+    .high-stat-sub { font-size: 0.8rem; color: var(--danger); }
 
-        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    </style>
+    /* Controls */
+    .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; }
+
+    /* Tables */
+    .table thead { background-color: #2c3e50; color: white; }
+    .table th, .table td { vertical-align: middle; padding: 10px; font-size: 0.85rem; }
+    .badge-lg { font-size: 0.9rem; padding: 6px 10px; }
+    
+    #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    
+    /* Small Graphs Container */
+    .mini-charts-row { display: flex; gap: 10px; }
+    .mini-chart-box { flex: 1; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+    /* Custom Checkbox Dropdown */
+    .checkbox-menu { max-height: 250px; overflow-y: auto; width: 250px; padding: 10px; }
+    .checkbox-menu li { list-style: none; margin-bottom: 5px; }
+</style>
 </head>
 <body>
-
 <!-- LOADER -->
 <div id="loader">
     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-    <h5 class="mt-3 text-secondary">Processing Data...</h5>
+    <h5 class="mt-3 text-secondary">Analyzing Quality Data...</h5>
 </div>
-
 <div class="container-fluid p-0">
     <div class="row g-0">
+
+    <!-- SIDEBAR -->
+    <div class="col-md-2 sidebar">
+        <div class="sidebar-header">
+            <img src="https://i.postimg.cc/5y7SN4xc/logo.png" style="max-height: 50px; background: white; padding: 5px; border-radius: 5px;">
+            <h6 class="mt-3 mb-0">Quality Control</h6>
+        </div>
         
-        <!-- SIDEBAR -->
-        <div class="col-md-2 sidebar">
-            <div class="sidebar-header">
-                <img src="https://i.postimg.cc/5y7SN4xc/logo.png" style="max-height: 45px; background: white; padding: 5px; border-radius: 5px;">
-                <h6 class="mt-2 mb-0">Quality Control</h6>
-            </div>
-            
-            <div class="month-selector">
-                <label class="small text-white-50 mb-1">Select Month (Optional)</label>
-                <input type="month" id="globalMonth" class="form-control form-control-sm" onchange="applyGlobalFilter()">
-            </div>
-
-            <nav class="nav flex-column mt-2">
-                <a class="nav-link active" onclick="switchSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i> Main Dashboard</a>
-                
-                <div class="nav-link text-uppercase small text-muted mt-2">Deep Analysis</div>
-                <a class="nav-link" onclick="switchSection('line-analysis')"><i class="fas fa-chart-bar me-2"></i> Line & Floor</a>
-                <a class="nav-link" onclick="switchSection('model-analysis')"><i class="fas fa-cube me-2"></i> Model Analysis</a>
-
-                <div class="nav-link text-uppercase small text-muted mt-2">Component Reports</div>
-                <a class="nav-link" onclick="switchSection('pcba')"><i class="fas fa-microchip me-2"></i> PCBA Report</a>
-                <a class="nav-link" onclick="switchSection('speaker')"><i class="fas fa-volume-up me-2"></i> Speaker Report</a>
-                <a class="nav-link" onclick="switchSection('battery')"><i class="fas fa-battery-full me-2"></i> Battery Report</a>
-
-                <div class="nav-link text-uppercase small text-muted mt-2">Input</div>
-                <a class="nav-link" onclick="switchSection('production')"><i class="fas fa-edit me-2"></i> Production Entry</a>
-                <a class="nav-link" onclick="switchSection('upload')"><i class="fas fa-file-upload me-2"></i> Bulk Upload</a>
-            </nav>
+        <!-- MONTH SELECTION -->
+        <div class="p-3">
+            <label class="text-white-50 small mb-1">Select Month Report</label>
+            <input type="month" id="globalMonth" class="form-control form-control-sm" onchange="loadData()">
         </div>
 
-        <!-- MAIN CONTENT -->
-        <div class="col-md-10 main-content">
+        <nav class="nav flex-column mt-0">
+            <a class="nav-link active" onclick="switchSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i> Main Dashboard</a>
+            
+            <div class="nav-link text-uppercase small text-muted mt-2">New Reports</div>
+            <a class="nav-link" onclick="switchSection('line-perf')"><i class="fas fa-chart-line me-2"></i> Line Performance</a>
+            <a class="nav-link" onclick="switchSection('model-perf')"><i class="fas fa-cubes me-2"></i> Model Analysis</a>
 
-            <!-- ========================= 1. MAIN DASHBOARD ========================= -->
-            <div id="dashboard-section" class="content-section">
-                <!-- Scorecard -->
-                <div class="scorecard-container">
-                    <div class="row g-0">
-                        <div class="col score-box"><div class="score-val" id="sc-total-out">0</div><div class="score-label">Total Output</div></div>
-                        <div class="col score-box"><div class="score-val text-blue" id="sc-total-val">₹0</div><div class="score-label">Total Value</div></div>
-                        <div class="col score-box"><div class="score-val text-yellow" id="sc-proc-scrap">₹0</div><div class="score-label">Process Scrap</div></div>
-                        <div class="col score-box"><div class="score-val text-cyan" id="sc-rmd-scrap">₹0</div><div class="score-label">RMD Scrap</div></div>
-                        <div class="col score-box"><div class="score-val text-red" id="sc-tot-scrap">₹0</div><div class="score-label">Total Scrap</div></div>
-                        <div class="col score-box bg-yellow-light"><div class="score-val" id="sc-proc-rate">0%</div><div class="score-label">Process Rate</div></div>
-                        <div class="col score-box bg-cyan-light"><div class="score-val" id="sc-rmd-rate">0%</div><div class="score-label">RMD Rate</div></div>
-                        <div class="col score-box bg-dark-blue"><div class="score-val" id="sc-ovr-rate">0%</div><div class="score-label">Overall Rate</div></div>
-                    </div>
+            <div class="nav-link text-uppercase small text-muted mt-2">Component Reports</div>
+            <a class="nav-link" onclick="switchSection('pcba')"><i class="fas fa-microchip me-2"></i> PCBA Report</a>
+            <a class="nav-link" onclick="switchSection('speaker')"><i class="fas fa-volume-up me-2"></i> Speaker Report</a>
+            <a class="nav-link" onclick="switchSection('battery')"><i class="fas fa-battery-full me-2"></i> Battery Report</a>
+
+            <div class="nav-link text-uppercase small text-muted mt-2">Data Entry</div>
+            <a class="nav-link" onclick="switchSection('production')"><i class="fas fa-edit me-2"></i> Production Entry</a>
+            <a class="nav-link" onclick="switchSection('upload')"><i class="fas fa-file-upload me-2"></i> Bulk Upload</a>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="col-md-10 main-content">
+
+        <!-- ========================= MAIN DASHBOARD ========================= -->
+        <div id="dashboard-section" class="content-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="m-0">Main Dashboard</h4>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-success" onclick="exportExcel('dashboard-section', 'Main_Dashboard')"><i class="fas fa-file-excel me-1"></i> Excel</button>
+                    <button class="btn btn-sm btn-danger" onclick="exportPDF('dashboard-section', 'Main_Dashboard')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
+                    <button class="btn btn-sm btn-warning text-dark" onclick="exportPPT('dashboard-section', 'Main_Dashboard')"><i class="fas fa-file-powerpoint me-1"></i> PPT</button>
                 </div>
+            </div>
 
-                <!-- High Stats -->
-                <div class="row">
-                    <div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Highest Scrap Line</div><div class="high-stat-val" id="high-line">N/A</div><div class="high-stat-sub" id="high-line-rate">0% Rate</div></div></div>
-                    <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#f6c23e;"><div class="high-stat-title">Highest Scrap Model</div><div class="high-stat-val" id="high-model">N/A</div><div class="high-stat-sub" id="high-model-val">₹0 Loss</div></div></div>
-                    <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#4e73df;"><div class="high-stat-title">Highest Scrap Floor</div><div class="high-stat-val" id="high-floor">N/A</div><div class="high-stat-sub" id="high-floor-val">₹0 Loss</div></div></div>
+            <!-- Scorecard -->
+            <div class="scorecard-container">
+                <div class="row g-0">
+                    <div class="col score-box"><div class="score-val" id="sc-total-out">0</div><div class="score-label">Total Output</div></div>
+                    <div class="col score-box"><div class="score-val text-blue" id="sc-total-val">₹0</div><div class="score-label">Total Value</div></div>
+                    <div class="col score-box"><div class="score-val text-yellow" id="sc-proc-scrap">₹0</div><div class="score-label">Process Scrap</div></div>
+                    <div class="col score-box"><div class="score-val text-cyan" id="sc-rmd-scrap">₹0</div><div class="score-label">RMD Scrap</div></div>
+                    <div class="col score-box"><div class="score-val text-red" id="sc-tot-scrap">₹0</div><div class="score-label">Total Scrap</div></div>
+                    <div class="col score-box bg-yellow-light"><div class="score-val" id="sc-proc-rate">0%</div><div class="score-label">Process Rate</div></div>
+                    <div class="col score-box bg-cyan-light"><div class="score-val" id="sc-rmd-rate">0%</div><div class="score-label">RMD Rate</div></div>
+                    <div class="col score-box bg-dark-blue"><div class="score-val" id="sc-ovr-rate">0%</div><div class="score-label">Overall Rate</div></div>
                 </div>
+            </div>
 
-                <!-- Controls -->
-                <div class="controls-bar">
-                    <div class="btn-group">
-                        <button class="btn btn-outline-dark btn-sm" id="btn-earbuds" onclick="setLineType('EARBUDS')">Earbuds</button>
-                        <button class="btn btn-outline-dark btn-sm" id="btn-case" onclick="setLineType('CASE')">Charging Case</button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="setLineType('ALL')">Reset</button>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <select id="storageFilter" class="form-select form-select-sm" style="width:130px;" onchange="processAndRender()"><option value="ALL">All Storage</option><option value="PROCESS">Process</option><option value="RMD">RMD</option></select>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary active" id="view-val" onclick="toggleViewMode('VALUE')">₹ Value</button>
-                            <button class="btn btn-outline-primary" id="view-qty" onclick="toggleViewMode('QTY')">Qty</button>
-                        </div>
-                        <select id="sortFilter" class="form-select form-select-sm" style="width:130px;" onchange="processAndRender()"><option value="DESC">Rate: High</option><option value="ASC">Rate: Low</option></select>
-                        <button class="btn btn-primary btn-sm" onclick="loadData()"><i class="fas fa-sync"></i></button>
-                    </div>
+            <!-- High Stats -->
+            <div class="row mb-3">
+                <div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Highest Scrap Line</div><div class="high-stat-val" id="high-line">N/A</div><div class="high-stat-sub" id="high-line-rate">0% Rate</div></div></div>
+                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#f6c23e;"><div class="high-stat-title">Highest Scrap Model</div><div class="high-stat-val" id="high-model">N/A</div><div class="high-stat-sub" id="high-model-val">₹0 Loss</div></div></div>
+                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#4e73df;"><div class="high-stat-title">Highest Scrap Floor</div><div class="high-stat-val" id="high-floor">N/A</div><div class="high-stat-sub" id="high-floor-val">₹0 Loss</div></div></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls-bar">
+                <div class="btn-group">
+                    <button class="btn btn-outline-dark btn-sm active" id="btn-main-all" onclick="setLineType('ALL')">All</button>
+                    <button class="btn btn-outline-dark btn-sm" id="btn-earbuds" onclick="setLineType('EARBUDS')">Earbuds</button>
+                    <button class="btn btn-outline-dark btn-sm" id="btn-case" onclick="setLineType('CASE')">Charging Case</button>
                 </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <select id="storageFilter" class="form-select form-select-sm" style="width:150px;" onchange="processAndRender()"><option value="ALL">All Storage</option><option value="PROCESS">Process (6003)</option><option value="RMD">RMD (6002)</option></select>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary active" id="view-val" onclick="toggleViewMode('VALUE')">₹ Value</button>
+                        <button type="button" class="btn btn-outline-primary" id="view-qty" onclick="toggleViewMode('QTY')">123 Qty</button>
+                    </div>
+                    <select id="sortFilter" class="form-select form-select-sm" style="width:140px;" onchange="processAndRender()"><option value="DESC">Rate: High to Low</option><option value="ASC">Rate: Low to High</option></select>
+                    <button class="btn btn-primary btn-sm" onclick="loadData()"><i class="fas fa-sync"></i></button>
+                </div>
+            </div>
 
-                <!-- Main Table -->
-                <div class="comp-card">
-                    <div class="comp-header">Line Wise Analysis</div>
+            <!-- Table -->
+            <div class="card">
+                <div class="card-header">Line Wise Analysis</div>
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped table-hover text-center align-middle mb-0">
+                        <table class="table table-bordered table-striped table-hover text-center align-middle mb-0" id="mainTable">
                             <thead class="table-dark">
-                                <tr><th>Line</th><th>Prod Value</th><th>Scrap Value</th><th>Rate %</th><th colspan="5">Defect Breakdown (Value ₹)</th></tr>
+                                <tr>
+                                    <th>Line No</th><th>Prod Value</th><th>Scrap Value</th><th>Rate %</th><th id="breakdown-header" colspan="5">Defect Breakdown (Value ₹)</th>
+                                </tr>
                                 <tr class="table-secondary"><th colspan="4"></th><th>PCBA</th><th>Speaker</th><th>Battery</th><th>Magnet</th><th>Other</th></tr>
                             </thead>
                             <tbody id="lineTableBody"></tbody>
@@ -155,122 +191,211 @@
                     </div>
                 </div>
             </div>
-
-            <!-- ========================= 2. LINE & FLOOR ANALYSIS (New) ========================= -->
-            <div id="line-analysis-section" class="content-section" style="display:none;">
-                <div class="controls-bar">
-                    <div class="d-flex gap-2">
-                         <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-dark" onclick="updateLineFilter('type','EARBUDS')">Earbuds</button>
-                            <button class="btn btn-sm btn-outline-dark" onclick="updateLineFilter('type','CASE')">Case</button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="updateLineFilter('type','ALL')">All</button>
-                        </div>
-                        <select class="form-select form-select-sm" onchange="updateLineFilter('storage',this.value)" style="width:120px;">
-                            <option value="ALL">All Storage</option><option value="PROCESS">Process</option><option value="RMD">RMD</option>
-                        </select>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <label class="fw-bold">Select Line:</label>
-                        <select id="lineSelector" class="form-select form-select-sm" style="width:150px;" onchange="renderLineFloorAnalysis()"></select>
-                    </div>
-                </div>
-
-                <!-- Top: Floor Stats -->
-                <div class="comp-card">
-                    <div class="comp-header">Floor Wise Summary</div>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered text-center mb-0">
-                            <thead class="bg-dark-blue text-white"><tr><th>Floor</th><th>Prod Val</th><th>Scrap Val</th><th>Rate %</th><th>PCBA Loss</th><th>Spk Loss</th><th>Bat Loss</th><th>Overall Qty</th></tr></thead>
-                            <tbody id="floorStatsBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6"><div class="comp-card"><div class="comp-header"><span>Model Wise Scrap (Selected Line)</span><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="modelRateSwitch" onchange="renderLineFloorAnalysis()"><label class="form-check-label small">Show Rate %</label></div></div><div class="p-2"><canvas id="lineModelChart" height="150"></canvas></div></div></div>
-                    <div class="col-md-6"><div class="comp-card"><div class="comp-header">Daily Scrap Value Trend</div><div class="p-2"><canvas id="lineTrendChart" height="150"></canvas></div></div></div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">PCBA Qty Trend (Date Wise)</div><div class="p-2"><canvas id="linePCBAChart" height="150"></canvas></div></div></div>
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">Speaker Qty Trend (Date Wise)</div><div class="p-2"><canvas id="lineSpkChart" height="150"></canvas></div></div></div>
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">Battery Qty Trend (Date Wise)</div><div class="p-2"><canvas id="lineBatChart" height="150"></canvas></div></div></div>
-                </div>
-            </div>
-
-            <!-- ========================= 3. MODEL ANALYSIS (New) ========================= -->
-            <div id="model-analysis-section" class="content-section" style="display:none;">
-                <div class="comp-card">
-                    <div class="comp-header">Model Wise Scrap Rate % vs Value</div>
-                    <div class="p-3"><canvas id="modelMainChart" height="100"></canvas></div>
-                </div>
-                <h6 class="text-secondary mt-3">Model Component Defect Qty</h6>
-                <div class="row">
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">PCBA Defect Qty</div><div class="p-2"><canvas id="modPCBAChart"></canvas></div></div></div>
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">Speaker Defect Qty</div><div class="p-2"><canvas id="modSpkChart"></canvas></div></div></div>
-                    <div class="col-md-4"><div class="comp-card"><div class="comp-header small">Battery Defect Qty</div><div class="p-2"><canvas id="modBatChart"></canvas></div></div></div>
-                </div>
-            </div>
-
-            <!-- ========================= 4. COMPONENT REPORTS ========================= -->
-            <div id="component-container" class="content-section" style="display:none;"></div>
-
-            <!-- ========================= 5. ENTRY FORMS ========================= -->
-            <div id="production-section" class="content-section" style="display:none;">
-                <h3>Production Entry</h3>
-                <div class="card p-4 shadow-sm" style="max-width: 600px;">
-                    <form id="prodForm">
-                        <div class="mb-3"><label>Date</label><input type="date" id="pDate" class="form-control" required></div>
-                        <div class="mb-3"><label>Model</label><select id="pModel" class="form-select"></select></div>
-                        <div class="mb-3"><label>Line No</label><input type="text" id="pLine" class="form-control" placeholder="e.g. L-11 or L-11C" required></div>
-                        <div class="mb-3"><label>Output Qty</label><input type="number" id="pOut" class="form-control" required></div>
-                        <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Save Data</button>
-                    </form>
-                </div>
-            </div>
-            <div id="upload-section" class="content-section" style="display:none;">
-                <h3>Bulk Scrap Upload</h3>
-                <div class="card p-5 text-center">
-                    <div class="border dashed p-5 bg-white rounded">
-                        <i class="fas fa-file-excel fa-4x text-success mb-3"></i><h5>Upload Excel</h5>
-                        <input type="file" id="uploadFile" class="form-control w-50 mx-auto mb-3" accept=".xlsx">
-                        <button class="btn btn-primary" onclick="uploadExcel()">Process & Upload</button>
-                    </div>
-                </div>
-            </div>
-
         </div>
+
+        <!-- ========================= NEW: LINE & FLOOR WISE ========================= -->
+        <div id="line-perf-section" class="content-section" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Line & Floor Performance</h3>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-success" onclick="exportExcel('line-perf-section', 'Line_Perf')"><i class="fas fa-file-excel me-1"></i> Excel</button>
+                    <button class="btn btn-sm btn-danger" onclick="exportPDF('line-perf-section', 'Line_Perf')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
+                    <button class="btn btn-sm btn-warning text-dark" onclick="exportPPT('line-perf-section', 'Line_Perf')"><i class="fas fa-file-powerpoint me-1"></i> PPT</button>
+                </div>
+            </div>
+            
+            <!-- Controls specific to this tab -->
+            <div class="controls-bar">
+                <div class="btn-group">
+                    <button class="btn btn-outline-dark btn-sm active" id="lp-btn-earbuds" onclick="updateLinePerf('EARBUDS')">Earbuds</button>
+                    <button class="btn btn-outline-dark btn-sm" id="lp-btn-case" onclick="updateLinePerf('CASE')">Charging Case</button>
+                </div>
+                
+                <!-- MULTI SELECT LINE DROPDOWN -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="multiLineBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        Select Lines (All)
+                    </button>
+                    <ul class="dropdown-menu checkbox-menu" id="lp-line-multiselect">
+                        <!-- Checkboxes will be injected here -->
+                    </ul>
+                </div>
+
+                <select id="lp-storage" class="form-select form-select-sm" style="width:150px;" onchange="renderLinePerfData()">
+                    <option value="ALL">Process & RMD</option>
+                    <option value="PROCESS">Process</option>
+                    <option value="RMD">RMD</option>
+                </select>
+            </div>
+
+            <!-- 4. Floor Wise Stats (Show in Top) -->
+            <div class="card mb-3 border-0 shadow-sm">
+                <div class="card-header bg-dark text-white d-flex justify-content-between">
+                    <span><i class="fas fa-building me-2"></i>Floor Performance Summary</span>
+                    <span id="lp-floor-name" class="badge bg-warning text-dark">Selected Lines</span>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2 border-end"><h6 class="text-muted small">PCBA Qty</h6><h5 id="lp-fl-pcba">0</h5></div>
+                        <div class="col-md-2 border-end"><h6 class="text-muted small">Speaker Qty</h6><h5 id="lp-fl-spk">0</h5></div>
+                        <div class="col-md-2 border-end"><h6 class="text-muted small">Battery Qty</h6><h5 id="lp-fl-bat">0</h5></div>
+                        <div class="col-md-2 border-end"><h6 class="text-muted small">Scrap Value</h6><h5 class="text-danger" id="lp-fl-val">0</h5></div>
+                        <div class="col-md-2 border-end"><h6 class="text-muted small">Total Qty</h6><h5 id="lp-fl-qty">0</h5></div>
+                        <div class="col-md-2"><h6 class="text-muted small">Overall Rate</h6><h5 class="text-primary" id="lp-fl-rate">0%</h5></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- 1. Model Wise (Switch Value/Rate) -->
+                <div class="col-md-6 mb-3">
+                    <div class="comp-card h-100">
+                        <div class="comp-header">
+                            Model Wise Scrap
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="lp-model-switch" onchange="renderLinePerfCharts()">
+                                <label class="form-check-label small" for="lp-model-switch">Show Rate %</label>
+                            </div>
+                        </div>
+                        <div class="p-3"><canvas id="lpModelChart" height="150"></canvas></div>
+                    </div>
+                </div>
+                
+                <!-- 2. Date Wise Trend (Value) -->
+                <div class="col-md-6 mb-3">
+                    <div class="comp-card h-100">
+                        <div class="comp-header">Date Wise Trend (Value)</div>
+                        <div class="p-3"><canvas id="lpTrendChart" height="150"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Separate Components Bar Graphs (Qty) -->
+            <div class="row mini-charts-row">
+                <div class="mini-chart-box">
+                    <h6 class="small text-center fw-bold">PCBA (Qty)</h6>
+                    <canvas id="lpPcbaChart" height="100"></canvas>
+                </div>
+                <div class="mini-chart-box">
+                    <h6 class="small text-center fw-bold">Speaker (Qty)</h6>
+                    <canvas id="lpSpkChart" height="100"></canvas>
+                </div>
+                <div class="mini-chart-box">
+                    <h6 class="small text-center fw-bold">Battery (Qty)</h6>
+                    <canvas id="lpBatChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================= NEW: MODEL WISE ANALYSIS ========================= -->
+        <div id="model-perf-section" class="content-section" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Model Wise Analysis</h3>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-success" onclick="exportExcel('model-perf-section', 'Model_Analysis')"><i class="fas fa-file-excel me-1"></i> Excel</button>
+                    <button class="btn btn-sm btn-danger" onclick="exportPDF('model-perf-section', 'Model_Analysis')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
+                    <button class="btn btn-sm btn-warning text-dark" onclick="exportPPT('model-perf-section', 'Model_Analysis')"><i class="fas fa-file-powerpoint me-1"></i> PPT</button>
+                </div>
+            </div>
+            
+            <div class="controls-bar">
+                 <span class="badge bg-secondary">Top 20 Models Only (Sorted by Loss)</span>
+            </div>
+
+            <div class="row">
+                <!-- 1. Model Trend (Value & Rate) -->
+                <div class="col-md-12 mb-4">
+                    <div class="comp-card">
+                        <div class="comp-header">Model Wise - Scrap Value & Rate %</div>
+                        <div class="p-3"><canvas id="mpMainChart" height="120"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. Component Breakdown (SEPARATED) -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="comp-card">
+                        <div class="comp-header">PCBA Qty (Top Models)</div>
+                        <div class="p-3"><canvas id="mpPcbaChart" height="150"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="comp-card">
+                        <div class="comp-header">Speaker Qty (Top Models)</div>
+                        <div class="p-3"><canvas id="mpSpkChart" height="150"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="comp-card">
+                        <div class="comp-header">Battery Qty (Top Models)</div>
+                        <div class="p-3"><canvas id="mpBatChart" height="150"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================= COMPONENT SECTIONS (Dynamic) ========================= -->
+        <div id="component-container" class="content-section" style="display:none;">
+            <!-- Content Injected via JS -->
+        </div>
+
+        <!-- ========================= ENTRY SECTIONS ========================= -->
+        <div id="production-section" class="content-section" style="display:none;">
+            <h3>Production Entry</h3>
+            <div class="card p-4 shadow-sm" style="max-width: 600px;">
+                <form id="prodForm">
+                    <div class="mb-3"><label>Date</label><input type="date" id="pDate" class="form-control" required></div>
+                    <div class="mb-3"><label>Model</label><select id="pModel" class="form-select"></select></div>
+                    <div class="mb-3"><label>Line No</label><input type="text" id="pLine" class="form-control" placeholder="e.g. L-11 or L-11C" required></div>
+                    <div class="mb-3"><label>Output Qty</label><input type="number" id="pOut" class="form-control" required></div>
+                    <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Save Data</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="upload-section" class="content-section" style="display:none;">
+            <h3>Bulk Scrap Upload</h3>
+            <div class="card p-5 text-center">
+                <div class="border dashed p-5 bg-white rounded">
+                    <i class="fas fa-file-excel fa-4x text-success mb-3"></i><h5>Upload Excel</h5>
+                    <input type="file" id="uploadFile" class="form-control w-50 mx-auto mb-3" accept=".xlsx">
+                    <button class="btn btn-primary" onclick="uploadExcel()">Process & Upload</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
-
+</div>
 <script>
+    // ********************************************************
+    // PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+    // ********************************************************
     const API_URL = "https://script.google.com/macros/s/AKfycbyD1Y63nykh84uHHhUWxkfucyVi6crvEdY4KEXVzKg3FgQCGRj55ljmjTZfGyZFcCbUyg/exec"; 
 
-    // STATE
+    // Register Data Labels Plugin
+    Chart.register(ChartDataLabels);
+    // Default Global Configuration for Data Labels
+    Chart.defaults.set('plugins.datalabels', {
+        color: '#444',
+        font: { weight: 'bold', size: 10 },
+        anchor: 'end',
+        align: 'top',
+        formatter: function(value, context) {
+            return formatLabel(value);
+        }
+    });
+
     let rawData = { production: [], scrap: [], models: [] };
-    let filteredData = { production: [], scrap: [] };
     let modelPrices = {};
     let currentLineType = 'ALL'; 
     let viewMode = 'VALUE'; 
-    let charts = {}; 
-    let lineFilter = { type: 'ALL', storage: 'ALL' };
-    let currentCompFilter = { type: 'ALL', storage: 'ALL' };
-
-    // Register DataLabels
-    Chart.register(ChartDataLabels);
-    Chart.defaults.set('plugins.datalabels', {
-        display: 'auto',
-        color: '#444',
-        align: 'end',
-        anchor: 'end',
-        formatter: function(value, context) {
-            // Format only if value is significant
-            if(value === 0) return '';
-            if(context.dataset.label && context.dataset.label.includes('%')) return value + '%';
-            if(value > 1000) return formatCompact(value, false);
-            return value;
-        },
-        font: { weight: 'bold', size: 10 }
-    });
+    let compCharts = {}; 
+    let linePerfCharts = {}; 
+    let modelPerfCharts = {}; 
+    let currentCompFilter = { type: 'ALL', storage: 'ALL' }; 
+    let linePerfFilter = { type: 'EARBUDS' };
 
     window.onload = loadData;
 
@@ -278,22 +403,38 @@
         document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
         
         if(['pcba','speaker','battery'].includes(id)) {
-            currentCompFilter = { type: 'ALL', storage: 'ALL' };
+            currentCompFilter = { type: 'ALL', storage: 'ALL' }; 
             renderComponentDashboard(id);
             document.getElementById('component-container').style.display = 'block';
-        } else if(id === 'line-analysis') {
-            renderLineFloorAnalysis();
-            document.getElementById('line-analysis-section').style.display = 'block';
-        } else if(id === 'model-analysis') {
-            renderModelAnalysis();
-            document.getElementById('model-analysis-section').style.display = 'block';
+        } else if(id === 'dashboard') {
+            document.getElementById('dashboard-section').style.display = 'block';
+        } else if(id === 'line-perf') {
+            document.getElementById('line-perf-section').style.display = 'block';
+            updateLinePerf('EARBUDS');
+        } else if(id === 'model-perf') {
+            document.getElementById('model-perf-section').style.display = 'block';
+            renderModelPerfTab();
         } else {
             document.getElementById(id+'-section').style.display = 'block';
-            if(id === 'dashboard') processAndRender();
         }
         
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         event.currentTarget.classList.add('active');
+    }
+
+    // Helper for formatting L/K
+    function formatCurrencyShort(val) {
+        if (val >= 100000) return "₹" + (val / 100000).toFixed(2) + " L";
+        if (val >= 1000) return "₹" + (val / 1000).toFixed(2) + " K";
+        return "₹" + val.toLocaleString();
+    }
+    
+    // Helper for Chart Labels (No currency symbol, just compact)
+    function formatLabel(val) {
+        if (val === 0) return "";
+        if (val >= 100000) return (val / 100000).toFixed(1) + "L";
+        if (val >= 1000) return (val / 1000).toFixed(1) + "K";
+        return val;
     }
 
     async function loadData() {
@@ -305,54 +446,44 @@
             if(json.models) {
                 let pSelect = document.getElementById('pModel');
                 pSelect.innerHTML = "";
-                json.models.slice(1).forEach(r => { modelPrices[r[0]] = parseFloat(r[1]) || 0; pSelect.add(new Option(r[0], r[0])); });
+                json.models.slice(1).forEach(r => {
+                    modelPrices[r[0]] = parseFloat(r[1]) || 0;
+                    pSelect.add(new Option(r[0], r[0]));
+                });
             }
-            applyGlobalFilter();
+            processAndRender();
         } catch(e) { Swal.fire("Error", "Failed to load data", "error"); }
         document.getElementById('loader').style.display = 'none';
     }
 
-    function applyGlobalFilter() {
-        let selMonth = document.getElementById('globalMonth').value; 
-        if(!selMonth) {
-            filteredData = { ...rawData };
-        } else {
-            filteredData.production = rawData.production.filter((row, idx) => {
-                if(idx === 0) return true;
-                return new Date(row[0]).toISOString().slice(0, 7) === selMonth;
-            });
-            filteredData.scrap = rawData.scrap.filter((row, idx) => {
-                if(idx === 0) return true;
-                let dStr = row[1]; // Doc Date
-                if(!dStr) return false;
-                return new Date(dStr).toISOString().slice(0, 7) === selMonth;
-            });
-        }
-        
-        let active = document.querySelector('.nav-link.active').innerText;
-        if(active.includes('Main')) processAndRender();
-        else if(active.includes('Line')) renderLineFloorAnalysis();
-        else if(active.includes('Model')) renderModelAnalysis();
-        else if(active.includes('Report')) renderComponentDashboard(active.split(' ')[0].toLowerCase());
-    }
-
-    /* === MAIN DASHBOARD === */
+    /* ================= MAIN DASHBOARD LOGIC ================= */
     function processAndRender() {
         const storageFilter = document.getElementById('storageFilter').value;
-        let prodMap = getProductionData(filteredData.production); 
+        const monthFilter = document.getElementById('globalMonth').value; 
+        
+        let prodMap = getProductionData(monthFilter); 
+        
         let scrapMap = {}; let modelStats = {}; let floorStats = { 'First Floor':0, 'Second Floor':0, 'Basement':0, 'Other':0 };
         let totalStats = { out:0, prodVal:0, totScrap:0, procScrap:0, rmdScrap:0 };
 
         Object.values(prodMap).forEach(p => { totalStats.out += p.qty; totalStats.prodVal += p.val; });
 
-        if(filteredData.scrap.length > 1) {
-            let h = filteredData.scrap[0].map(x=>x.toLowerCase());
+        if(rawData.scrap.length > 0) {
+            let h = rawData.scrap[0].map(x=>x.toLowerCase());
             let idx = getColIndices(h);
 
-            filteredData.scrap.slice(1).forEach(row => {
+            rawData.scrap.slice(1).forEach(row => {
+                let rowDate = row[0]; 
+                if(monthFilter) {
+                     let d = new Date(rowDate);
+                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
+                     if(mStr !== monthFilter) return;
+                }
+
                 let lineRaw = (row[idx.line] || "").toString().toUpperCase().trim();
                 let baseLine = normalizeLine(lineRaw);
                 let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C'); 
+                
                 let storeVal = (row[idx.store] || "").toString().toLowerCase();
                 let isProcess = storeVal.includes('6003') || storeVal.includes('process');
                 let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
@@ -386,184 +517,663 @@
                 floorStats[floor] += val;
             });
         }
+
         renderScorecard(totalStats);
         renderHighStats(scrapMap, prodMap, modelStats, floorStats);
         renderTable(prodMap, scrapMap);
     }
 
-    /* === LINE & FLOOR ANALYSIS === */
-    function updateLineFilter(k,v) { lineFilter[k]=v; renderLineFloorAnalysis(); }
-    function renderLineFloorAnalysis() {
-        let prodMap = getProductionData(filteredData.production);
-        let lineSet = new Set([...Object.keys(prodMap)]);
-        let scrapRows = filteredData.scrap.length > 1 ? filteredData.scrap.slice(1) : [];
-        let h = filteredData.scrap.length > 0 ? filteredData.scrap[0].map(x=>x.toLowerCase()) : [];
-        let idx = getColIndices(h);
+    /* ================= NEW: LINE PERF & FLOOR LOGIC ================= */
+    let lpDataCache = null;
 
-        scrapRows.forEach(r => lineSet.add(normalizeLine((r[idx.line]||"").toString())));
-        let sortedLines = Array.from(lineSet).sort((a,b)=> a.replace(/\D/g,'') - b.replace(/\D/g,''));
-        let sel = document.getElementById('lineSelector');
+    function updateLinePerf(type) {
+        linePerfFilter.type = type;
+        document.getElementById('lp-btn-earbuds').classList.remove('active');
+        document.getElementById('lp-btn-case').classList.remove('active');
         
-        if(sel.options.length === 0 || sel.options.length !== sortedLines.length) {
-             sel.innerHTML = "";
-             sortedLines.forEach(l => sel.add(new Option("Line "+l, l)));
+        if(type==='EARBUDS') document.getElementById('lp-btn-earbuds').classList.add('active');
+        else document.getElementById('lp-btn-case').classList.add('active');
+        
+        // Populate Checkbox Dropdown
+        let lines = new Set();
+        if(rawData.production.length > 0) {
+             let h = rawData.production[0].map(x=>x.toLowerCase());
+             let idxLine = h.findIndex(x=>x.includes('line'));
+             rawData.production.slice(1).forEach(r => {
+                 let l = (r[idxLine]||"").toUpperCase().trim();
+                 let isC = l.endsWith('C') || l.includes('-C');
+                 // Strict Check for Type
+                 if((type==='EARBUDS' && !isC) || (type==='CASE' && isC)) {
+                     lines.add(normalizeLine(l));
+                 }
+             });
         }
-        let selectedLine = sel.value || sortedLines[0];
+        
+        let container = document.getElementById('lp-line-multiselect');
+        container.innerHTML = '<li><label class="dropdown-item"><input type="checkbox" class="form-check-input me-2" value="ALL" checked onchange="toggleAllLines(this)"> Select All</label></li><li><hr class="dropdown-divider"></li>';
+        
+        Array.from(lines).sort().forEach(l => {
+            container.innerHTML += `<li><label class="dropdown-item"><input type="checkbox" class="form-check-input me-2 lp-line-cb" value="${l}" checked onchange="renderLinePerfData()"> Line ${l}</label></li>`;
+        });
+        
+        // Force render immediately with "All" selected
+        setTimeout(renderLinePerfData, 100);
+    }
 
-        let lineStats = { modelVal:{}, dateVal:{}, pcba:{}, spk:{}, bat:{} };
-        let floorData = { 'First Floor':{p:0,s:0,q:0,comp:{}}, 'Second Floor':{p:0,s:0,q:0,comp:{}}, 'Basement':{p:0,s:0,q:0,comp:{}}, 'Other':{p:0,s:0,q:0,comp:{}} };
+    function toggleAllLines(cb) {
+        document.querySelectorAll('.lp-line-cb').forEach(c => c.checked = cb.checked);
+        renderLinePerfData();
+    }
 
-        Object.keys(prodMap).forEach(ln => { floorData[getFloor(ln)].p += prodMap[ln].val; });
+    function renderLinePerfData() {
+        const monthFilter = document.getElementById('globalMonth').value;
+        const storeSel = document.getElementById('lp-storage').value;
+        
+        // Get Selected Lines
+        let selectedLines = [];
+        document.querySelectorAll('.lp-line-cb:checked').forEach(c => selectedLines.push(c.value));
+        
+        // Update Button Text
+        let totalCbs = document.querySelectorAll('.lp-line-cb').length;
+        let btnText = selectedLines.length === totalCbs ? "Select Lines (All)" : `Select Lines (${selectedLines.length})`;
+        document.getElementById('multiLineBtn').innerText = btnText;
 
-        scrapRows.forEach(row => {
-            let lineRaw = (row[idx.line]||"").toString().toUpperCase().trim();
-            let baseLine = normalizeLine(lineRaw);
-            let isCase = lineRaw.includes('C');
-            let store = (row[idx.store]||"").toLowerCase();
-            let isProc = store.includes('process')||store.includes('6003');
-            let isRMD = store.includes('rmd')||store.includes('6002');
+        let stats = { 
+            floor: { pcba:0, spk:0, bat:0, val:0, qty:0, prodVal:0 },
+            models: {}, 
+            trend: {},
+            compDate: { pcba:{}, spk:{}, bat:{} }
+        };
 
-            if(lineFilter.type==='EARBUDS' && isCase) return;
-            if(lineFilter.type==='CASE' && !isCase) return;
-            if(lineFilter.storage==='PROCESS' && !isProc) return;
-            if(lineFilter.storage==='RMD' && !isRMD) return;
+        let prodMap = getProductionData(monthFilter);
+        Object.entries(prodMap).forEach(([ln, d]) => {
+            if(!selectedLines.includes(ln)) return;
+            stats.floor.prodVal += d.val;
+        });
 
-            let qty = parseFloat(row[idx.qty])||0;
-            let val = (parseFloat(row[idx.price])||0)*qty;
-            let cat = (row[idx.cat]||"").toLowerCase();
-            let date = new Date(row[1]).toLocaleDateString(); 
-            let mod = row[idx.model]||"Unknown";
-            let fl = getFloor(baseLine);
+        if(rawData.scrap.length > 0) {
+             let h = rawData.scrap[0].map(x=>x.toLowerCase());
+             let idx = getColIndices(h);
 
-            floorData[fl].s += val; floorData[fl].q += qty;
-            if(!floorData[fl].comp[cat]) floorData[fl].comp[cat]=0; floorData[fl].comp[cat] += val;
+             rawData.scrap.slice(1).forEach(row => {
+                 let rowDate = row[0];
+                 if(monthFilter) {
+                     let d = new Date(rowDate);
+                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
+                     if(mStr !== monthFilter) return;
+                 }
 
-            if(baseLine === selectedLine) {
-                if(!lineStats.modelVal[mod]) lineStats.modelVal[mod]=0; lineStats.modelVal[mod] += val;
-                if(!lineStats.dateVal[date]) lineStats.dateVal[date]=0; lineStats.dateVal[date] += val;
-                if(cat.includes('pcba')) { if(!lineStats.pcba[date]) lineStats.pcba[date]=0; lineStats.pcba[date]+=qty; }
-                if(cat.includes('speaker')) { if(!lineStats.spk[date]) lineStats.spk[date]=0; lineStats.spk[date]+=qty; }
-                if(cat.includes('battery')) { if(!lineStats.bat[date]) lineStats.bat[date]=0; lineStats.bat[date]+=qty; }
+                 let lineRaw = (row[idx.line] || "").toString().toUpperCase().trim();
+                 let baseLine = normalizeLine(lineRaw);
+                 
+                 // Apply Multi-Line Filter
+                 if(!selectedLines.includes(baseLine)) return;
+
+                 // Apply Type Filter Safety Check
+                 let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C');
+                 if(linePerfFilter.type === 'EARBUDS' && isCase) return;
+                 if(linePerfFilter.type === 'CASE' && !isCase) return;
+
+                 let storeVal = (row[idx.store] || "").toString().toLowerCase();
+                 let isProcess = storeVal.includes('6003') || storeVal.includes('process');
+                 let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
+                 if(storeSel === 'PROCESS' && !isProcess) return;
+                 if(storeSel === 'RMD' && !isRMD) return;
+
+                 let qty = parseFloat(row[idx.qty]) || 0;
+                 let val = (parseFloat(row[idx.price]) || 0) * qty;
+                 let cat = (row[idx.cat] || "").toLowerCase();
+                 let model = row[idx.model] || "Unknown";
+                 let date = new Date(rowDate).toLocaleDateString();
+
+                 stats.floor.val += val;
+                 stats.floor.qty += qty;
+                 if(cat.includes('pcba')) stats.floor.pcba += qty;
+                 if(cat.includes('speaker')) stats.floor.spk += qty;
+                 if(cat.includes('battery')) stats.floor.bat += qty;
+
+                 if(!stats.models[model]) stats.models[model] = 0;
+                 stats.models[model] += val;
+
+                 if(!stats.trend[date]) stats.trend[date] = 0;
+                 stats.trend[date] += val;
+
+                 if(cat.includes('pcba')) { if(!stats.compDate.pcba[date]) stats.compDate.pcba[date]=0; stats.compDate.pcba[date]+=qty; }
+                 if(cat.includes('speaker')) { if(!stats.compDate.spk[date]) stats.compDate.spk[date]=0; stats.compDate.spk[date]+=qty; }
+                 if(cat.includes('battery')) { if(!stats.compDate.bat[date]) stats.compDate.bat[date]=0; stats.compDate.bat[date]+=qty; }
+             });
+        }
+        
+        lpDataCache = stats;
+
+        document.getElementById('lp-floor-name').innerText = selectedLines.length + " Lines Selected";
+        document.getElementById('lp-fl-pcba').innerText = formatCurrencyShort(stats.floor.pcba).replace('₹','');
+        document.getElementById('lp-fl-spk').innerText = formatCurrencyShort(stats.floor.spk).replace('₹','');
+        document.getElementById('lp-fl-bat').innerText = formatCurrencyShort(stats.floor.bat).replace('₹','');
+        document.getElementById('lp-fl-val').innerText = formatCurrencyShort(stats.floor.val);
+        document.getElementById('lp-fl-qty').innerText = formatCurrencyShort(stats.floor.qty).replace('₹','');
+        let ovrRate = stats.floor.prodVal > 0 ? (stats.floor.val / stats.floor.prodVal)*100 : 0;
+        document.getElementById('lp-fl-rate').innerText = ovrRate.toFixed(2) + "%";
+
+        renderLinePerfCharts();
+    }
+
+    function renderLinePerfCharts() {
+        if(!lpDataCache) return;
+        let stats = lpDataCache;
+        let isRate = document.getElementById('lp-model-switch').checked;
+
+        let mLabels = Object.keys(stats.models);
+        let mData = [];
+        let totalScrap = stats.floor.val;
+        mLabels.forEach(m => {
+            if(isRate) mData.push( totalScrap>0 ? (stats.models[m]/totalScrap)*100 : 0 );
+            else mData.push(stats.models[m]);
+        });
+
+        if(linePerfCharts.model) linePerfCharts.model.destroy();
+        linePerfCharts.model = new Chart(document.getElementById('lpModelChart'), {
+            type: 'bar',
+            data: { 
+                labels: mLabels, 
+                datasets: [{ label: isRate?'Share %':'Value ₹', data: mData, backgroundColor: isRate?'#1cc88a':'#4e73df' }] 
             }
         });
 
-        let fBody = document.getElementById('floorStatsBody'); fBody.innerHTML = "";
-        Object.keys(floorData).forEach(f => {
-            let d = floorData[f]; if(d.p === 0 && d.s === 0) return;
-            let r = d.p>0 ? (d.s/d.p)*100 : 0;
-            fBody.innerHTML += `<tr><td class="fw-bold">${f}</td><td>${formatCompact(d.p, true)}</td><td class="text-danger">${formatCompact(d.s, true)}</td><td><span class="badge ${r>5?'bg-danger':'bg-success'}">${r.toFixed(2)}%</span></td><td>${formatCompact(getErrorVal(d.comp,'pcba'),true)}</td><td>${formatCompact(getErrorVal(d.comp,'speaker'),true)}</td><td>${formatCompact(getErrorVal(d.comp,'battery'),true)}</td><td>${d.q.toLocaleString()}</td></tr>`;
+        let tLabels = Object.keys(stats.trend).sort((a,b)=>new Date(a)-new Date(b));
+        let tData = tLabels.map(d => stats.trend[d]);
+        if(linePerfCharts.trend) linePerfCharts.trend.destroy();
+        linePerfCharts.trend = new Chart(document.getElementById('lpTrendChart'), {
+            type: 'line',
+            data: { labels: tLabels, datasets: [{ label: 'Value', data: tData, borderColor: '#e74a3b', tension: 0.1 }] }
         });
 
-        let showRate = document.getElementById('modelRateSwitch').checked;
-        let modLabels = Object.keys(lineStats.modelVal);
-        let modData = Object.values(lineStats.modelVal);
-
-        renderChart('lineModelChart', 'bar', modLabels, [{label:'Scrap Value', data:modData, backgroundColor:'#3498db'}]);
-        renderChart('lineTrendChart', 'line', Object.keys(lineStats.dateVal), [{label:'Value', data:Object.values(lineStats.dateVal), borderColor:'#e74a3b', fill:false}]);
-        renderChart('linePCBAChart', 'bar', Object.keys(lineStats.pcba), [{label:'Qty', data:Object.values(lineStats.pcba), backgroundColor:'#1cc88a'}]);
-        renderChart('lineSpkChart', 'bar', Object.keys(lineStats.spk), [{label:'Qty', data:Object.values(lineStats.spk), backgroundColor:'#f6c23e'}]);
-        renderChart('lineBatChart', 'bar', Object.keys(lineStats.bat), [{label:'Qty', data:Object.values(lineStats.bat), backgroundColor:'#858796'}]);
+        ['pcba','spk','bat'].forEach(k => {
+            let cLabels = Object.keys(stats.compDate[k]).sort((a,b)=>new Date(a)-new Date(b));
+            let cData = cLabels.map(d => stats.compDate[k][d]);
+            let cvs = document.getElementById(k==='pcba'?'lpPcbaChart':(k==='spk'?'lpSpkChart':'lpBatChart'));
+            if(linePerfCharts[k]) linePerfCharts[k].destroy();
+            linePerfCharts[k] = new Chart(cvs, {
+                type: 'bar',
+                data: { labels: cLabels, datasets: [{ label: 'Qty', data: cData, backgroundColor: '#36b9cc' }] },
+                options: { plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+            });
+        });
     }
 
-    /* === MODEL ANALYSIS === */
-    function renderModelAnalysis() {
-        let prodByModel = {}; let scrapByModel = {}; let compByModel = { pcba:{}, spk:{}, bat:{} };
-        filteredData.production.slice(1).forEach(row => {
-            let m = row[2]; let q = parseFloat(row[row.length-1])||0; let pr = modelPrices[m]||0;
-            if(!prodByModel[m]) prodByModel[m] = {val:0}; prodByModel[m].val += (q*pr);
+    /* ================= NEW: MODEL TAB LOGIC (FIXED OVERLAP) ================= */
+    function renderModelPerfTab() {
+        const monthFilter = document.getElementById('globalMonth').value;
+        let stats = { models: {} }; 
+        let prodByModel = {};
+
+        if(rawData.production.length > 0) {
+             let h = rawData.production[0].map(x=>x.toLowerCase());
+             let idxMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2;
+             let idxOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1;
+             rawData.production.slice(1).forEach(row => {
+                 if(monthFilter) {
+                     let d = new Date(row[0]);
+                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
+                     if(mStr !== monthFilter) return;
+                 }
+                 let m = row[idxMod];
+                 let q = parseFloat(row[idxOut])||0;
+                 let pr = modelPrices[m]||0;
+                 if(!prodByModel[m]) prodByModel[m] = {val:0, qty:0};
+                 prodByModel[m].val += (q*pr);
+             });
+        }
+
+        if(rawData.scrap.length > 0) {
+            let h = rawData.scrap[0].map(x=>x.toLowerCase());
+            let idx = getColIndices(h);
+            rawData.scrap.slice(1).forEach(row => {
+                if(monthFilter) {
+                     let d = new Date(row[0]);
+                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
+                     if(mStr !== monthFilter) return;
+                }
+                let m = row[idx.model] || "Unknown";
+                let qty = parseFloat(row[idx.qty]) || 0;
+                let val = (parseFloat(row[idx.price]) || 0) * qty;
+                let cat = (row[idx.cat]||"").toLowerCase();
+
+                if(!stats.models[m]) stats.models[m] = { val:0, pcba:0, spk:0, bat:0 };
+                stats.models[m].val += val;
+                if(cat.includes('pcba')) stats.models[m].pcba += qty;
+                if(cat.includes('speaker')) stats.models[m].spk += qty;
+                if(cat.includes('battery')) stats.models[m].bat += qty;
+            });
+        }
+
+        // --- FIX: Sort by Value and slice TOP 20 only ---
+        let labels = Object.keys(stats.models).sort((a,b) => stats.models[b].val - stats.models[a].val).slice(0, 20);
+        
+        let vals = [];
+        let rates = [];
+        let pcba = [], spk = [], bat = [];
+
+        labels.forEach(m => {
+            let sVal = stats.models[m].val;
+            let pVal = prodByModel[m] ? prodByModel[m].val : 0;
+            vals.push(sVal);
+            rates.push(pVal > 0 ? (sVal/pVal)*100 : 0);
+            pcba.push(stats.models[m].pcba);
+            spk.push(stats.models[m].spk);
+            bat.push(stats.models[m].bat);
         });
 
-        let h = filteredData.scrap[0].map(x=>x.toLowerCase());
-        let idx = getColIndices(h);
-        filteredData.scrap.slice(1).forEach(row => {
-            let m = row[idx.model]||"Unknown"; let q = parseFloat(row[idx.qty])||0; let v = (parseFloat(row[idx.price])||0)*q; let cat = (row[idx.cat]||"").toLowerCase();
-            if(!scrapByModel[m]) scrapByModel[m] = 0; scrapByModel[m] += v;
-            if(!compByModel.pcba[m]) compByModel.pcba[m]=0; if(!compByModel.spk[m]) compByModel.spk[m]=0; if(!compByModel.bat[m]) compByModel.bat[m]=0;
-            if(cat.includes('pcba')) compByModel.pcba[m]+=q; if(cat.includes('speaker')) compByModel.spk[m]+=q; if(cat.includes('battery')) compByModel.bat[m]+=q;
+        // 1. Main Chart (Value & Rate) with Vertical Labels
+        if(modelPerfCharts.main) modelPerfCharts.main.destroy();
+        modelPerfCharts.main = new Chart(document.getElementById('mpMainChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { 
+                        label: 'Scrap Value', 
+                        data: vals, 
+                        backgroundColor: '#4e73df', 
+                        yAxisID: 'y',
+                        datalabels: { rotation: -90, align: 'end', anchor: 'end' } // Rotate Bar Labels
+                    },
+                    { 
+                        label: 'Rate %', 
+                        data: rates, 
+                        type: 'line', 
+                        borderColor: '#e74a3b', 
+                        yAxisID: 'y1',
+                        datalabels: { align: 'top', anchor: 'start', offset: 10, color: '#e74a3b' } // Separate Line Labels
+                    }
+                ]
+            },
+            options: { 
+                plugins: { legend: { display: true } },
+                scales: { 
+                    x: { ticks: { autoSkip: false, maxRotation: 90, minRotation: 90 } }, // Force vertical x-axis text
+                    y: { position: 'left' }, 
+                    y1: { position: 'right', grid: { drawOnChartArea: false } } 
+                },
+                layout: { padding: { top: 30 } } // Space for labels
+            }
         });
 
-        let models = Object.keys(scrapByModel).sort((a,b)=>scrapByModel[b]-scrapByModel[a]).slice(0,15);
-        let vals = models.map(m=>scrapByModel[m]);
-        let rates = models.map(m => { let p = prodByModel[m] ? prodByModel[m].val : 0; return p > 0 ? ((scrapByModel[m]/p)*100).toFixed(2) : 0; });
+        // 2. Separate Component Charts
+        const drawCompChart = (id, key, label, color, data) => {
+            if(modelPerfCharts[key]) modelPerfCharts[key].destroy();
+            modelPerfCharts[key] = new Chart(document.getElementById(id), {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: label, data: data, backgroundColor: color }] },
+                options: {
+                    plugins: { datalabels: { rotation: -90, align: 'end', anchor: 'end' } },
+                    scales: { x: { ticks: { maxRotation: 90, minRotation: 90 } } }
+                }
+            });
+        };
 
-        renderChart('modelMainChart', 'bar', models, [ { label: 'Scrap Value (₹)', data: vals, backgroundColor: '#4e73df', order: 2, yAxisID: 'y' }, { label: 'Scrap Rate %', data: rates, type: 'line', borderColor: '#e74a3b', order: 1, yAxisID: 'y1' } ]);
-        renderChart('modPCBAChart', 'bar', models, [{label:'Qty', data:models.map(m=>compByModel.pcba[m]), backgroundColor:'#1cc88a'}]);
-        renderChart('modSpkChart', 'bar', models, [{label:'Qty', data:models.map(m=>compByModel.spk[m]), backgroundColor:'#f6c23e'}]);
-        renderChart('modBatChart', 'bar', models, [{label:'Qty', data:models.map(m=>compByModel.bat[m]), backgroundColor:'#858796'}]);
+        drawCompChart('mpPcbaChart', 'pcba', 'PCBA Qty', '#1cc88a', pcba);
+        drawCompChart('mpSpkChart', 'spk', 'Speaker Qty', '#36b9cc', spk);
+        drawCompChart('mpBatChart', 'bat', 'Battery Qty', '#f6c23e', bat);
     }
 
-    /* === COMPONENT REPORTS === */
+    /* ================= COMPONENT REPORT LOGIC ================= */
     function renderComponentDashboard(compName) {
         const container = document.getElementById('component-container');
+        const monthFilter = document.getElementById('globalMonth').value;
         let title = compName.toUpperCase();
+        let prodMap = getProductionData(monthFilter); 
+        
         let stats = { totalVal: 0, totalQty: 0, trendDate: {}, byLine: {}, byModel: {}, tableRows: [] };
-        let h = filteredData.scrap[0].map(x=>x.toLowerCase());
-        let idx = getColIndices(h);
+        
+        if(rawData.scrap.length > 0) {
+            let h = rawData.scrap[0].map(x=>x.toLowerCase());
+            let idx = getColIndices(h);
 
-        filteredData.scrap.slice(1).forEach(row => {
-            let cat = (row[idx.cat]||"").toLowerCase();
-            if(!cat.includes(compName)) return;
+            rawData.scrap.slice(1).forEach(row => {
+                let cat = (row[idx.cat]||"").toLowerCase();
+                if(!cat.includes(compName)) return; 
 
-            let lineRaw = (row[idx.line] || "").toString().toUpperCase();
-            let baseLine = normalizeLine(lineRaw);
-            let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C');
-            let storeVal = (row[idx.store] || "").toString().toLowerCase();
-            let isProcess = storeVal.includes('6003') || storeVal.includes('process');
-            let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
+                if(monthFilter) {
+                     let d = new Date(row[0]);
+                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
+                     if(mStr !== monthFilter) return;
+                }
 
-            if(currentCompFilter.type === 'EARBUDS' && isCase) return;
-            if(currentCompFilter.type === 'CASE' && !isCase) return;
-            if(currentCompFilter.storage === 'PROCESS' && !isProcess) return;
-            if(currentCompFilter.storage === 'RMD' && !isRMD) return;
+                let lineRaw = (row[idx.line] || "").toString().toUpperCase();
+                let baseLine = normalizeLine(lineRaw);
+                let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C');
+                let storeVal = (row[idx.store] || "").toString().toLowerCase();
+                let isProcess = storeVal.includes('6003') || storeVal.includes('process');
+                let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
 
-            let date = new Date(row[1]).toLocaleDateString();
-            let qty = parseFloat(row[idx.qty]) || 0;
-            let val = (parseFloat(row[idx.price]) || 0) * qty;
-            let model = row[idx.model] || "Unknown";
+                if(currentCompFilter.type === 'EARBUDS' && isCase) return;
+                if(currentCompFilter.type === 'CASE' && !isCase) return;
+                if(currentCompFilter.storage === 'PROCESS' && !isProcess) return;
+                if(currentCompFilter.storage === 'RMD' && !isRMD) return;
 
-            stats.totalVal += val; stats.totalQty += qty;
-            if(!stats.trendDate[date]) stats.trendDate[date] = 0; stats.trendDate[date] += val;
-            if(!stats.byLine[baseLine]) stats.byLine[baseLine] = { val: 0 }; stats.byLine[baseLine].val += val;
-            if(!stats.byModel[model]) stats.byModel[model] = { val: 0 }; stats.byModel[model].val += val;
-            stats.tableRows.push({ date, line: lineRaw, model, qty, val });
+                let date = new Date(row[0]).toLocaleDateString(); 
+                let qty = parseFloat(row[idx.qty]) || 0;
+                let val = (parseFloat(row[idx.price]) || 0) * qty;
+                let model = row[idx.model] || "Unknown";
+
+                stats.totalVal += val;
+                stats.totalQty += qty;
+
+                if(!stats.trendDate[date]) stats.trendDate[date] = 0;
+                stats.trendDate[date] += val;
+
+                if(!stats.byLine[baseLine]) stats.byLine[baseLine] = { val: 0, qty: 0 };
+                stats.byLine[baseLine].val += val;
+                stats.byLine[baseLine].qty += qty;
+
+                if(!stats.byModel[model]) stats.byModel[model] = { val: 0, qty: 0 };
+                stats.byModel[model].val += val;
+                stats.byModel[model].qty += qty;
+
+                stats.tableRows.push({ date, line: lineRaw, model, qty, val });
+            });
+        }
+
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="text-primary"><i class="fas fa-layer-group me-2"></i> ${title} REPORT</h3>
+                <div class="d-flex gap-2 align-items-center">
+                     <div class="btn-group me-2">
+                        <button class="btn btn-sm btn-success" onclick="exportExcel('component-container', '${title}_Report')"><i class="fas fa-file-excel"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="exportPDF('component-container', '${title}_Report')"><i class="fas fa-file-pdf"></i></button>
+                        <button class="btn btn-sm btn-warning text-dark" onclick="exportPPT('component-container', '${title}_Report')"><i class="fas fa-file-powerpoint"></i></button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-dark ${currentCompFilter.type=='EARBUDS'?'active':''}" onclick="updateCompFilter('${compName}','type','EARBUDS')">Earbuds</button>
+                        <button class="btn btn-sm btn-outline-dark ${currentCompFilter.type=='CASE'?'active':''}" onclick="updateCompFilter('${compName}','type','CASE')">Charging Case</button>
+                        <button class="btn btn-sm btn-outline-secondary ${currentCompFilter.type=='ALL'?'active':''}" onclick="updateCompFilter('${compName}','type','ALL')">All Types</button>
+                    </div>
+                    <select class="form-select form-select-sm" style="width:120px;" onchange="updateCompFilter('${compName}','storage',this.value)">
+                        <option value="ALL" ${currentCompFilter.storage=='ALL'?'selected':''}>All Storage</option>
+                        <option value="PROCESS" ${currentCompFilter.storage=='PROCESS'?'selected':''}>Process</option>
+                        <option value="RMD" ${currentCompFilter.storage=='RMD'?'selected':''}>RMD</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Total ${title} Loss</div><div class="high-stat-val text-danger">${formatCurrencyShort(stats.totalVal)}</div></div></div>
+                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#36b9cc;"><div class="high-stat-title">Total ${title} Qty</div><div class="high-stat-val">${formatCurrencyShort(stats.totalQty).replace('₹','')}</div></div></div>
+                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#1cc88a;"><div class="high-stat-title">Avg Daily Loss</div><div class="high-stat-val">${formatCurrencyShort(stats.totalVal / (Object.keys(stats.trendDate).length || 1))}</div></div></div>
+            </div>
+
+            <div class="comp-card">
+                <div class="comp-header">Daily Loss Trend (Value ₹)</div>
+                <div class="p-3"><canvas id="trendChart" height="80"></canvas></div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="comp-card">
+                        <div class="comp-header">Line Wise Analysis (Value & Rate)</div>
+                        <div class="p-3"><canvas id="lineCompChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="comp-card">
+                        <div class="comp-header">Model Wise Analysis (Value & Qty)</div>
+                        <div class="p-3"><canvas id="modelCompChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comp-card">
+                <div class="comp-header">Detailed Log</div>
+                <div class="table-responsive" style="max-height:300px;">
+                    <table class="table table-sm table-striped text-center mb-0" id="compTable">
+                        <thead class="table-dark"><tr><th>Date</th><th>Line</th><th>Model</th><th>Qty</th><th>Value</th></tr></thead>
+                        <tbody>${stats.tableRows.length ? '' : '<tr><td colspan="5">No Data</td></tr>'}
+                        ${stats.tableRows.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r=>`<tr><td>${r.date}</td><td>${r.line}</td><td>${r.model}</td><td>${r.qty}</td><td class="fw-bold">₹${r.val.toLocaleString()}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+        let trendCtx = document.getElementById('trendChart');
+        if(compCharts.trend) compCharts.trend.destroy();
+        compCharts.trend = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(stats.trendDate),
+                datasets: [{ label: 'Loss Value (₹)', data: Object.values(stats.trendDate), borderColor: '#e74a3b', fill: false, tension: 0.1 }]
+            }
         });
 
-        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h3 class="text-primary">${title} REPORT</h3><div class="d-flex gap-2"><div class="btn-group"><button class="btn btn-sm btn-outline-dark" onclick="updateCompFilter('${compName}','type','EARBUDS')">Earbuds</button><button class="btn btn-sm btn-outline-dark" onclick="updateCompFilter('${compName}','type','CASE')">Case</button><button class="btn btn-sm btn-outline-secondary" onclick="updateCompFilter('${compName}','type','ALL')">All</button></div><select class="form-select form-select-sm" style="width:120px;" onchange="updateCompFilter('${compName}','storage',this.value)"><option value="ALL">All Storage</option><option value="PROCESS">Process</option><option value="RMD">RMD</option></select></div></div><div class="row mb-4"><div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Total ${title} Loss</div><div class="high-stat-val text-danger">${formatCompact(stats.totalVal, true)}</div></div></div><div class="col-md-4"><div class="high-stat-card" style="border-left-color:#36b9cc;"><div class="high-stat-title">Total ${title} Qty</div><div class="high-stat-val">${stats.totalQty.toLocaleString()}</div></div></div><div class="col-md-4"><div class="high-stat-card" style="border-left-color:#1cc88a;"><div class="high-stat-title">Avg Daily Loss</div><div class="high-stat-val">${formatCompact(stats.totalVal / (Object.keys(stats.trendDate).length || 1), true)}</div></div></div></div><div class="comp-card"><div class="comp-header">Daily Loss Trend (Value ₹)</div><div class="p-3"><canvas id="trendChart" height="80"></canvas></div></div><div class="row"><div class="col-md-6"><div class="comp-card"><div class="comp-header">Line Wise Loss</div><div class="p-3"><canvas id="lineCompChart"></canvas></div></div></div><div class="col-md-6"><div class="comp-card"><div class="comp-header">Model Wise Loss</div><div class="p-3"><canvas id="modelCompChart"></canvas></div></div></div></div>`;
-        container.innerHTML = html;
-        renderChart('trendChart', 'line', Object.keys(stats.trendDate), [{label: 'Loss Value', data: Object.values(stats.trendDate), borderColor: '#e74a3b', fill: false}]);
-        renderChart('lineCompChart', 'bar', Object.keys(stats.byLine), [{label: 'Loss Value', data: Object.values(stats.byLine).map(x=>x.val), backgroundColor: '#4e73df'}]);
-        renderChart('modelCompChart', 'bar', Object.keys(stats.byModel).sort((a,b)=>stats.byModel[b].val-stats.byModel[a].val).slice(0,10), [{label: 'Loss Value', data: Object.values(stats.byModel).sort((a,b)=>b.val-a.val).slice(0,10).map(x=>x.val), backgroundColor: '#f6c23e'}]);
-    }
-    function updateCompFilter(c,k,v){ currentCompFilter[k]=v; renderComponentDashboard(c); }
+        let lineLabels = Object.keys(stats.byLine);
+        let lineVals = [];
+        let lineRates = [];
+        lineLabels.forEach(l => {
+            let sVal = stats.byLine[l].val;
+            let pVal = prodMap[l] ? prodMap[l].val : 0;
+            lineVals.push(sVal);
+            lineRates.push(pVal > 0 ? ((sVal/pVal)*100).toFixed(2) : 0);
+        });
 
-    /* === UTILS === */
-    function renderChart(id, type, labels, datasets) {
-        if(charts[id]) charts[id].destroy();
-        charts[id] = new Chart(document.getElementById(id), {
-            type: type,
-            data: { labels: labels, datasets: datasets },
-            options: { 
-                responsive: true, 
-                plugins: { 
-                    datalabels: { display: 'auto', align: 'end', anchor: 'end', formatter: (val, ctx) => ctx.dataset.label.includes('%') ? val+'%' : formatCompact(val, false) }, 
-                    tooltip: { callbacks: { label: ctx => (ctx.dataset.label.includes('Value')?formatCompact(ctx.raw,true):ctx.raw.toLocaleString()) } } 
-                }, 
-                scales: { y: { ticks: { callback: v => formatCompact(v, false) }, position:'left' }, y1: { position:'right', grid:{drawOnChartArea:false}, display: datasets.length>1 } } 
+        let lineCtx = document.getElementById('lineCompChart');
+        if(compCharts.line) compCharts.line.destroy();
+        compCharts.line = new Chart(lineCtx, {
+            type: 'bar',
+            data: {
+                labels: lineLabels,
+                datasets: [
+                    { label: 'Loss Value', data: lineVals, backgroundColor: '#4e73df', yAxisID: 'y' },
+                    { label: 'Scrap Rate %', data: lineRates, type: 'line', borderColor: '#1cc88a', yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                scales: {
+                    y: { type: 'linear', display: true, position: 'left' },
+                    y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+
+        let modelLabels = Object.keys(stats.byModel).sort((a,b) => stats.byModel[b].val - stats.byModel[a].val).slice(0, 10);
+        let modelVals = modelLabels.map(m => stats.byModel[m].val);
+
+        let modelCtx = document.getElementById('modelCompChart');
+        if(compCharts.model) compCharts.model.destroy();
+        compCharts.model = new Chart(modelCtx, {
+            type: 'bar',
+            data: {
+                labels: modelLabels,
+                datasets: [{ label: 'Loss Value', data: modelVals, backgroundColor: '#f6c23e' }]
             }
         });
     }
+
+    function updateCompFilter(comp, key, val) {
+        currentCompFilter[key] = val;
+        renderComponentDashboard(comp);
+    }
+
+    /* ================= UTILS & HELPERS ================= */
+    function getProductionData(monthFilter) {
+        let map = {}; 
+        if(rawData.production.length > 0) {
+            let h = rawData.production[0].map(x=>x.toLowerCase());
+            let idxLine = h.findIndex(x=>x.includes('line'));
+            let idxMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2;
+            let idxOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1;
+
+            rawData.production.slice(1).forEach(row => {
+                if(monthFilter) {
+                     let d = new Date(row[0]);
+                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
+                     if(mStr !== monthFilter) return;
+                }
+                let ln = normalizeLine((row[idxLine]||"").toString());
+                let mod = row[idxMod];
+                let qty = parseFloat(row[idxOut])||0;
+                let pr = modelPrices[mod]||0;
+                if(!map[ln]) map[ln] = {val:0, qty:0};
+                map[ln].val += (qty*pr);
+                map[ln].qty += qty;
+            });
+        }
+        return map;
+    }
+
+    function getColIndices(h) {
+        return {
+            line: h.findIndex(x=>x.includes('line')),
+            store: h.findIndex(x=>x.includes('storage')),
+            cat: h.indexOf('category'),
+            model: h.indexOf('model'),
+            price: h.indexOf('price'),
+            qty: h.findIndex(x=>x.includes('reject')||x.includes('qty'))
+        };
+    }
+
+    function normalizeLine(str) {
+        if(str.match(/IQC|PDI|TRC/i)) return str.toUpperCase();
+        let nums = str.replace(/[^0-9]/g, '');
+        return nums ? nums : str; 
+    }
+
+    function getFloor(lineStr) {
+        let num = parseInt(lineStr);
+        if(isNaN(num)) return "Other";
+        if(num >= 1 && num <= 8) return "First Floor";
+        if(num >= 9 && num <= 16) return "Second Floor";
+        if(num >= 17 && num <= 24) return "Basement";
+        return "Other";
+    }
+
+    /* ================= EXPORT FUNCTIONS ================= */
+    function exportExcel(elementId, name) {
+        let table = document.querySelector(`#${elementId} table`);
+        if(!table) { Swal.fire("Info", "No table data to export here", "info"); return; }
+        let wb = XLSX.utils.table_to_book(table);
+        XLSX.writeFile(wb, name + ".xlsx");
+    }
+
+    function exportPDF(elementId, name) {
+        const { jsPDF } = window.jspdf;
+        let el = document.getElementById(elementId);
+        document.getElementById('loader').style.display='flex';
+        html2canvas(el, { scale: 2 }).then(canvas => {
+            let pdf = new jsPDF('p', 'mm', 'a4');
+            let imgData = canvas.toDataURL('image/png');
+            let w = pdf.internal.pageSize.getWidth();
+            let h = (canvas.height * w) / canvas.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, w, h);
+            pdf.save(name + ".pdf");
+            document.getElementById('loader').style.display='none';
+        });
+    }
+
+    function exportPPT(elementId, name) {
+        let pres = new PptxGenJS();
+        document.getElementById('loader').style.display='flex';
+        let el = document.getElementById(elementId);
+        html2canvas(el, { scale: 2 }).then(canvas => {
+            let slide = pres.addSlide();
+            let imgData = canvas.toDataURL('image/png');
+            slide.addImage({ data: imgData, x: 0.5, y: 0.5, w: '90%', h: 'auto' });
+            pres.writeFile({ fileName: name + ".pptx" }).then(() => {
+                document.getElementById('loader').style.display='none';
+            });
+        });
+    }
+
+    /* ================= RENDER FUNCTIONS (MAIN) ================= */
+    function renderScorecard(s) {
+        document.getElementById('sc-total-out').innerText = formatCurrencyShort(s.out).replace('₹','');
+        document.getElementById('sc-total-val').innerText = formatCurrencyShort(s.prodVal);
+        document.getElementById('sc-proc-scrap').innerText = formatCurrencyShort(s.procScrap);
+        document.getElementById('sc-rmd-scrap').innerText = formatCurrencyShort(s.rmdScrap);
+        document.getElementById('sc-tot-scrap').innerText = formatCurrencyShort(s.totScrap);
+        
+        let pR = s.prodVal > 0 ? (s.procScrap/s.prodVal)*100 : 0;
+        let rR = s.prodVal > 0 ? (s.rmdScrap/s.prodVal)*100 : 0;
+        let oR = s.prodVal > 0 ? (s.totScrap/s.prodVal)*100 : 0;
+        document.getElementById('sc-proc-rate').innerText = pR.toFixed(2) + "%";
+        document.getElementById('sc-rmd-rate').innerText = rR.toFixed(2) + "%";
+        document.getElementById('sc-ovr-rate').innerText = oR.toFixed(2) + "%";
+    }
+
+    function renderHighStats(lineScrap, prodMap, modelScrap, floorStats) {
+        let topLine="N/A", topRate=0;
+        Object.keys(lineScrap).forEach(ln => {
+            let p = prodMap[ln] ? prodMap[ln].val : 0;
+            let s = lineScrap[ln].total;
+            let r = p>0 ? (s/p)*100 : 0;
+            if(r > topRate) { topRate=r; topLine="Line "+ln; }
+        });
+        document.getElementById('high-line').innerText = topLine;
+        document.getElementById('high-line-rate').innerText = topRate.toFixed(2) + "% Rate";
+
+        let topMod="N/A", topVal=0;
+        Object.entries(modelScrap).forEach(([m,v])=>{ if(v>topVal){topVal=v; topMod=m;} });
+        document.getElementById('high-model').innerText = topMod;
+        document.getElementById('high-model-val').innerText = formatCurrencyShort(topVal);
+
+        let topFlr="N/A", topFVal=0;
+        Object.entries(floorStats).forEach(([f,v])=>{ if(v>topFVal){topFVal=v; topFlr=f;} });
+        document.getElementById('high-floor').innerText = topFlr;
+        document.getElementById('high-floor-val').innerText = formatCurrencyShort(topFVal);
+    }
+
+    function renderTable(prodMap, scrapMap) {
+        const tbody = document.getElementById('lineTableBody');
+        tbody.innerHTML = "";
+        let allLines = new Set([...Object.keys(prodMap), ...Object.keys(scrapMap)]);
+        let arr = [];
+        allLines.forEach(ln => {
+            let pVal = prodMap[ln] ? prodMap[ln].val : 0;
+            let sVal = scrapMap[ln] ? scrapMap[ln].total : 0;
+            let rate = pVal>0 ? (sVal/pVal)*100 : 0;
+            if(pVal===0 && sVal>0) rate=100;
+            let cats = scrapMap[ln] ? scrapMap[ln].cats : {};
+            let catsQty = scrapMap[ln] ? scrapMap[ln].catsQty : {};
+            arr.push({ln, pVal, sVal, rate, cats, catsQty});
+        });
+
+        let sort = document.getElementById('sortFilter').value;
+        arr.sort((a,b) => sort==='DESC' ? b.rate - a.rate : a.rate - b.rate);
+
+        arr.forEach(i => {
+            let src = viewMode==='VALUE' ? i.cats : i.catsQty;
+            let sym = viewMode==='VALUE' ? '₹' : '';
+            let lnName = isNaN(i.ln) ? i.ln : "Line "+i.ln;
+            const fmt = (n) => n ? n.toLocaleString() : "0";
+            
+            let row = `<tr>
+                <td class="fw-bold text-start ps-3">${lnName}</td>
+                <td>₹${formatCurrencyShort(i.pVal).replace('₹','')}</td>
+                <td class="text-danger fw-bold">₹${formatCurrencyShort(i.sVal).replace('₹','')}</td>
+                <td><span class="badge ${i.rate>5?'bg-danger':'bg-success'} badge-lg">${i.rate.toFixed(2)}%</span></td>
+                <td>${sym}${fmt(src['PCBA'])}</td>
+                <td>${sym}${fmt(src['Speaker'])}</td>
+                <td>${sym}${fmt(src['Battery'])}</td>
+                <td>${sym}${fmt(src['Magnet'])}</td>
+                <td>${sym}${fmt(src['Other Parts']||src['Other'])}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function setLineType(t) { 
+        currentLineType=t; 
+        document.querySelectorAll('.controls-bar .btn-group button').forEach(b=>b.classList.remove('active')); 
+        if(t==='ALL')document.getElementById('btn-main-all').classList.add('active'); 
+        if(t==='EARBUDS')document.getElementById('btn-earbuds').classList.add('active'); 
+        if(t==='CASE')document.getElementById('btn-case').classList.add('active'); 
+        processAndRender(); 
+    }
+    function toggleViewMode(m) { viewMode=m; document.getElementById('view-val').classList.toggle('active',m==='VALUE'); document.getElementById('view-qty').classList.toggle('active',m==='QTY'); document.getElementById('breakdown-header').innerText = m==='VALUE'?"Defect Breakdown (Value ₹)":"Defect Breakdown (Qty)"; processAndRender(); }
     
-    function formatCompact(num, isCurr) { if(num >= 100000) return (isCurr?'₹':'') + (num/100000).toFixed(2) + 'L'; if(num >= 1000) return (isCurr?'₹':'') + (num/1000).toFixed(1) + 'k'; return (isCurr?'₹':'') + num.toLocaleString(); }
-    function getErrorVal(obj, keyPart) { let sum = 0; Object.keys(obj).forEach(k => { if(k.includes(keyPart)) sum += obj[k]; }); return sum; }
-    function getProductionData(rows) { let map = {}; if(rows.length > 1) { let h = rows[0].map(x=>x.toLowerCase()); let idxLine = h.findIndex(x=>x.includes('line')); let idxMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2; let idxOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1; rows.slice(1).forEach(row => { let ln = normalizeLine((row[idxLine]||"").toString()); let mod = row[idxMod]; let qty = parseFloat(row[idxOut])||0; let pr = modelPrices[mod]||0; if(!map[ln]) map[ln] = {val:0, qty:0}; map[ln].val += (qty*pr); map[ln].qty += qty; }); } return map; }
-    function getColIndices(h) { return { line: h.findIndex(x=>x.includes('line')), store: h.findIndex(x=>x.includes('storage')), cat: h.indexOf('category'), model: h.indexOf('model'), price: h.indexOf('price'), qty: h.findIndex(x=>x.includes('reject')||x.includes('qty')) }; }
-    function normalizeLine(s) { if(s.match(/IQC|PDI|TRC/i)) return s.toUpperCase(); let n = s.replace(/[^0-9]/g, ''); return n ? n : s; }
-    function getFloor(s) { let n=parseInt(s); if(isNaN(n))return "Other"; if(n>=1&&n<=8)return "First Floor"; if(n>=9&&n<=16)return "Second Floor"; if(n>=17&&n<=24)return "Basement"; return "Other"; }
-    function setLineType(t){ currentLineType=t; document.querySelectorAll('.controls-bar .btn-group button').forEach(b=>b.classList.remove('active')); if(t==='EARBUDS')document.getElementById('btn-earbuds').classList.add('active'); if(t==='CASE')document.getElementById('btn-case').classList.add('active'); processAndRender(); }
-    function toggleViewMode(m){ viewMode=m; document.getElementById('view-val').classList.toggle('active',m==='VALUE'); document.getElementById('view-qty').classList.toggle('active',m==='QTY'); processAndRender(); }
-    function renderScorecard(s) { document.getElementById('sc-total-out').innerText = formatCompact(s.out, false); document.getElementById('sc-total-val').innerText = formatCompact(s.prodVal, true); document.getElementById('sc-proc-scrap').innerText = formatCompact(s.procScrap, true); document.getElementById('sc-rmd-scrap').innerText = formatCompact(s.rmdScrap, true); document.getElementById('sc-tot-scrap').innerText = formatCompact(s.totScrap, true); document.getElementById('sc-proc-rate').innerText = (s.prodVal>0?(s.procScrap/s.prodVal)*100:0).toFixed(2) + "%"; document.getElementById('sc-rmd-rate').innerText = (s.prodVal>0?(s.rmdScrap/s.prodVal)*100:0).toFixed(2) + "%"; document.getElementById('sc-ovr-rate').innerText = (s.prodVal>0?(s.totScrap/s.prodVal)*100:0).toFixed(2) + "%"; }
-    function renderHighStats(lineScrap, prodMap, modelScrap, floorStats) { let topLine="N/A", topRate=0; Object.keys(lineScrap).forEach(ln => { let p=prodMap[ln]?prodMap[ln].val:0; let r=p>0?(lineScrap[ln].total/p)*100:0; if(r>topRate){topRate=r; topLine="Line "+ln;} }); document.getElementById('high-line').innerText = topLine; document.getElementById('high-line-rate').innerText = topRate.toFixed(2)+"% Rate"; let topMod="N/A", topVal=0; Object.entries(modelScrap).forEach(([m,v])=>{if(v>topVal){topVal=v; topMod=m;}}); document.getElementById('high-model').innerText = topMod; document.getElementById('high-model-val').innerText = formatCompact(topVal, true); let topFlr="N/A", topFVal=0; Object.entries(floorStats).forEach(([f,v])=>{if(v>topFVal){topFVal=v; topFlr=f;}}); document.getElementById('high-floor').innerText = topFlr; document.getElementById('high-floor-val').innerText = formatCompact(topFVal, true); }
-    function renderTable(prodMap, scrapMap) { const tbody = document.getElementById('lineTableBody'); tbody.innerHTML = ""; let arr = []; let allLines = new Set([...Object.keys(prodMap), ...Object.keys(scrapMap)]); allLines.forEach(ln => { let pVal = prodMap[ln]?prodMap[ln].val:0; let sVal=scrapMap[ln]?scrapMap[ln].total:0; let rate=pVal>0?(sVal/pVal)*100:0; if(pVal===0&&sVal>0)rate=100; arr.push({ln, pVal, sVal, rate, cats:scrapMap[ln]?scrapMap[ln].cats:{}, catsQty:scrapMap[ln]?scrapMap[ln].catsQty:{}}); }); let sort = document.getElementById('sortFilter').value; arr.sort((a,b)=>sort==='DESC'?b.rate-a.rate:a.rate-b.rate); arr.forEach(i=>{ let src=viewMode==='VALUE'?i.cats:i.catsQty; let sym=viewMode==='VALUE'; tbody.innerHTML += `<tr><td class="fw-bold text-start ps-3">${isNaN(i.ln)?i.ln:"Line "+i.ln}</td><td>${formatCompact(i.pVal,true)}</td><td class="text-danger fw-bold">${formatCompact(i.sVal,true)}</td><td><span class="badge ${i.rate>5?'bg-danger':'bg-success'} badge-lg">${i.rate.toFixed(2)}%</span></td><td>${formatCompact(src['PCBA']||0,sym)}</td><td>${formatCompact(src['Speaker']||0,sym)}</td><td>${formatCompact(src['Battery']||0,sym)}</td><td>${formatCompact(src['Magnet']||0,sym)}</td><td>${formatCompact((src['Other Parts']||src['Other']||0),sym)}</td></tr>`; }); }
+    // Save/Upload standard functions
     function saveProduction() { sendData({action:'production', date:document.getElementById('pDate').value, model:document.getElementById('pModel').value, lineNo:document.getElementById('pLine').value, output:document.getElementById('pOut').value}); }
     function uploadExcel() { let f=document.getElementById('uploadFile').files[0]; if(!f)return Swal.fire("Error","Select file","warning"); let r=new FileReader(); r.onload=e=>{ let w=XLSX.read(e.target.result,{type:'array'}); let j=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]); sendData({action:'bulk_scrap',rows:j}); }; r.readAsArrayBuffer(f); }
     function sendData(p) { document.getElementById('loader').style.display='flex'; fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(p)}).then(()=>{ document.getElementById('loader').style.display='none'; Swal.fire("Success","Data Saved","success"); if(p.action==='production')document.getElementById('prodForm').reset(); }); }
