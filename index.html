@@ -230,7 +230,7 @@
                 </div>
             </div>
 
-            <!-- ========================= COMPONENT SECTIONS ========================= -->
+            <!-- ========================= 4. COMPONENT SECTIONS ========================= -->
             <div id="component-container" class="content-section" style="display:none;"></div>
 
             <!-- ========================= ENTRY SECTIONS ========================= -->
@@ -276,6 +276,8 @@
     let viewMode = 'VALUE'; 
     let charts = {}; // Store charts for destruction
     let lineFilter = { type: 'ALL', storage: 'ALL' };
+    let compCharts = {}; // Charts for component tab
+    let currentCompFilter = { type: 'ALL', storage: 'ALL' };
 
     // Initial Load
     window.onload = function() {
@@ -288,6 +290,7 @@
         document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
         
         if(['pcba','speaker','battery'].includes(id)) {
+            currentCompFilter = { type: 'ALL', storage: 'ALL' };
             renderComponentDashboard(id);
             document.getElementById('component-container').style.display = 'block';
         } else if(id === 'line-analysis') {
@@ -322,7 +325,6 @@
                 });
             }
             
-            // Apply Global Month Filter
             applyGlobalFilter();
 
         } catch(e) { Swal.fire("Error", "Failed to load data", "error"); }
@@ -333,25 +335,25 @@
     function applyGlobalFilter() {
         let selMonth = document.getElementById('globalMonth').value; // "YYYY-MM"
         
-        // Filter Production
+        // Filter Production (Col 0 is Date)
         filteredData.production = rawData.production.filter((row, idx) => {
-            if(idx === 0) return true; // Keep Header
+            if(idx === 0) return true;
             let d = new Date(row[0]).toISOString().slice(0, 7);
             return d === selMonth;
         });
 
-        // Filter Scrap
+        // Filter Scrap (Col 1 is Doc Date)
         filteredData.scrap = rawData.scrap.filter((row, idx) => {
-            if(idx === 0) return true; // Keep Header
-            let d = new Date(row[0]).toISOString().slice(0, 7); // Col 0 is Date
+            if(idx === 0) return true;
+            let d = new Date(row[1]).toISOString().slice(0, 7); // Use Doc Date!
             return d === selMonth;
         });
 
-        // Refresh Current View
         let active = document.querySelector('.nav-link.active').innerText;
         if(active.includes('Main')) processAndRender();
         else if(active.includes('Line')) renderLineFloorAnalysis();
         else if(active.includes('Model')) renderModelAnalysis();
+        else if(active.includes('Report')) renderComponentDashboard(active.split(' ')[0].toLowerCase());
     }
 
     // --- 1. MAIN DASHBOARD LOGIC ---
@@ -417,7 +419,6 @@
     function renderLineFloorAnalysis() {
         let prodMap = getProductionData(filteredData.production);
         
-        // 1. Prepare Line Selector
         let lineSet = new Set([...Object.keys(prodMap)]);
         let scrapRows = filteredData.scrap.length > 1 ? filteredData.scrap.slice(1) : [];
         let h = filteredData.scrap.length > 0 ? filteredData.scrap[0].map(x=>x.toLowerCase()) : [];
@@ -433,17 +434,14 @@
         if(currentSel && lineSet.has(currentSel)) sel.value = currentSel;
         let selectedLine = sel.value;
 
-        // 2. Process Data for Selected Line
         let lineStats = { modelVal:{}, dateVal:{}, pcba:{}, spk:{}, bat:{} };
         let floorData = { 'First Floor':{p:0,s:0,q:0,comp:{}}, 'Second Floor':{p:0,s:0,q:0,comp:{}}, 'Basement':{p:0,s:0,q:0,comp:{}}, 'Other':{p:0,s:0,q:0,comp:{}} };
 
-        // Floor Prod
         Object.keys(prodMap).forEach(ln => {
             let fl = getFloor(ln);
             floorData[fl].p += prodMap[ln].val;
         });
 
-        // Scrap Processing
         scrapRows.forEach(row => {
             let lineRaw = (row[idx.line]||"").toString().toUpperCase().trim();
             let baseLine = normalizeLine(lineRaw);
@@ -452,7 +450,6 @@
             let isProc = store.includes('process')||store.includes('6003');
             let isRMD = store.includes('rmd')||store.includes('6002');
 
-            // Global Line Filters
             if(lineFilter.type==='EARBUDS' && isCase) return;
             if(lineFilter.type==='CASE' && !isCase) return;
             if(lineFilter.storage==='PROCESS' && !isProc) return;
@@ -461,62 +458,42 @@
             let qty = parseFloat(row[idx.qty])||0;
             let val = (parseFloat(row[idx.price])||0)*qty;
             let cat = (row[idx.cat]||"").toLowerCase();
-            let date = new Date(row[0]).toLocaleDateString();
+            let date = new Date(row[1]).toLocaleDateString(); // Doc Date
             let mod = row[idx.model]||"Unknown";
             let fl = getFloor(baseLine);
 
-            // Floor Aggregation
             floorData[fl].s += val;
             floorData[fl].q += qty;
             if(!floorData[fl].comp[cat]) floorData[fl].comp[cat]=0;
             floorData[fl].comp[cat] += val;
 
-            // Selected Line Data
             if(baseLine === selectedLine) {
                 if(!lineStats.modelVal[mod]) lineStats.modelVal[mod]=0;
                 lineStats.modelVal[mod] += val;
-
                 if(!lineStats.dateVal[date]) lineStats.dateVal[date]=0;
                 lineStats.dateVal[date] += val;
-
                 if(cat.includes('pcba')) { if(!lineStats.pcba[date]) lineStats.pcba[date]=0; lineStats.pcba[date]+=qty; }
                 if(cat.includes('speaker')) { if(!lineStats.spk[date]) lineStats.spk[date]=0; lineStats.spk[date]+=qty; }
                 if(cat.includes('battery')) { if(!lineStats.bat[date]) lineStats.bat[date]=0; lineStats.bat[date]+=qty; }
             }
         });
 
-        // 3. Render Floor Table
         let fBody = document.getElementById('floorStatsBody');
         fBody.innerHTML = "";
         Object.keys(floorData).forEach(f => {
             let d = floorData[f];
             if(d.p === 0 && d.s === 0) return;
             let r = d.p>0 ? (d.s/d.p)*100 : 0;
-            fBody.innerHTML += `<tr>
-                <td class="fw-bold">${f}</td>
-                <td>${formatCompact(d.p, true)}</td>
-                <td class="text-danger">${formatCompact(d.s, true)}</td>
-                <td><span class="badge ${r>5?'bg-danger':'bg-success'}">${r.toFixed(2)}%</span></td>
-                <td>${formatCompact(getErrorVal(d.comp,'pcba'),true)}</td>
-                <td>${formatCompact(getErrorVal(d.comp,'speaker'),true)}</td>
-                <td>${formatCompact(getErrorVal(d.comp,'battery'),true)}</td>
-                <td>${d.q.toLocaleString()}</td>
-            </tr>`;
+            fBody.innerHTML += `<tr><td class="fw-bold">${f}</td><td>${formatCompact(d.p, true)}</td><td class="text-danger">${formatCompact(d.s, true)}</td><td><span class="badge ${r>5?'bg-danger':'bg-success'}">${r.toFixed(2)}%</span></td><td>${formatCompact(getErrorVal(d.comp,'pcba'),true)}</td><td>${formatCompact(getErrorVal(d.comp,'speaker'),true)}</td><td>${formatCompact(getErrorVal(d.comp,'battery'),true)}</td><td>${d.q.toLocaleString()}</td></tr>`;
         });
 
         function getErrorVal(obj, keyPart) {
-            let sum = 0;
-            Object.keys(obj).forEach(k => { if(k.includes(keyPart)) sum += obj[k]; });
-            return sum;
+            let sum = 0; Object.keys(obj).forEach(k => { if(k.includes(keyPart)) sum += obj[k]; }); return sum;
         }
 
-        // 4. Render Charts
         let showRate = document.getElementById('modelRateSwitch').checked;
         let modLabels = Object.keys(lineStats.modelVal);
-        let modData = showRate ? modLabels.map(m => {
-            // Rate logic requires looking up Prod for this model on this line... complex approx:
-            return lineStats.modelVal[m]; // Keeping as Value for simplicity or Rate if Prod avail
-        }) : Object.values(lineStats.modelVal);
+        let modData = Object.values(lineStats.modelVal);
 
         renderChart('lineModelChart', 'bar', modLabels, [{label:'Scrap Value', data:modData, backgroundColor:'#3498db'}]);
         renderChart('lineTrendChart', 'line', Object.keys(lineStats.dateVal), [{label:'Value', data:Object.values(lineStats.dateVal), borderColor:'#e74a3b', fill:false}]);
@@ -527,70 +504,115 @@
 
     // --- 3. MODEL ANALYSIS LOGIC ---
     function renderModelAnalysis() {
-        let prodByModel = {}; 
-        let scrapByModel = {};
-        let compByModel = { pcba:{}, spk:{}, bat:{} };
-
-        // Prod
+        let prodByModel = {}; let scrapByModel = {}; let compByModel = { pcba:{}, spk:{}, bat:{} };
         filteredData.production.slice(1).forEach(row => {
-            let m = row[2]; // Model
-            let q = parseFloat(row[row.length-1])||0;
-            let pr = modelPrices[m]||0;
-            if(!prodByModel[m]) prodByModel[m] = {val:0};
-            prodByModel[m].val += (q*pr);
+            let m = row[2]; let q = parseFloat(row[row.length-1])||0; let pr = modelPrices[m]||0;
+            if(!prodByModel[m]) prodByModel[m] = {val:0}; prodByModel[m].val += (q*pr);
         });
 
-        // Scrap
         let h = filteredData.scrap[0].map(x=>x.toLowerCase());
         let idx = getColIndices(h);
         filteredData.scrap.slice(1).forEach(row => {
-            let m = row[idx.model]||"Unknown";
-            let q = parseFloat(row[idx.qty])||0;
-            let v = (parseFloat(row[idx.price])||0)*q;
-            let cat = (row[idx.cat]||"").toLowerCase();
-
-            if(!scrapByModel[m]) scrapByModel[m] = 0;
-            scrapByModel[m] += v;
-
-            if(!compByModel.pcba[m]) compByModel.pcba[m]=0;
-            if(!compByModel.spk[m]) compByModel.spk[m]=0;
-            if(!compByModel.bat[m]) compByModel.bat[m]=0;
-
-            if(cat.includes('pcba')) compByModel.pcba[m]+=q;
-            if(cat.includes('speaker')) compByModel.spk[m]+=q;
-            if(cat.includes('battery')) compByModel.bat[m]+=q;
+            let m = row[idx.model]||"Unknown"; let q = parseFloat(row[idx.qty])||0; let v = (parseFloat(row[idx.price])||0)*q; let cat = (row[idx.cat]||"").toLowerCase();
+            if(!scrapByModel[m]) scrapByModel[m] = 0; scrapByModel[m] += v;
+            if(!compByModel.pcba[m]) compByModel.pcba[m]=0; if(!compByModel.spk[m]) compByModel.spk[m]=0; if(!compByModel.bat[m]) compByModel.bat[m]=0;
+            if(cat.includes('pcba')) compByModel.pcba[m]+=q; if(cat.includes('speaker')) compByModel.spk[m]+=q; if(cat.includes('battery')) compByModel.bat[m]+=q;
         });
 
-        // Main Chart Data
         let models = Object.keys(scrapByModel).sort((a,b)=>scrapByModel[b]-scrapByModel[a]).slice(0,15);
         let vals = models.map(m=>scrapByModel[m]);
-        let rates = models.map(m => {
-            let p = prodByModel[m] ? prodByModel[m].val : 0;
-            return p > 0 ? ((scrapByModel[m]/p)*100).toFixed(2) : 0;
-        });
+        let rates = models.map(m => { let p = prodByModel[m] ? prodByModel[m].val : 0; return p > 0 ? ((scrapByModel[m]/p)*100).toFixed(2) : 0; });
 
-        let ctx = document.getElementById('modelMainChart');
         if(charts['modelMainChart']) charts['modelMainChart'].destroy();
-        charts['modelMainChart'] = new Chart(ctx, {
+        charts['modelMainChart'] = new Chart(document.getElementById('modelMainChart'), {
             type: 'bar',
-            data: {
-                labels: models,
-                datasets: [
-                    { label: 'Scrap Value (₹)', data: vals, backgroundColor: '#4e73df', order: 2, yAxisID: 'y' },
-                    { label: 'Scrap Rate %', data: rates, type: 'line', borderColor: '#e74a3b', order: 1, yAxisID: 'y1' }
-                ]
-            },
-            options: { 
-                responsive: true,
-                scales: { y: {position:'left'}, y1: {position:'right', grid:{drawOnChartArea:false}} }
-            }
+            data: { labels: models, datasets: [ { label: 'Scrap Value (₹)', data: vals, backgroundColor: '#4e73df', order: 2, yAxisID: 'y' }, { label: 'Scrap Rate %', data: rates, type: 'line', borderColor: '#e74a3b', order: 1, yAxisID: 'y1' } ] },
+            options: { responsive: true, scales: { y: {position:'left', ticks:{callback: v=>formatCompact(v,false)}}, y1: {position:'right', grid:{drawOnChartArea:false}} } }
         });
 
-        // Comp Charts
         renderChart('modPCBAChart', 'bar', models, [{label:'Qty', data:models.map(m=>compByModel.pcba[m]), backgroundColor:'#1cc88a'}]);
         renderChart('modSpkChart', 'bar', models, [{label:'Qty', data:models.map(m=>compByModel.spk[m]), backgroundColor:'#f6c23e'}]);
         renderChart('modBatChart', 'bar', models, [{label:'Qty', data:models.map(m=>compByModel.bat[m]), backgroundColor:'#858796'}]);
     }
+
+    // --- 4. COMPONENT DASHBOARD LOGIC (Restored) ---
+    function renderComponentDashboard(compName) {
+        const container = document.getElementById('component-container');
+        let title = compName.toUpperCase();
+        let prodMap = getProductionData(filteredData.production); 
+        
+        let stats = { totalVal: 0, totalQty: 0, trendDate: {}, byLine: {}, byModel: {}, tableRows: [] };
+        let h = filteredData.scrap[0].map(x=>x.toLowerCase());
+        let idx = getColIndices(h);
+
+        filteredData.scrap.slice(1).forEach(row => {
+            let cat = (row[idx.cat]||"").toLowerCase();
+            if(!cat.includes(compName)) return;
+
+            let lineRaw = (row[idx.line] || "").toString().toUpperCase();
+            let baseLine = normalizeLine(lineRaw);
+            let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C');
+            let storeVal = (row[idx.store] || "").toString().toLowerCase();
+            let isProcess = storeVal.includes('6003') || storeVal.includes('process');
+            let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
+
+            if(currentCompFilter.type === 'EARBUDS' && isCase) return;
+            if(currentCompFilter.type === 'CASE' && !isCase) return;
+            if(currentCompFilter.storage === 'PROCESS' && !isProcess) return;
+            if(currentCompFilter.storage === 'RMD' && !isRMD) return;
+
+            let date = new Date(row[1]).toLocaleDateString(); // Doc Date
+            let qty = parseFloat(row[idx.qty]) || 0;
+            let val = (parseFloat(row[idx.price]) || 0) * qty;
+            let model = row[idx.model] || "Unknown";
+
+            stats.totalVal += val;
+            stats.totalQty += qty;
+            if(!stats.trendDate[date]) stats.trendDate[date] = 0; stats.trendDate[date] += val;
+            if(!stats.byLine[baseLine]) stats.byLine[baseLine] = { val: 0 }; stats.byLine[baseLine].val += val;
+            if(!stats.byModel[model]) stats.byModel[model] = { val: 0 }; stats.byModel[model].val += val;
+            stats.tableRows.push({ date, line: lineRaw, model, qty, val });
+        });
+
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="text-primary"><i class="fas fa-layer-group me-2"></i> ${title} REPORT</h3>
+                <div class="d-flex gap-2">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-dark ${currentCompFilter.type=='EARBUDS'?'active':''}" onclick="updateCompFilter('${compName}','type','EARBUDS')">Earbuds</button>
+                        <button class="btn btn-sm btn-outline-dark ${currentCompFilter.type=='CASE'?'active':''}" onclick="updateCompFilter('${compName}','type','CASE')">Case</button>
+                        <button class="btn btn-sm btn-outline-secondary ${currentCompFilter.type=='ALL'?'active':''}" onclick="updateCompFilter('${compName}','type','ALL')">All</button>
+                    </div>
+                    <select class="form-select form-select-sm" style="width:120px;" onchange="updateCompFilter('${compName}','storage',this.value)">
+                        <option value="ALL" ${currentCompFilter.storage=='ALL'?'selected':''}>All Storage</option>
+                        <option value="PROCESS" ${currentCompFilter.storage=='PROCESS'?'selected':''}>Process</option>
+                        <option value="RMD" ${currentCompFilter.storage=='RMD'?'selected':''}>RMD</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Total ${title} Loss</div><div class="high-stat-val text-danger">${formatCompact(stats.totalVal, true)}</div></div></div>
+                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#36b9cc;"><div class="high-stat-title">Total ${title} Qty</div><div class="high-stat-val">${stats.totalQty.toLocaleString()}</div></div></div>
+                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#1cc88a;"><div class="high-stat-title">Avg Daily Loss</div><div class="high-stat-val">${formatCompact(stats.totalVal / (Object.keys(stats.trendDate).length || 1), true)}</div></div></div>
+            </div>
+            <div class="comp-card"><div class="comp-header">Daily Loss Trend (Value ₹)</div><div class="p-3"><canvas id="trendChart" height="80"></canvas></div></div>
+            <div class="row">
+                <div class="col-md-6"><div class="comp-card"><div class="comp-header">Line Wise Loss</div><div class="p-3"><canvas id="lineCompChart"></canvas></div></div></div>
+                <div class="col-md-6"><div class="comp-card"><div class="comp-header">Model Wise Loss</div><div class="p-3"><canvas id="modelCompChart"></canvas></div></div></div>
+            </div>
+            <div class="comp-card"><div class="comp-header">Detailed Log</div><div class="table-responsive" style="max-height:300px;"><table class="table table-sm table-striped text-center mb-0"><thead class="table-dark"><tr><th>Date</th><th>Line</th><th>Model</th><th>Qty</th><th>Value</th></tr></thead><tbody>${stats.tableRows.length?'':'<tr><td colspan="5">No Data</td></tr>'}${stats.tableRows.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r=>`<tr><td>${r.date}</td><td>${r.line}</td><td>${r.model}</td><td>${r.qty}</td><td class="fw-bold">₹${r.val.toLocaleString()}</td></tr>`).join('')}</tbody></table></div></div>`;
+        container.innerHTML = html;
+
+        if(compCharts.trend) compCharts.trend.destroy(); compCharts.trend = new Chart(document.getElementById('trendChart'), {type: 'line', data: {labels: Object.keys(stats.trendDate), datasets: [{label: 'Loss Value', data: Object.values(stats.trendDate), borderColor: '#e74a3b', fill: false}]}, options: {scales:{y:{ticks:{callback:v=>formatCompact(v,false)}}}}});
+        
+        let lineLabels = Object.keys(stats.byLine); let lineVals = lineLabels.map(l=>stats.byLine[l].val);
+        if(compCharts.line) compCharts.line.destroy(); compCharts.line = new Chart(document.getElementById('lineCompChart'), {type: 'bar', data: {labels: lineLabels, datasets: [{label: 'Loss Value', data: lineVals, backgroundColor: '#4e73df'}]}, options: {scales:{y:{ticks:{callback:v=>formatCompact(v,false)}}}}});
+
+        let modelLabels = Object.keys(stats.byModel).sort((a,b)=>stats.byModel[b].val-stats.byModel[a].val).slice(0,10); let modelVals = modelLabels.map(m=>stats.byModel[m].val);
+        if(compCharts.model) compCharts.model.destroy(); compCharts.model = new Chart(document.getElementById('modelCompChart'), {type: 'bar', data: {labels: modelLabels, datasets: [{label: 'Loss Value', data: modelVals, backgroundColor: '#f6c23e'}]}, options: {scales:{y:{ticks:{callback:v=>formatCompact(v,false)}}}}});
+    }
+
+    function updateCompFilter(c,k,v){ currentCompFilter[k]=v; renderComponentDashboard(c); }
 
     // --- CHART HELPER ---
     function renderChart(id, type, labels, datasets) {
@@ -601,111 +623,25 @@
             options: {
                 responsive: true,
                 plugins: {
-                    datalabels: { display: false }, // Cleaner look
-                    tooltip: {
-                        callbacks: {
-                            label: function(ctx) {
-                                let val = ctx.raw;
-                                if(ctx.dataset.label.includes('Value')) return formatCompact(val, true);
-                                return val.toLocaleString();
-                            }
-                        }
-                    }
+                    datalabels: { display: false },
+                    tooltip: { callbacks: { label: ctx => (ctx.dataset.label.includes('Value')?formatCompact(ctx.raw,true):ctx.raw.toLocaleString()) } }
                 },
-                scales: {
-                    y: {
-                        ticks: {
-                            callback: function(val) { return formatCompact(val, false); }
-                        }
-                    }
-                }
+                scales: { y: { ticks: { callback: v => formatCompact(v, false) } } }
             }
         });
     }
 
-    // --- FORMATTING & UTILS ---
-    function formatCompact(num, isCurr) {
-        if(num >= 100000) return (isCurr?'₹':'') + (num/100000).toFixed(2) + 'L';
-        if(num >= 1000) return (isCurr?'₹':'') + (num/1000).toFixed(1) + 'k';
-        return (isCurr?'₹':'') + num.toLocaleString();
-    }
-
-    function getProductionData(rows) {
-        let map = {};
-        if(rows.length > 1) {
-            let h = rows[0].map(x=>x.toLowerCase());
-            let idxLine = h.findIndex(x=>x.includes('line'));
-            let idxMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2;
-            let idxOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1;
-            rows.slice(1).forEach(row => {
-                let ln = normalizeLine((row[idxLine]||"").toString());
-                let mod = row[idxMod];
-                let qty = parseFloat(row[idxOut])||0;
-                let pr = modelPrices[mod]||0;
-                if(!map[ln]) map[ln] = {val:0, qty:0};
-                map[ln].val += (qty*pr);
-                map[ln].qty += qty;
-            });
-        }
-        return map;
-    }
-    
+    function formatCompact(num, isCurr) { if(num >= 100000) return (isCurr?'₹':'') + (num/100000).toFixed(2) + 'L'; if(num >= 1000) return (isCurr?'₹':'') + (num/1000).toFixed(1) + 'k'; return (isCurr?'₹':'') + num.toLocaleString(); }
+    function getProductionData(rows) { let map = {}; if(rows.length > 1) { let h = rows[0].map(x=>x.toLowerCase()); let idxLine = h.findIndex(x=>x.includes('line')); let idxMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2; let idxOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1; rows.slice(1).forEach(row => { let ln = normalizeLine((row[idxLine]||"").toString()); let mod = row[idxMod]; let qty = parseFloat(row[idxOut])||0; let pr = modelPrices[mod]||0; if(!map[ln]) map[ln] = {val:0, qty:0}; map[ln].val += (qty*pr); map[ln].qty += qty; }); } return map; }
     function getColIndices(h) { return { line: h.findIndex(x=>x.includes('line')), store: h.findIndex(x=>x.includes('storage')), cat: h.indexOf('category'), model: h.indexOf('model'), price: h.indexOf('price'), qty: h.findIndex(x=>x.includes('reject')||x.includes('qty')) }; }
     function normalizeLine(s) { if(s.match(/IQC|PDI|TRC/i)) return s.toUpperCase(); let n = s.replace(/[^0-9]/g, ''); return n ? n : s; }
     function getFloor(s) { let n=parseInt(s); if(isNaN(n))return "Other"; if(n>=1&&n<=8)return "First Floor"; if(n>=9&&n<=16)return "Second Floor"; if(n>=17&&n<=24)return "Basement"; return "Other"; }
     function setLineType(t){ currentLineType=t; document.querySelectorAll('.controls-bar .btn-group button').forEach(b=>b.classList.remove('active')); if(t==='EARBUDS')document.getElementById('btn-earbuds').classList.add('active'); if(t==='CASE')document.getElementById('btn-case').classList.add('active'); processAndRender(); }
     function toggleViewMode(m){ viewMode=m; document.getElementById('view-val').classList.toggle('active',m==='VALUE'); document.getElementById('view-qty').classList.toggle('active',m==='QTY'); processAndRender(); }
     
-    // Renders Main Table & Scorecard (Abbreviated, uses same logic as before but with filteredData)
-    function renderScorecard(s) {
-        document.getElementById('sc-total-out').innerText = formatCompact(s.out, false);
-        document.getElementById('sc-total-val').innerText = formatCompact(s.prodVal, true);
-        document.getElementById('sc-proc-scrap').innerText = formatCompact(s.procScrap, true);
-        document.getElementById('sc-rmd-scrap').innerText = formatCompact(s.rmdScrap, true);
-        document.getElementById('sc-tot-scrap').innerText = formatCompact(s.totScrap, true);
-        document.getElementById('sc-proc-rate').innerText = (s.prodVal>0?(s.procScrap/s.prodVal)*100:0).toFixed(2) + "%";
-        document.getElementById('sc-rmd-rate').innerText = (s.prodVal>0?(s.rmdScrap/s.prodVal)*100:0).toFixed(2) + "%";
-        document.getElementById('sc-ovr-rate').innerText = (s.prodVal>0?(s.totScrap/s.prodVal)*100:0).toFixed(2) + "%";
-    }
-
-    function renderHighStats(lineScrap, prodMap, modelScrap, floorStats) {
-        let topLine="N/A", topRate=0;
-        Object.keys(lineScrap).forEach(ln => { let p=prodMap[ln]?prodMap[ln].val:0; let r=p>0?(lineScrap[ln].total/p)*100:0; if(r>topRate){topRate=r; topLine="Line "+ln;} });
-        document.getElementById('high-line').innerText = topLine;
-        document.getElementById('high-line-rate').innerText = topRate.toFixed(2)+"% Rate";
-        
-        let topMod="N/A", topVal=0; Object.entries(modelScrap).forEach(([m,v])=>{if(v>topVal){topVal=v; topMod=m;}});
-        document.getElementById('high-model').innerText = topMod;
-        document.getElementById('high-model-val').innerText = formatCompact(topVal, true);
-
-        let topFlr="N/A", topFVal=0; Object.entries(floorStats).forEach(([f,v])=>{if(v>topFVal){topFVal=v; topFlr=f;}});
-        document.getElementById('high-floor').innerText = topFlr;
-        document.getElementById('high-floor-val').innerText = formatCompact(topFVal, true);
-    }
-
-    function renderTable(prodMap, scrapMap) {
-        const tbody = document.getElementById('lineTableBody'); tbody.innerHTML = "";
-        let arr = [];
-        let allLines = new Set([...Object.keys(prodMap), ...Object.keys(scrapMap)]);
-        allLines.forEach(ln => {
-            let pVal = prodMap[ln]?prodMap[ln].val:0; let sVal=scrapMap[ln]?scrapMap[ln].total:0; let rate=pVal>0?(sVal/pVal)*100:0; if(pVal===0&&sVal>0)rate=100;
-            arr.push({ln, pVal, sVal, rate, cats:scrapMap[ln]?scrapMap[ln].cats:{}, catsQty:scrapMap[ln]?scrapMap[ln].catsQty:{}});
-        });
-        let sort = document.getElementById('sortFilter').value;
-        arr.sort((a,b)=>sort==='DESC'?b.rate-a.rate:a.rate-b.rate);
-        arr.forEach(i=>{
-            let src=viewMode==='VALUE'?i.cats:i.catsQty; let sym=viewMode==='VALUE';
-            tbody.innerHTML += `<tr><td class="fw-bold text-start ps-3">${isNaN(i.ln)?i.ln:"Line "+i.ln}</td><td>${formatCompact(i.pVal,true)}</td><td class="text-danger fw-bold">${formatCompact(i.sVal,true)}</td>
-            <td><span class="badge ${i.rate>5?'bg-danger':'bg-success'} badge-lg">${i.rate.toFixed(2)}%</span></td>
-            <td>${formatCompact(src['PCBA']||0,sym)}</td><td>${formatCompact(src['Speaker']||0,sym)}</td><td>${formatCompact(src['Battery']||0,sym)}</td><td>${formatCompact(src['Magnet']||0,sym)}</td><td>${formatCompact((src['Other Parts']||src['Other']||0),sym)}</td></tr>`;
-        });
-    }
-
-    // Placeholder for Comp Report (uses similiar logic)
-    function renderComponentDashboard(c){
-        // Existing component logic, ensure it uses formatCompact for values
-    }
-
+    function renderScorecard(s) { document.getElementById('sc-total-out').innerText = formatCompact(s.out, false); document.getElementById('sc-total-val').innerText = formatCompact(s.prodVal, true); document.getElementById('sc-proc-scrap').innerText = formatCompact(s.procScrap, true); document.getElementById('sc-rmd-scrap').innerText = formatCompact(s.rmdScrap, true); document.getElementById('sc-tot-scrap').innerText = formatCompact(s.totScrap, true); document.getElementById('sc-proc-rate').innerText = (s.prodVal>0?(s.procScrap/s.prodVal)*100:0).toFixed(2) + "%"; document.getElementById('sc-rmd-rate').innerText = (s.prodVal>0?(s.rmdScrap/s.prodVal)*100:0).toFixed(2) + "%"; document.getElementById('sc-ovr-rate').innerText = (s.prodVal>0?(s.totScrap/s.prodVal)*100:0).toFixed(2) + "%"; }
+    function renderHighStats(lineScrap, prodMap, modelScrap, floorStats) { let topLine="N/A", topRate=0; Object.keys(lineScrap).forEach(ln => { let p=prodMap[ln]?prodMap[ln].val:0; let r=p>0?(lineScrap[ln].total/p)*100:0; if(r>topRate){topRate=r; topLine="Line "+ln;} }); document.getElementById('high-line').innerText = topLine; document.getElementById('high-line-rate').innerText = topRate.toFixed(2)+"% Rate"; let topMod="N/A", topVal=0; Object.entries(modelScrap).forEach(([m,v])=>{if(v>topVal){topVal=v; topMod=m;}}); document.getElementById('high-model').innerText = topMod; document.getElementById('high-model-val').innerText = formatCompact(topVal, true); let topFlr="N/A", topFVal=0; Object.entries(floorStats).forEach(([f,v])=>{if(v>topFVal){topFVal=v; topFlr=f;}}); document.getElementById('high-floor').innerText = topFlr; document.getElementById('high-floor-val').innerText = formatCompact(topFVal, true); }
+    function renderTable(prodMap, scrapMap) { const tbody = document.getElementById('lineTableBody'); tbody.innerHTML = ""; let arr = []; let allLines = new Set([...Object.keys(prodMap), ...Object.keys(scrapMap)]); allLines.forEach(ln => { let pVal = prodMap[ln]?prodMap[ln].val:0; let sVal=scrapMap[ln]?scrapMap[ln].total:0; let rate=pVal>0?(sVal/pVal)*100:0; if(pVal===0&&sVal>0)rate=100; arr.push({ln, pVal, sVal, rate, cats:scrapMap[ln]?scrapMap[ln].cats:{}, catsQty:scrapMap[ln]?scrapMap[ln].catsQty:{}}); }); let sort = document.getElementById('sortFilter').value; arr.sort((a,b)=>sort==='DESC'?b.rate-a.rate:a.rate-b.rate); arr.forEach(i=>{ let src=viewMode==='VALUE'?i.cats:i.catsQty; let sym=viewMode==='VALUE'; tbody.innerHTML += `<tr><td class="fw-bold text-start ps-3">${isNaN(i.ln)?i.ln:"Line "+i.ln}</td><td>${formatCompact(i.pVal,true)}</td><td class="text-danger fw-bold">${formatCompact(i.sVal,true)}</td><td><span class="badge ${i.rate>5?'bg-danger':'bg-success'} badge-lg">${i.rate.toFixed(2)}%</span></td><td>${formatCompact(src['PCBA']||0,sym)}</td><td>${formatCompact(src['Speaker']||0,sym)}</td><td>${formatCompact(src['Battery']||0,sym)}</td><td>${formatCompact(src['Magnet']||0,sym)}</td><td>${formatCompact((src['Other Parts']||src['Other']||0),sym)}</td></tr>`; }); }
     function saveProduction() { sendData({action:'production', date:document.getElementById('pDate').value, model:document.getElementById('pModel').value, lineNo:document.getElementById('pLine').value, output:document.getElementById('pOut').value}); }
     function uploadExcel() { let f=document.getElementById('uploadFile').files[0]; if(!f)return Swal.fire("Error","Select file","warning"); let r=new FileReader(); r.onload=e=>{ let w=XLSX.read(e.target.result,{type:'array'}); let j=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]); sendData({action:'bulk_scrap',rows:j}); }; r.readAsArrayBuffer(f); }
     function sendData(p) { document.getElementById('loader').style.display='flex'; fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(p)}).then(()=>{ document.getElementById('loader').style.display='none'; Swal.fire("Success","Data Saved","success"); if(p.action==='production')document.getElementById('prodForm').reset(); }); }
