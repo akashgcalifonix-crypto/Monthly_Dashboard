@@ -23,12 +23,23 @@
         .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: #fff; border-left-color: var(--accent); }
         .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
 
-        /* Scorecard (Top Header) */
-        .scorecard-container { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .score-box { text-align: center; padding: 10px; border-right: 1px solid #eee; }
+        /* Scorecard (Top Header - Updated Layout) */
+        .scorecard-container { background: white; padding: 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
+        .score-box { text-align: center; padding: 15px 5px; border-right: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; }
         .score-box:last-child { border-right: none; }
-        .score-val { font-weight: 700; font-size: 1.1rem; color: #2c3e50; }
-        .score-label { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; }
+        .score-val { font-weight: 700; font-size: 1.2rem; color: #2c3e50; margin-bottom: 5px; }
+        .score-label { font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        
+        /* Specific Colors for Scorecard */
+        .text-blue { color: #2980b9; }
+        .text-yellow { color: #f1c40f; }
+        .text-cyan { color: #00bcd4; }
+        .text-red { color: #e74a3b; }
+        .bg-yellow-light { background-color: #fff3cd; }
+        .bg-cyan-light { background-color: #e0f7fa; }
+        .bg-dark-blue { background-color: #2c3e50; color: white; }
+        .bg-dark-blue .score-val { color: white; }
+        .bg-dark-blue .score-label { color: rgba(255,255,255,0.7); }
 
         /* High Stats Cards */
         .high-stat-card { background: white; border-radius: 8px; padding: 15px; border-left: 5px solid var(--danger); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -38,8 +49,6 @@
 
         /* Controls */
         .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; }
-        .toggle-btn { cursor: pointer; padding: 5px 15px; border: 1px solid var(--primary); border-radius: 4px; color: var(--primary); transition: 0.3s; background: white; }
-        .toggle-btn.active { background: var(--primary); color: white; }
 
         /* Tables */
         .table thead { background-color: #2c3e50; color: white; }
@@ -86,29 +95,53 @@
             <!-- SECTION: DASHBOARD -->
             <div id="dashboard-section" class="content-section">
                 
-                <!-- 1. SCORECARD (TOP METRICS) -->
+                <!-- 1. SCORECARD (8-BOX LAYOUT) -->
                 <div class="scorecard-container">
                     <div class="row g-0">
+                        <!-- Output -->
                         <div class="col score-box">
                             <div class="score-val" id="sc-total-out">0</div>
                             <div class="score-label">Total Output</div>
                         </div>
+                        <!-- Value -->
                         <div class="col score-box">
-                            <div class="score-val text-primary" id="sc-total-val">₹0</div>
-                            <div class="score-label">Total Prod Value</div>
+                            <div class="score-val text-blue" id="sc-total-val">₹0</div>
+                            <div class="score-label">Total Value</div>
                         </div>
+                        <!-- Process Scrap -->
                         <div class="col score-box">
-                            <div class="score-val text-danger" id="sc-tot-scrap">₹0</div>
+                            <div class="score-val text-yellow" id="sc-proc-scrap">₹0</div>
+                            <div class="score-label">Process Scrap</div>
+                        </div>
+                        <!-- RMD Scrap -->
+                        <div class="col score-box">
+                            <div class="score-val text-cyan" id="sc-rmd-scrap">₹0</div>
+                            <div class="score-label">RMD Scrap</div>
+                        </div>
+                        <!-- Total Scrap -->
+                        <div class="col score-box">
+                            <div class="score-val text-red" id="sc-tot-scrap">₹0</div>
                             <div class="score-label">Total Scrap</div>
                         </div>
-                        <div class="col score-box" style="background: #e8f5e9;">
-                            <div class="score-val text-success" id="sc-ovr-rate">0%</div>
-                            <div class="score-label">Overall Scrap Rate</div>
+                        <!-- Process Rate -->
+                        <div class="col score-box bg-yellow-light">
+                            <div class="score-val" id="sc-proc-rate">0%</div>
+                            <div class="score-label">Process Rate</div>
+                        </div>
+                        <!-- RMD Rate -->
+                        <div class="col score-box bg-cyan-light">
+                            <div class="score-val" id="sc-rmd-rate">0%</div>
+                            <div class="score-label">RMD Rate</div>
+                        </div>
+                        <!-- Overall Rate -->
+                        <div class="col score-box bg-dark-blue">
+                            <div class="score-val" id="sc-ovr-rate">0%</div>
+                            <div class="score-label">Overall Rate</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. HIGH SCRAP STATS (Top Line, Model, Floor) -->
+                <!-- 2. HIGH SCRAP STATS -->
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <div class="high-stat-card">
@@ -143,7 +176,7 @@
                     </div>
 
                     <div class="d-flex gap-2 align-items-center">
-                        <!-- Storage Filter (Restored) -->
+                        <!-- Storage Filter -->
                         <select id="storageFilter" class="form-select form-select-sm" style="width: 150px; border-color: #3498db;" onchange="processAndRender()">
                             <option value="ALL">All Storage</option>
                             <option value="PROCESS">Process (6003)</option>
@@ -165,7 +198,7 @@
                     </div>
                 </div>
 
-                <!-- 4. MAIN LINE TABLE -->
+                <!-- 4. MAIN LINE TABLE (FIXED EXTRA COLUMN) -->
                 <div class="card">
                     <div class="card-header">Line Wise Analysis</div>
                     <div class="card-body p-0">
@@ -177,7 +210,12 @@
                                         <th>Prod Value</th>
                                         <th>Scrap Value</th>
                                         <th>Rate %</th>
-                                        <th id="breakdown-header">Defect Breakdown (Value ₹)</th> <!-- merged for cleaner look, handled in row -->
+                                        <!-- Fixed: Removed extra column header -->
+                                        <th id="breakdown-header" colspan="5">Defect Breakdown (Value ₹)</th>
+                                    </tr>
+                                    <!-- Added sub-header row for clarity -->
+                                    <tr class="table-secondary">
+                                        <th colspan="4"></th> <!-- Spacer for first 4 cols -->
                                         <th>PCBA</th><th>Speaker</th><th>Battery</th><th>Magnet</th><th>Other</th>
                                     </tr>
                                 </thead>
@@ -236,21 +274,19 @@
     // STATE
     let rawData = { production: [], scrap: [], models: [] };
     let modelPrices = {};
-    let currentLineType = 'ALL'; // ALL, EARBUDS, CASE
-    let viewMode = 'VALUE'; // VALUE, QTY
+    let currentLineType = 'ALL'; 
+    let viewMode = 'VALUE'; 
 
     window.onload = loadData;
 
     function switchSection(id) {
         document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
-        
         if(['pcba','speaker','battery'].includes(id)) {
             renderComponentReport(id);
             document.getElementById(id+'-section').style.display = 'block';
         } else {
             document.getElementById(id+'-section').style.display = 'block';
         }
-        
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         event.currentTarget.classList.add('active');
     }
@@ -261,7 +297,6 @@
             let res = await fetch(API_URL);
             let json = await res.json();
             rawData = json;
-            
             if(json.models) {
                 let pSelect = document.getElementById('pModel');
                 pSelect.innerHTML = "";
@@ -278,9 +313,8 @@
     function processAndRender() {
         const storageFilter = document.getElementById('storageFilter').value;
 
-        // 1. CALCULATE PRODUCTION (Unified Baseline)
-        let prodMap = {}; // Key: "1", "2", "3" (Base Number) -> { val: 0, qty: 0 }
-        
+        // 1. CALCULATE PRODUCTION
+        let prodMap = {}; 
         if(rawData.production.length > 0) {
             let h = rawData.production[0].map(x=>x.toLowerCase());
             let iLine = h.findIndex(x=>x.includes('line'));
@@ -304,7 +338,8 @@
         let scrapMap = {}; 
         let modelStats = {};
         let floorStats = { 'First Floor':0, 'Second Floor':0, 'Basement':0, 'Other':0 };
-        let totalStats = { out:0, prodVal:0, totScrap:0 };
+        // Breakdown specific for scorecard
+        let totalStats = { out:0, prodVal:0, totScrap:0, procScrap:0, rmdScrap:0 };
 
         // Add Prod Totals
         Object.values(prodMap).forEach(p => { totalStats.out += p.qty; totalStats.prodVal += p.val; });
@@ -323,21 +358,33 @@
                 let baseLine = normalizeLine(lineRaw);
                 let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C'); 
 
-                // STORAGE FILTER
+                // Determine Storage Type (for Scorecard)
                 let storeVal = (row[iStore] || "").toString().toLowerCase();
-                if(storageFilter === 'PROCESS' && !storeVal.includes('6003') && !storeVal.includes('process')) return;
-                if(storageFilter === 'RMD' && !storeVal.includes('6002') && !storeVal.includes('rmd')) return;
-
-                // TYPE FILTER
-                if(currentLineType === 'EARBUDS' && isCase) return;
-                if(currentLineType === 'CASE' && !isCase) return;
+                let isProcess = storeVal.includes('6003') || storeVal.includes('process');
+                let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
 
                 let price = parseFloat(row[iPrice]) || 0;
                 let qty = parseFloat(row[iQty]) || 0;
                 let val = price * qty;
                 if(val === 0) return;
 
+                // Scorecard Accumulation (Filtered only by Earbud/Case, NOT by Storage Dropdown yet)
+                // We want scorecard to reflect the selection, but if we filter table by "Process", RMD scorecard should likely be 0 or unaffected.
+                // Standard dashboard behavior: Scorecard reflects global set, Table reflects specific filter.
+                // However, user likely wants scorecard to match filters. 
+                
+                // TYPE FILTER (Earbud/Case)
+                if(currentLineType === 'EARBUDS' && isCase) return;
+                if(currentLineType === 'CASE' && !isCase) return;
+
+                // STORAGE FILTER (Apply to everything)
+                if(storageFilter === 'PROCESS' && !isProcess) return;
+                if(storageFilter === 'RMD' && !isRMD) return;
+
+                // Add to Scorecard Stats
                 totalStats.totScrap += val;
+                if(isProcess) totalStats.procScrap += val;
+                if(isRMD) totalStats.rmdScrap += val;
 
                 // Map Scrap to Line
                 let cat = row[iCat] || "Other Parts";
@@ -366,13 +413,10 @@
     }
 
     // --- HELPER LOGIC ---
-
     function normalizeLine(str) {
-        // Fix for IQC, PDI, TRC: Return as is if no numbers, or specific text
         if(str.match(/IQC|PDI|TRC/i)) return str.toUpperCase();
-        // Else extract numbers for unifying L-1 and L-1C
         let nums = str.replace(/[^0-9]/g, '');
-        return nums ? nums : str; // If empty (like "L-"), return original
+        return nums ? nums : str; 
     }
 
     function getFloor(lineStr) {
@@ -385,15 +429,26 @@
     }
 
     function renderScorecard(s) {
+        // Output & Value
         document.getElementById('sc-total-out').innerText = s.out.toLocaleString();
         document.getElementById('sc-total-val').innerText = "₹" + (s.prodVal/100000).toFixed(2) + " L";
+        
+        // Scrap Values
+        document.getElementById('sc-proc-scrap').innerText = "₹" + s.procScrap.toLocaleString();
+        document.getElementById('sc-rmd-scrap').innerText = "₹" + s.rmdScrap.toLocaleString();
         document.getElementById('sc-tot-scrap').innerText = "₹" + s.totScrap.toLocaleString();
-        let rate = s.prodVal > 0 ? (s.totScrap/s.prodVal)*100 : 0;
-        document.getElementById('sc-ovr-rate').innerText = rate.toFixed(2) + "%";
+        
+        // Rates
+        let pRate = s.prodVal > 0 ? (s.procScrap/s.prodVal)*100 : 0;
+        let rRate = s.prodVal > 0 ? (s.rmdScrap/s.prodVal)*100 : 0;
+        let oRate = s.prodVal > 0 ? (s.totScrap/s.prodVal)*100 : 0;
+
+        document.getElementById('sc-proc-rate').innerText = pRate.toFixed(2) + "%";
+        document.getElementById('sc-rmd-rate').innerText = rRate.toFixed(2) + "%";
+        document.getElementById('sc-ovr-rate').innerText = oRate.toFixed(2) + "%";
     }
 
     function renderHighStats(lineScrap, prodMap, modelScrap, floorStats) {
-        // 1. High Line
         let topLine = "N/A", topRate = 0;
         Object.keys(lineScrap).forEach(ln => {
             let p = prodMap[ln] ? prodMap[ln].val : 0;
@@ -404,7 +459,6 @@
         document.getElementById('high-line').innerText = topLine;
         document.getElementById('high-line-rate').innerText = topRate.toFixed(2) + "% Rate";
 
-        // 2. High Model (by Value)
         let topMod = "N/A", topModVal = 0;
         Object.entries(modelScrap).forEach(([m, v]) => {
             if(v > topModVal) { topModVal = v; topMod = m; }
@@ -412,7 +466,6 @@
         document.getElementById('high-model').innerText = topMod;
         document.getElementById('high-model-val').innerText = "₹" + topModVal.toLocaleString();
 
-        // 3. High Floor
         let topFlr = "N/A", topFlrVal = 0;
         Object.entries(floorStats).forEach(([f, v]) => {
             if(v > topFlrVal) { topFlrVal = v; topFlr = f; }
@@ -432,7 +485,7 @@
             let pVal = prodMap[ln] ? prodMap[ln].val : 0;
             let sVal = scrapMap[ln] ? scrapMap[ln].total : 0;
             let rate = pVal > 0 ? (sVal/pVal)*100 : 0;
-            if(pVal === 0 && sVal > 0) rate = 100; // IQC/PDI case
+            if(pVal === 0 && sVal > 0) rate = 100;
 
             let cats = scrapMap[ln] ? scrapMap[ln].cats : {};
             let catsQty = scrapMap[ln] ? scrapMap[ln].catsQty : {};
@@ -440,7 +493,6 @@
             lineArray.push({ ln, pVal, sVal, rate, cats, catsQty });
         });
 
-        // Sort
         let sortOrd = document.getElementById('sortFilter').value;
         lineArray.sort((a,b) => sortOrd === 'DESC' ? b.rate - a.rate : a.rate - b.rate);
 
@@ -448,22 +500,20 @@
             let src = viewMode === 'VALUE' ? item.cats : item.catsQty;
             let sym = viewMode === 'VALUE' ? '₹' : '';
             
-            // Safe access
             let cPCBA = (src['PCBA']||0);
             let cSpk = (src['Speaker']||0);
             let cBat = (src['Battery']||0);
             let cMag = (src['Magnet']||0);
             let cOth = (src['Other Parts']||src['Other']||0);
 
-            // Display Logic for Line Name
             let displayLine = isNaN(item.ln) ? item.ln : "Line " + item.ln;
 
+            // FIXED ROW GENERATION - REMOVED BLANK TD
             let row = `<tr>
                 <td class="fw-bold text-start ps-3">${displayLine}</td>
                 <td>₹${item.pVal.toLocaleString()}</td>
                 <td class="text-danger fw-bold">₹${item.sVal.toLocaleString()}</td>
                 <td><span class="badge ${item.rate>5?'bg-danger':'bg-success'} badge-lg">${item.rate.toFixed(2)}%</span></td>
-                <td></td>
                 <td>${sym}${cPCBA.toLocaleString()}</td>
                 <td>${sym}${cSpk.toLocaleString()}</td>
                 <td>${sym}${cBat.toLocaleString()}</td>
@@ -474,12 +524,9 @@
         });
     }
 
-    // --- COMPONENT REPORTS ---
     function renderComponentReport(compName) {
         let title = compName.toUpperCase() + " Daily Report";
         let targetDiv = document.getElementById(compName + '-section');
-        
-        // Filter Scrap Data
         let filtered = [];
         if(rawData.scrap.length > 0) {
             let h = rawData.scrap[0].map(x=>x.toLowerCase());
@@ -501,15 +548,12 @@
                 }
             });
         }
-
-        // HTML Build
         let html = `<h3>${title}</h3><div class="card mt-3"><div class="card-body">
             <table class="table table-striped table-sm text-center">
             <thead class="table-dark"><tr><th>Date</th><th>Line</th><th>Qty</th><th>Value (₹)</th></tr></thead><tbody>`;
-        
         if(filtered.length === 0) html += `<tr><td colspan="4">No data found</td></tr>`;
         else {
-            filtered.sort((a,b) => b.date - a.date); // Sort desc
+            filtered.sort((a,b) => b.date - a.date);
             filtered.forEach(f => {
                 html += `<tr><td>${f.date.toLocaleDateString()}</td><td>${f.line}</td><td>${f.qty}</td><td class="fw-bold">₹${f.val.toLocaleString()}</td></tr>`;
             });
@@ -518,13 +562,11 @@
         targetDiv.innerHTML = html;
     }
 
-    // --- UTILS ---
     function setLineType(type) {
         currentLineType = type;
         document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
         if(type==='EARBUDS') document.getElementById('btn-earbuds').classList.add('active');
         if(type==='CASE') document.getElementById('btn-case').classList.add('active');
-        // 'ALL' has no specific button highlight or reset button logic
         processAndRender();
     }
 
@@ -536,7 +578,6 @@
         processAndRender();
     }
 
-    // --- SAVE / UPLOAD ---
     function saveProduction() {
         sendData({
             action: 'production',
