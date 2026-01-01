@@ -18,19 +18,22 @@
         body { background-color: var(--bg); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
         
         /* Sidebar */
-        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%); color: #fff; }
+        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%); color: #fff; position: fixed; width: 16.66%; height: 100%; overflow-y: auto; }
         .nav-link { color: rgba(255,255,255,0.8); padding: 12px 20px; cursor: pointer; border-left: 4px solid transparent; }
         .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: #fff; border-left-color: var(--accent); }
         .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
 
-        /* Scorecard (Top Header - Updated Layout) */
+        /* Main Content Wrapper */
+        .main-content { margin-left: 16.66%; padding: 20px; width: 83.34%; }
+
+        /* Scorecard (Top Header) */
         .scorecard-container { background: white; padding: 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
         .score-box { text-align: center; padding: 15px 5px; border-right: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; }
         .score-box:last-child { border-right: none; }
         .score-val { font-weight: 700; font-size: 1.2rem; color: #2c3e50; margin-bottom: 5px; }
         .score-label { font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
         
-        /* Specific Colors for Scorecard */
+        /* Scorecard Colors */
         .text-blue { color: #2980b9; }
         .text-yellow { color: #f1c40f; }
         .text-cyan { color: #00bcd4; }
@@ -41,7 +44,11 @@
         .bg-dark-blue .score-val { color: white; }
         .bg-dark-blue .score-label { color: rgba(255,255,255,0.7); }
 
-        /* High Stats Cards */
+        /* Component Cards */
+        .comp-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .comp-header { padding: 15px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #555; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* High Stats */
         .high-stat-card { background: white; border-radius: 8px; padding: 15px; border-left: 5px solid var(--danger); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .high-stat-title { font-size: 0.75rem; color: #777; text-transform: uppercase; }
         .high-stat-val { font-size: 1.1rem; font-weight: bold; color: #333; }
@@ -66,11 +73,11 @@
     <h5 class="mt-3 text-secondary">Analyzing Quality Data...</h5>
 </div>
 
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid p-0">
+    <div class="row g-0">
         
         <!-- SIDEBAR -->
-        <div class="col-md-2 sidebar p-0">
+        <div class="col-md-2 sidebar">
             <div class="sidebar-header">
                 <img src="https://i.postimg.cc/5y7SN4xc/logo.png" style="max-height: 50px; background: white; padding: 5px; border-radius: 5px;">
                 <h6 class="mt-3 mb-0">Quality Control</h6>
@@ -78,7 +85,7 @@
             <nav class="nav flex-column mt-2">
                 <a class="nav-link active" onclick="switchSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i> Main Dashboard</a>
                 
-                <div class="nav-link text-uppercase small text-muted mt-2">Component Analysis</div>
+                <div class="nav-link text-uppercase small text-muted mt-2">Component Reports</div>
                 <a class="nav-link" onclick="switchSection('pcba')"><i class="fas fa-microchip me-2"></i> PCBA Report</a>
                 <a class="nav-link" onclick="switchSection('speaker')"><i class="fas fa-volume-up me-2"></i> Speaker Report</a>
                 <a class="nav-link" onclick="switchSection('battery')"><i class="fas fa-battery-full me-2"></i> Battery Report</a>
@@ -90,115 +97,50 @@
         </div>
 
         <!-- MAIN CONTENT -->
-        <div class="col-md-10 p-4">
+        <div class="col-md-10 main-content">
 
-            <!-- SECTION: DASHBOARD -->
+            <!-- ========================= MAIN DASHBOARD ========================= -->
             <div id="dashboard-section" class="content-section">
-                
-                <!-- 1. SCORECARD (8-BOX LAYOUT) -->
+                <!-- Scorecard -->
                 <div class="scorecard-container">
                     <div class="row g-0">
-                        <!-- Output -->
-                        <div class="col score-box">
-                            <div class="score-val" id="sc-total-out">0</div>
-                            <div class="score-label">Total Output</div>
-                        </div>
-                        <!-- Value -->
-                        <div class="col score-box">
-                            <div class="score-val text-blue" id="sc-total-val">₹0</div>
-                            <div class="score-label">Total Value</div>
-                        </div>
-                        <!-- Process Scrap -->
-                        <div class="col score-box">
-                            <div class="score-val text-yellow" id="sc-proc-scrap">₹0</div>
-                            <div class="score-label">Process Scrap</div>
-                        </div>
-                        <!-- RMD Scrap -->
-                        <div class="col score-box">
-                            <div class="score-val text-cyan" id="sc-rmd-scrap">₹0</div>
-                            <div class="score-label">RMD Scrap</div>
-                        </div>
-                        <!-- Total Scrap -->
-                        <div class="col score-box">
-                            <div class="score-val text-red" id="sc-tot-scrap">₹0</div>
-                            <div class="score-label">Total Scrap</div>
-                        </div>
-                        <!-- Process Rate -->
-                        <div class="col score-box bg-yellow-light">
-                            <div class="score-val" id="sc-proc-rate">0%</div>
-                            <div class="score-label">Process Rate</div>
-                        </div>
-                        <!-- RMD Rate -->
-                        <div class="col score-box bg-cyan-light">
-                            <div class="score-val" id="sc-rmd-rate">0%</div>
-                            <div class="score-label">RMD Rate</div>
-                        </div>
-                        <!-- Overall Rate -->
-                        <div class="col score-box bg-dark-blue">
-                            <div class="score-val" id="sc-ovr-rate">0%</div>
-                            <div class="score-label">Overall Rate</div>
-                        </div>
+                        <div class="col score-box"><div class="score-val" id="sc-total-out">0</div><div class="score-label">Total Output</div></div>
+                        <div class="col score-box"><div class="score-val text-blue" id="sc-total-val">₹0</div><div class="score-label">Total Value</div></div>
+                        <div class="col score-box"><div class="score-val text-yellow" id="sc-proc-scrap">₹0</div><div class="score-label">Process Scrap</div></div>
+                        <div class="col score-box"><div class="score-val text-cyan" id="sc-rmd-scrap">₹0</div><div class="score-label">RMD Scrap</div></div>
+                        <div class="col score-box"><div class="score-val text-red" id="sc-tot-scrap">₹0</div><div class="score-label">Total Scrap</div></div>
+                        <div class="col score-box bg-yellow-light"><div class="score-val" id="sc-proc-rate">0%</div><div class="score-label">Process Rate</div></div>
+                        <div class="col score-box bg-cyan-light"><div class="score-val" id="sc-rmd-rate">0%</div><div class="score-label">RMD Rate</div></div>
+                        <div class="col score-box bg-dark-blue"><div class="score-val" id="sc-ovr-rate">0%</div><div class="score-label">Overall Rate</div></div>
                     </div>
                 </div>
 
-                <!-- 2. HIGH SCRAP STATS -->
+                <!-- High Stats -->
                 <div class="row mb-3">
-                    <div class="col-md-4">
-                        <div class="high-stat-card">
-                            <div class="high-stat-title">Highest Scrap Line</div>
-                            <div class="high-stat-val" id="high-line">N/A</div>
-                            <div class="high-stat-sub" id="high-line-rate">0% Rate</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="high-stat-card" style="border-left-color: #f6c23e;">
-                            <div class="high-stat-title">Highest Scrap Model</div>
-                            <div class="high-stat-val" id="high-model">N/A</div>
-                            <div class="high-stat-sub" id="high-model-val">₹0 Loss</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="high-stat-card" style="border-left-color: #4e73df;">
-                            <div class="high-stat-title">Highest Scrap Floor</div>
-                            <div class="high-stat-val" id="high-floor">N/A</div>
-                            <div class="high-stat-sub" id="high-floor-val">₹0 Loss</div>
-                        </div>
-                    </div>
+                    <div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Highest Scrap Line</div><div class="high-stat-val" id="high-line">N/A</div><div class="high-stat-sub" id="high-line-rate">0% Rate</div></div></div>
+                    <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#f6c23e;"><div class="high-stat-title">Highest Scrap Model</div><div class="high-stat-val" id="high-model">N/A</div><div class="high-stat-sub" id="high-model-val">₹0 Loss</div></div></div>
+                    <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#4e73df;"><div class="high-stat-title">Highest Scrap Floor</div><div class="high-stat-val" id="high-floor">N/A</div><div class="high-stat-sub" id="high-floor-val">₹0 Loss</div></div></div>
                 </div>
 
-                <!-- 3. CONTROLS -->
+                <!-- Controls -->
                 <div class="controls-bar">
-                    <!-- Line Type Toggle -->
                     <div class="btn-group">
                         <button class="btn btn-outline-dark btn-sm" id="btn-earbuds" onclick="setLineType('EARBUDS')">Earbuds</button>
                         <button class="btn btn-outline-dark btn-sm" id="btn-case" onclick="setLineType('CASE')">Charging Case</button>
                         <button class="btn btn-outline-secondary btn-sm" onclick="setLineType('ALL')">Reset</button>
                     </div>
-
                     <div class="d-flex gap-2 align-items-center">
-                        <!-- Storage Filter -->
-                        <select id="storageFilter" class="form-select form-select-sm" style="width: 150px; border-color: #3498db;" onchange="processAndRender()">
-                            <option value="ALL">All Storage</option>
-                            <option value="PROCESS">Process (6003)</option>
-                            <option value="RMD">RMD (6002)</option>
-                        </select>
-
-                        <!-- View Mode Toggle -->
+                        <select id="storageFilter" class="form-select form-select-sm" style="width:150px;" onchange="processAndRender()"><option value="ALL">All Storage</option><option value="PROCESS">Process (6003)</option><option value="RMD">RMD (6002)</option></select>
                         <div class="btn-group btn-group-sm">
                             <button type="button" class="btn btn-outline-primary active" id="view-val" onclick="toggleViewMode('VALUE')">₹ Value</button>
                             <button type="button" class="btn btn-outline-primary" id="view-qty" onclick="toggleViewMode('QTY')">123 Qty</button>
                         </div>
-                        
-                        <!-- Sort -->
-                        <select id="sortFilter" class="form-select form-select-sm" style="width: 140px;" onchange="processAndRender()">
-                            <option value="DESC">Rate: High to Low</option>
-                            <option value="ASC">Rate: Low to High</option>
-                        </select>
+                        <select id="sortFilter" class="form-select form-select-sm" style="width:140px;" onchange="processAndRender()"><option value="DESC">Rate: High to Low</option><option value="ASC">Rate: Low to High</option></select>
                         <button class="btn btn-primary btn-sm" onclick="loadData()"><i class="fas fa-sync"></i></button>
                     </div>
                 </div>
 
-                <!-- 4. MAIN LINE TABLE (FIXED EXTRA COLUMN) -->
+                <!-- Table -->
                 <div class="card">
                     <div class="card-header">Line Wise Analysis</div>
                     <div class="card-body p-0">
@@ -206,18 +148,9 @@
                             <table class="table table-bordered table-striped table-hover text-center align-middle mb-0">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Line No</th>
-                                        <th>Prod Value</th>
-                                        <th>Scrap Value</th>
-                                        <th>Rate %</th>
-                                        <!-- Fixed: Removed extra column header -->
-                                        <th id="breakdown-header" colspan="5">Defect Breakdown (Value ₹)</th>
+                                        <th>Line No</th><th>Prod Value</th><th>Scrap Value</th><th>Rate %</th><th id="breakdown-header" colspan="5">Defect Breakdown (Value ₹)</th>
                                     </tr>
-                                    <!-- Added sub-header row for clarity -->
-                                    <tr class="table-secondary">
-                                        <th colspan="4"></th> <!-- Spacer for first 4 cols -->
-                                        <th>PCBA</th><th>Speaker</th><th>Battery</th><th>Magnet</th><th>Other</th>
-                                    </tr>
+                                    <tr class="table-secondary"><th colspan="4"></th><th>PCBA</th><th>Speaker</th><th>Battery</th><th>Magnet</th><th>Other</th></tr>
                                 </thead>
                                 <tbody id="lineTableBody"></tbody>
                             </table>
@@ -226,23 +159,19 @@
                 </div>
             </div>
 
-            <!-- COMPONENT REPORTS -->
-            <div id="pcba-section" class="content-section" style="display:none;"></div>
-            <div id="speaker-section" class="content-section" style="display:none;"></div>
-            <div id="battery-section" class="content-section" style="display:none;"></div>
+            <!-- ========================= COMPONENT SECTIONS (Dynamic) ========================= -->
+            <div id="component-container" class="content-section" style="display:none;">
+                <!-- Content Injected via JS -->
+            </div>
 
-            <!-- ENTRY & UPLOAD -->
+            <!-- ========================= ENTRY SECTIONS ========================= -->
             <div id="production-section" class="content-section" style="display:none;">
                 <h3>Production Entry</h3>
                 <div class="card p-4 shadow-sm" style="max-width: 600px;">
                     <form id="prodForm">
                         <div class="mb-3"><label>Date</label><input type="date" id="pDate" class="form-control" required></div>
                         <div class="mb-3"><label>Model</label><select id="pModel" class="form-select"></select></div>
-                        <div class="mb-3">
-                            <label>Line No</label>
-                            <input type="text" id="pLine" class="form-control" placeholder="e.g. L-11 or L-11C" required>
-                            <small class="text-muted">Enter Line No (L-1, L-1C are linked automatically)</small>
-                        </div>
+                        <div class="mb-3"><label>Line No</label><input type="text" id="pLine" class="form-control" placeholder="e.g. L-11 or L-11C" required></div>
                         <div class="mb-3"><label>Output Qty</label><input type="number" id="pOut" class="form-control" required></div>
                         <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Save Data</button>
                     </form>
@@ -253,8 +182,7 @@
                 <h3>Bulk Scrap Upload</h3>
                 <div class="card p-5 text-center">
                     <div class="border dashed p-5 bg-white rounded">
-                        <i class="fas fa-file-excel fa-4x text-success mb-3"></i>
-                        <h5>Upload Excel</h5>
+                        <i class="fas fa-file-excel fa-4x text-success mb-3"></i><h5>Upload Excel</h5>
                         <input type="file" id="uploadFile" class="form-control w-50 mx-auto mb-3" accept=".xlsx">
                         <button class="btn btn-primary" onclick="uploadExcel()">Process & Upload</button>
                     </div>
@@ -271,22 +199,29 @@
     // ********************************************************
     const API_URL = "https://script.google.com/macros/s/AKfycbyD1Y63nykh84uHHhUWxkfucyVi6crvEdY4KEXVzKg3FgQCGRj55ljmjTZfGyZFcCbUyg/exec"; 
 
-    // STATE
     let rawData = { production: [], scrap: [], models: [] };
     let modelPrices = {};
     let currentLineType = 'ALL'; 
     let viewMode = 'VALUE'; 
+    let compCharts = {}; // Store chart instances to destroy them later
+    let currentCompFilter = { type: 'ALL', storage: 'ALL' }; // Specific filters for component tabs
 
     window.onload = loadData;
 
     function switchSection(id) {
         document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
+        
         if(['pcba','speaker','battery'].includes(id)) {
-            renderComponentReport(id);
-            document.getElementById(id+'-section').style.display = 'block';
+            // Reset component filters on switch
+            currentCompFilter = { type: 'ALL', storage: 'ALL' }; 
+            renderComponentDashboard(id);
+            document.getElementById('component-container').style.display = 'block';
+        } else if(id === 'dashboard') {
+            document.getElementById('dashboard-section').style.display = 'block';
         } else {
             document.getElementById(id+'-section').style.display = 'block';
         }
+        
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         event.currentTarget.classList.add('active');
     }
@@ -310,97 +245,56 @@
         document.getElementById('loader').style.display = 'none';
     }
 
+    /* ================= MAIN DASHBOARD LOGIC ================= */
     function processAndRender() {
         const storageFilter = document.getElementById('storageFilter').value;
-
-        // 1. CALCULATE PRODUCTION
-        let prodMap = {}; 
-        if(rawData.production.length > 0) {
-            let h = rawData.production[0].map(x=>x.toLowerCase());
-            let iLine = h.findIndex(x=>x.includes('line'));
-            let iMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2;
-            let iOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1;
-
-            rawData.production.slice(1).forEach(row => {
-                let lineRaw = (row[iLine] || "").toString();
-                let baseLine = normalizeLine(lineRaw); 
-                let model = row[iMod];
-                let qty = parseFloat(row[iOut]) || 0;
-                let price = modelPrices[model] || 0;
-                
-                if(!prodMap[baseLine]) prodMap[baseLine] = { val: 0, qty: 0 };
-                prodMap[baseLine].val += (qty * price); 
-                prodMap[baseLine].qty += qty;
-            });
-        }
-
-        // 2. CALCULATE SCRAP & HIGH STATS
-        let scrapMap = {}; 
-        let modelStats = {};
-        let floorStats = { 'First Floor':0, 'Second Floor':0, 'Basement':0, 'Other':0 };
-        // Breakdown specific for scorecard
+        let prodMap = getProductionData(); // Get Aggregated Production
+        
+        let scrapMap = {}; let modelStats = {}; let floorStats = { 'First Floor':0, 'Second Floor':0, 'Basement':0, 'Other':0 };
         let totalStats = { out:0, prodVal:0, totScrap:0, procScrap:0, rmdScrap:0 };
 
-        // Add Prod Totals
         Object.values(prodMap).forEach(p => { totalStats.out += p.qty; totalStats.prodVal += p.val; });
 
         if(rawData.scrap.length > 0) {
-            let h = rawData.scrap[0].map(x=>x.toString().toLowerCase());
-            let iLine = h.findIndex(x=>x.includes('line'));
-            let iStore = h.findIndex(x=>x.includes('storage'));
-            let iCat = h.indexOf('category');
-            let iPrice = h.indexOf('price');
-            let iQty = h.findIndex(x=>x.includes('reject') || x.includes('qty'));
-            let iModel = h.indexOf('model');
+            let h = rawData.scrap[0].map(x=>x.toLowerCase());
+            let idx = getColIndices(h);
 
             rawData.scrap.slice(1).forEach(row => {
-                let lineRaw = (row[iLine] || "").toString().toUpperCase().trim();
+                let lineRaw = (row[idx.line] || "").toString().toUpperCase().trim();
                 let baseLine = normalizeLine(lineRaw);
                 let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C'); 
-
-                // Determine Storage Type (for Scorecard)
-                let storeVal = (row[iStore] || "").toString().toLowerCase();
+                
+                let storeVal = (row[idx.store] || "").toString().toLowerCase();
                 let isProcess = storeVal.includes('6003') || storeVal.includes('process');
                 let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
 
-                let price = parseFloat(row[iPrice]) || 0;
-                let qty = parseFloat(row[iQty]) || 0;
-                let val = price * qty;
+                let val = (parseFloat(row[idx.price]) || 0) * (parseFloat(row[idx.qty]) || 0);
                 if(val === 0) return;
 
-                // Scorecard Accumulation (Filtered only by Earbud/Case, NOT by Storage Dropdown yet)
-                // We want scorecard to reflect the selection, but if we filter table by "Process", RMD scorecard should likely be 0 or unaffected.
-                // Standard dashboard behavior: Scorecard reflects global set, Table reflects specific filter.
-                // However, user likely wants scorecard to match filters. 
-                
-                // TYPE FILTER (Earbud/Case)
-                if(currentLineType === 'EARBUDS' && isCase) return;
-                if(currentLineType === 'CASE' && !isCase) return;
+                // Scorecard Logic
+                if( (currentLineType === 'EARBUDS' && isCase) || (currentLineType === 'CASE' && !isCase) ) return;
+                if( (storageFilter === 'PROCESS' && !isProcess) || (storageFilter === 'RMD' && !isRMD) ) return;
 
-                // STORAGE FILTER (Apply to everything)
-                if(storageFilter === 'PROCESS' && !isProcess) return;
-                if(storageFilter === 'RMD' && !isRMD) return;
-
-                // Add to Scorecard Stats
                 totalStats.totScrap += val;
                 if(isProcess) totalStats.procScrap += val;
                 if(isRMD) totalStats.rmdScrap += val;
 
-                // Map Scrap to Line
-                let cat = row[iCat] || "Other Parts";
+                // Table Logic
+                let cat = row[idx.cat] || "Other Parts";
                 if(!scrapMap[baseLine]) scrapMap[baseLine] = { total:0, cats:{}, catsQty:{} };
                 scrapMap[baseLine].total += val;
                 if(!scrapMap[baseLine].cats[cat]) scrapMap[baseLine].cats[cat] = 0;
                 scrapMap[baseLine].cats[cat] += val;
+                
+                let qty = parseFloat(row[idx.qty]) || 0;
                 if(!scrapMap[baseLine].catsQty[cat]) scrapMap[baseLine].catsQty[cat] = 0;
                 scrapMap[baseLine].catsQty[cat] += qty;
 
-                // Map Scrap to Model
-                let model = row[iModel] || "Unknown";
+                // High Stats Logic
+                let model = row[idx.model] || "Unknown";
                 if(!modelStats[model]) modelStats[model] = 0;
                 modelStats[model] += val;
 
-                // Map Scrap to Floor
                 let floor = getFloor(baseLine);
                 if(!floorStats[floor]) floorStats[floor] = 0;
                 floorStats[floor] += val;
@@ -412,7 +306,224 @@
         renderTable(prodMap, scrapMap);
     }
 
-    // --- HELPER LOGIC ---
+    /* ================= COMPONENT REPORT LOGIC (NEW) ================= */
+    function renderComponentDashboard(compName) {
+        const container = document.getElementById('component-container');
+        let title = compName.toUpperCase();
+        let prodMap = getProductionData(); // Needed for rate calculation
+        
+        // 1. FILTER DATA
+        let stats = { totalVal: 0, totalQty: 0, trendDate: {}, byLine: {}, byModel: {}, tableRows: [] };
+        
+        if(rawData.scrap.length > 0) {
+            let h = rawData.scrap[0].map(x=>x.toLowerCase());
+            let idx = getColIndices(h);
+
+            rawData.scrap.slice(1).forEach(row => {
+                let cat = (row[idx.cat]||"").toLowerCase();
+                if(!cat.includes(compName)) return; // Filter by component Name
+
+                let lineRaw = (row[idx.line] || "").toString().toUpperCase();
+                let baseLine = normalizeLine(lineRaw);
+                let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C');
+                let storeVal = (row[idx.store] || "").toString().toLowerCase();
+                let isProcess = storeVal.includes('6003') || storeVal.includes('process');
+                let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
+
+                // Apply Local Filters
+                if(currentCompFilter.type === 'EARBUDS' && isCase) return;
+                if(currentCompFilter.type === 'CASE' && !isCase) return;
+                if(currentCompFilter.storage === 'PROCESS' && !isProcess) return;
+                if(currentCompFilter.storage === 'RMD' && !isRMD) return;
+
+                let date = new Date(row[0]).toLocaleDateString(); // Col 0 is System Date or Doc Date
+                let qty = parseFloat(row[idx.qty]) || 0;
+                let val = (parseFloat(row[idx.price]) || 0) * qty;
+                let model = row[idx.model] || "Unknown";
+
+                // Aggregations
+                stats.totalVal += val;
+                stats.totalQty += qty;
+
+                // Trend
+                if(!stats.trendDate[date]) stats.trendDate[date] = 0;
+                stats.trendDate[date] += val;
+
+                // By Line
+                if(!stats.byLine[baseLine]) stats.byLine[baseLine] = { val: 0, qty: 0 };
+                stats.byLine[baseLine].val += val;
+                stats.byLine[baseLine].qty += qty;
+
+                // By Model
+                if(!stats.byModel[model]) stats.byModel[model] = { val: 0, qty: 0 };
+                stats.byModel[model].val += val;
+                stats.byModel[model].qty += qty;
+
+                stats.tableRows.push({ date, line: lineRaw, model, qty, val });
+            });
+        }
+
+        // 2. GENERATE HTML
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="text-primary"><i class="fas fa-layer-group me-2"></i> ${title} REPORT</h3>
+                <div class="d-flex gap-2">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-dark ${currentCompFilter.type=='EARBUDS'?'active':''}" onclick="updateCompFilter('${compName}','type','EARBUDS')">Earbuds</button>
+                        <button class="btn btn-sm btn-outline-dark ${currentCompFilter.type=='CASE'?'active':''}" onclick="updateCompFilter('${compName}','type','CASE')">Charging Case</button>
+                        <button class="btn btn-sm btn-outline-secondary ${currentCompFilter.type=='ALL'?'active':''}" onclick="updateCompFilter('${compName}','type','ALL')">All Types</button>
+                    </div>
+                    <select class="form-select form-select-sm" style="width:120px;" onchange="updateCompFilter('${compName}','storage',this.value)">
+                        <option value="ALL" ${currentCompFilter.storage=='ALL'?'selected':''}>All Storage</option>
+                        <option value="PROCESS" ${currentCompFilter.storage=='PROCESS'?'selected':''}>Process</option>
+                        <option value="RMD" ${currentCompFilter.storage=='RMD'?'selected':''}>RMD</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Total ${title} Loss</div><div class="high-stat-val text-danger">₹${stats.totalVal.toLocaleString()}</div></div></div>
+                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#36b9cc;"><div class="high-stat-title">Total ${title} Qty</div><div class="high-stat-val">${stats.totalQty.toLocaleString()}</div></div></div>
+                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#1cc88a;"><div class="high-stat-title">Avg Daily Loss</div><div class="high-stat-val">₹${(stats.totalVal / (Object.keys(stats.trendDate).length || 1)).toLocaleString(undefined,{maximumFractionDigits:0})}</div></div></div>
+            </div>
+
+            <!-- TREND GRAPH -->
+            <div class="comp-card">
+                <div class="comp-header">Daily Loss Trend (Value ₹)</div>
+                <div class="p-3"><canvas id="trendChart" height="80"></canvas></div>
+            </div>
+
+            <div class="row">
+                <!-- LINE CHART -->
+                <div class="col-md-6">
+                    <div class="comp-card">
+                        <div class="comp-header">Line Wise Analysis (Value & Rate)</div>
+                        <div class="p-3"><canvas id="lineCompChart"></canvas></div>
+                    </div>
+                </div>
+                <!-- MODEL CHART -->
+                <div class="col-md-6">
+                    <div class="comp-card">
+                        <div class="comp-header">Model Wise Analysis (Value & Qty)</div>
+                        <div class="p-3"><canvas id="modelCompChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETAIL TABLE -->
+            <div class="comp-card">
+                <div class="comp-header">Detailed Log</div>
+                <div class="table-responsive" style="max-height:300px;">
+                    <table class="table table-sm table-striped text-center mb-0">
+                        <thead class="table-dark"><tr><th>Date</th><th>Line</th><th>Model</th><th>Qty</th><th>Value</th></tr></thead>
+                        <tbody>${stats.tableRows.length ? '' : '<tr><td colspan="5">No Data</td></tr>'}
+                        ${stats.tableRows.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r=>`<tr><td>${r.date}</td><td>${r.line}</td><td>${r.model}</td><td>${r.qty}</td><td class="fw-bold">₹${r.val.toLocaleString()}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+        // 3. RENDER CHARTS
+        
+        // Trend
+        let trendCtx = document.getElementById('trendChart');
+        if(compCharts.trend) compCharts.trend.destroy();
+        compCharts.trend = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(stats.trendDate),
+                datasets: [{ label: 'Loss Value (₹)', data: Object.values(stats.trendDate), borderColor: '#e74a3b', fill: false, tension: 0.1 }]
+            }
+        });
+
+        // Line Bar (Value + Rate)
+        // Rate = (Comp Scrap Val / Line Prod Val) * 100
+        let lineLabels = Object.keys(stats.byLine);
+        let lineVals = [];
+        let lineRates = [];
+        lineLabels.forEach(l => {
+            let sVal = stats.byLine[l].val;
+            let pVal = prodMap[l] ? prodMap[l].val : 0;
+            lineVals.push(sVal);
+            lineRates.push(pVal > 0 ? ((sVal/pVal)*100).toFixed(2) : 0);
+        });
+
+        let lineCtx = document.getElementById('lineCompChart');
+        if(compCharts.line) compCharts.line.destroy();
+        compCharts.line = new Chart(lineCtx, {
+            type: 'bar',
+            data: {
+                labels: lineLabels,
+                datasets: [
+                    { label: 'Loss Value', data: lineVals, backgroundColor: '#4e73df', yAxisID: 'y' },
+                    { label: 'Scrap Rate %', data: lineRates, type: 'line', borderColor: '#1cc88a', yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                scales: {
+                    y: { type: 'linear', display: true, position: 'left' },
+                    y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+
+        // Model Bar
+        let modelLabels = Object.keys(stats.byModel).sort((a,b) => stats.byModel[b].val - stats.byModel[a].val).slice(0, 10);
+        let modelVals = modelLabels.map(m => stats.byModel[m].val);
+
+        let modelCtx = document.getElementById('modelCompChart');
+        if(compCharts.model) compCharts.model.destroy();
+        compCharts.model = new Chart(modelCtx, {
+            type: 'bar',
+            data: {
+                labels: modelLabels,
+                datasets: [{ label: 'Loss Value', data: modelVals, backgroundColor: '#f6c23e' }]
+            }
+        });
+    }
+
+    function updateCompFilter(comp, key, val) {
+        currentCompFilter[key] = val;
+        renderComponentDashboard(comp);
+    }
+
+
+    /* ================= UTILS & HELPERS ================= */
+    function getProductionData() {
+        let map = {}; 
+        if(rawData.production.length > 0) {
+            let h = rawData.production[0].map(x=>x.toLowerCase());
+            let idxLine = h.findIndex(x=>x.includes('line'));
+            let idxMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2;
+            let idxOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1;
+
+            rawData.production.slice(1).forEach(row => {
+                let ln = normalizeLine((row[idxLine]||"").toString());
+                let mod = row[idxMod];
+                let qty = parseFloat(row[idxOut])||0;
+                let pr = modelPrices[mod]||0;
+                if(!map[ln]) map[ln] = {val:0, qty:0};
+                map[ln].val += (qty*pr);
+                map[ln].qty += qty;
+            });
+        }
+        return map;
+    }
+
+    function getColIndices(h) {
+        return {
+            line: h.findIndex(x=>x.includes('line')),
+            store: h.findIndex(x=>x.includes('storage')),
+            cat: h.indexOf('category'),
+            model: h.indexOf('model'),
+            price: h.indexOf('price'),
+            qty: h.findIndex(x=>x.includes('reject')||x.includes('qty'))
+        };
+    }
+
     function normalizeLine(str) {
         if(str.match(/IQC|PDI|TRC/i)) return str.toUpperCase();
         let nums = str.replace(/[^0-9]/g, '');
@@ -428,188 +539,87 @@
         return "Other";
     }
 
+    /* ================= RENDER FUNCTIONS (MAIN) ================= */
     function renderScorecard(s) {
-        // Output & Value
         document.getElementById('sc-total-out').innerText = s.out.toLocaleString();
         document.getElementById('sc-total-val').innerText = "₹" + (s.prodVal/100000).toFixed(2) + " L";
-        
-        // Scrap Values
         document.getElementById('sc-proc-scrap').innerText = "₹" + s.procScrap.toLocaleString();
         document.getElementById('sc-rmd-scrap').innerText = "₹" + s.rmdScrap.toLocaleString();
         document.getElementById('sc-tot-scrap').innerText = "₹" + s.totScrap.toLocaleString();
-        
-        // Rates
-        let pRate = s.prodVal > 0 ? (s.procScrap/s.prodVal)*100 : 0;
-        let rRate = s.prodVal > 0 ? (s.rmdScrap/s.prodVal)*100 : 0;
-        let oRate = s.prodVal > 0 ? (s.totScrap/s.prodVal)*100 : 0;
-
-        document.getElementById('sc-proc-rate').innerText = pRate.toFixed(2) + "%";
-        document.getElementById('sc-rmd-rate').innerText = rRate.toFixed(2) + "%";
-        document.getElementById('sc-ovr-rate').innerText = oRate.toFixed(2) + "%";
+        let pR = s.prodVal > 0 ? (s.procScrap/s.prodVal)*100 : 0;
+        let rR = s.prodVal > 0 ? (s.rmdScrap/s.prodVal)*100 : 0;
+        let oR = s.prodVal > 0 ? (s.totScrap/s.prodVal)*100 : 0;
+        document.getElementById('sc-proc-rate').innerText = pR.toFixed(2) + "%";
+        document.getElementById('sc-rmd-rate').innerText = rR.toFixed(2) + "%";
+        document.getElementById('sc-ovr-rate').innerText = oR.toFixed(2) + "%";
     }
 
     function renderHighStats(lineScrap, prodMap, modelScrap, floorStats) {
-        let topLine = "N/A", topRate = 0;
+        let topLine="N/A", topRate=0;
         Object.keys(lineScrap).forEach(ln => {
             let p = prodMap[ln] ? prodMap[ln].val : 0;
             let s = lineScrap[ln].total;
-            let r = p > 0 ? (s/p)*100 : 0;
-            if(r > topRate) { topRate = r; topLine = "Line " + ln; }
+            let r = p>0 ? (s/p)*100 : 0;
+            if(r > topRate) { topRate=r; topLine="Line "+ln; }
         });
         document.getElementById('high-line').innerText = topLine;
         document.getElementById('high-line-rate').innerText = topRate.toFixed(2) + "% Rate";
 
-        let topMod = "N/A", topModVal = 0;
-        Object.entries(modelScrap).forEach(([m, v]) => {
-            if(v > topModVal) { topModVal = v; topMod = m; }
-        });
+        let topMod="N/A", topVal=0;
+        Object.entries(modelScrap).forEach(([m,v])=>{ if(v>topVal){topVal=v; topMod=m;} });
         document.getElementById('high-model').innerText = topMod;
-        document.getElementById('high-model-val').innerText = "₹" + topModVal.toLocaleString();
+        document.getElementById('high-model-val').innerText = "₹" + topVal.toLocaleString();
 
-        let topFlr = "N/A", topFlrVal = 0;
-        Object.entries(floorStats).forEach(([f, v]) => {
-            if(v > topFlrVal) { topFlrVal = v; topFlr = f; }
-        });
+        let topFlr="N/A", topFVal=0;
+        Object.entries(floorStats).forEach(([f,v])=>{ if(v>topFVal){topFVal=v; topFlr=f;} });
         document.getElementById('high-floor').innerText = topFlr;
-        document.getElementById('high-floor-val').innerText = "₹" + topFlrVal.toLocaleString();
+        document.getElementById('high-floor-val').innerText = "₹" + topFVal.toLocaleString();
     }
 
     function renderTable(prodMap, scrapMap) {
         const tbody = document.getElementById('lineTableBody');
         tbody.innerHTML = "";
-        
         let allLines = new Set([...Object.keys(prodMap), ...Object.keys(scrapMap)]);
-        let lineArray = [];
-
+        let arr = [];
         allLines.forEach(ln => {
             let pVal = prodMap[ln] ? prodMap[ln].val : 0;
             let sVal = scrapMap[ln] ? scrapMap[ln].total : 0;
-            let rate = pVal > 0 ? (sVal/pVal)*100 : 0;
-            if(pVal === 0 && sVal > 0) rate = 100;
-
+            let rate = pVal>0 ? (sVal/pVal)*100 : 0;
+            if(pVal===0 && sVal>0) rate=100;
             let cats = scrapMap[ln] ? scrapMap[ln].cats : {};
             let catsQty = scrapMap[ln] ? scrapMap[ln].catsQty : {};
-            
-            lineArray.push({ ln, pVal, sVal, rate, cats, catsQty });
+            arr.push({ln, pVal, sVal, rate, cats, catsQty});
         });
 
-        let sortOrd = document.getElementById('sortFilter').value;
-        lineArray.sort((a,b) => sortOrd === 'DESC' ? b.rate - a.rate : a.rate - b.rate);
+        let sort = document.getElementById('sortFilter').value;
+        arr.sort((a,b) => sort==='DESC' ? b.rate - a.rate : a.rate - b.rate);
 
-        lineArray.forEach(item => {
-            let src = viewMode === 'VALUE' ? item.cats : item.catsQty;
-            let sym = viewMode === 'VALUE' ? '₹' : '';
-            
-            let cPCBA = (src['PCBA']||0);
-            let cSpk = (src['Speaker']||0);
-            let cBat = (src['Battery']||0);
-            let cMag = (src['Magnet']||0);
-            let cOth = (src['Other Parts']||src['Other']||0);
-
-            let displayLine = isNaN(item.ln) ? item.ln : "Line " + item.ln;
-
-            // FIXED ROW GENERATION - REMOVED BLANK TD
+        arr.forEach(i => {
+            let src = viewMode==='VALUE' ? i.cats : i.catsQty;
+            let sym = viewMode==='VALUE' ? '₹' : '';
+            let lnName = isNaN(i.ln) ? i.ln : "Line "+i.ln;
             let row = `<tr>
-                <td class="fw-bold text-start ps-3">${displayLine}</td>
-                <td>₹${item.pVal.toLocaleString()}</td>
-                <td class="text-danger fw-bold">₹${item.sVal.toLocaleString()}</td>
-                <td><span class="badge ${item.rate>5?'bg-danger':'bg-success'} badge-lg">${item.rate.toFixed(2)}%</span></td>
-                <td>${sym}${cPCBA.toLocaleString()}</td>
-                <td>${sym}${cSpk.toLocaleString()}</td>
-                <td>${sym}${cBat.toLocaleString()}</td>
-                <td>${sym}${cMag.toLocaleString()}</td>
-                <td>${sym}${cOth.toLocaleString()}</td>
+                <td class="fw-bold text-start ps-3">${lnName}</td>
+                <td>₹${i.pVal.toLocaleString()}</td>
+                <td class="text-danger fw-bold">₹${i.sVal.toLocaleString()}</td>
+                <td><span class="badge ${i.rate>5?'bg-danger':'bg-success'} badge-lg">${i.rate.toFixed(2)}%</span></td>
+                <td>${sym}${(src['PCBA']||0).toLocaleString()}</td>
+                <td>${sym}${(src['Speaker']||0).toLocaleString()}</td>
+                <td>${sym}${(src['Battery']||0).toLocaleString()}</td>
+                <td>${sym}${(src['Magnet']||0).toLocaleString()}</td>
+                <td>${sym}${(src['Other Parts']||src['Other']||0).toLocaleString()}</td>
             </tr>`;
             tbody.innerHTML += row;
         });
     }
 
-    function renderComponentReport(compName) {
-        let title = compName.toUpperCase() + " Daily Report";
-        let targetDiv = document.getElementById(compName + '-section');
-        let filtered = [];
-        if(rawData.scrap.length > 0) {
-            let h = rawData.scrap[0].map(x=>x.toLowerCase());
-            let iDate = 0; 
-            let iLine = h.findIndex(x=>x.includes('line'));
-            let iCat = h.indexOf('category');
-            let iPrice = h.indexOf('price');
-            let iQty = h.findIndex(x=>x.includes('reject')||x.includes('qty'));
-
-            rawData.scrap.slice(1).forEach(row => {
-                let cat = (row[iCat]||"").toLowerCase();
-                if(cat.includes(compName)) {
-                    filtered.push({
-                        date: new Date(row[iDate]),
-                        line: row[iLine],
-                        qty: row[iQty],
-                        val: row[iPrice]*row[iQty]
-                    });
-                }
-            });
-        }
-        let html = `<h3>${title}</h3><div class="card mt-3"><div class="card-body">
-            <table class="table table-striped table-sm text-center">
-            <thead class="table-dark"><tr><th>Date</th><th>Line</th><th>Qty</th><th>Value (₹)</th></tr></thead><tbody>`;
-        if(filtered.length === 0) html += `<tr><td colspan="4">No data found</td></tr>`;
-        else {
-            filtered.sort((a,b) => b.date - a.date);
-            filtered.forEach(f => {
-                html += `<tr><td>${f.date.toLocaleDateString()}</td><td>${f.line}</td><td>${f.qty}</td><td class="fw-bold">₹${f.val.toLocaleString()}</td></tr>`;
-            });
-        }
-        html += `</tbody></table></div></div>`;
-        targetDiv.innerHTML = html;
-    }
-
-    function setLineType(type) {
-        currentLineType = type;
-        document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
-        if(type==='EARBUDS') document.getElementById('btn-earbuds').classList.add('active');
-        if(type==='CASE') document.getElementById('btn-case').classList.add('active');
-        processAndRender();
-    }
-
-    function toggleViewMode(mode) {
-        viewMode = mode;
-        document.getElementById('view-val').classList.toggle('active', mode==='VALUE');
-        document.getElementById('view-qty').classList.toggle('active', mode==='QTY');
-        document.getElementById('breakdown-header').innerText = mode==='VALUE' ? "Defect Breakdown (Value ₹)" : "Defect Breakdown (Qty)";
-        processAndRender();
-    }
-
-    function saveProduction() {
-        sendData({
-            action: 'production',
-            date: document.getElementById('pDate').value,
-            model: document.getElementById('pModel').value,
-            lineNo: document.getElementById('pLine').value,
-            output: document.getElementById('pOut').value
-        });
-    }
-
-    function uploadExcel() {
-        let file = document.getElementById('uploadFile').files[0];
-        if(!file) return Swal.fire("Error","Select file","warning");
-        let r = new FileReader();
-        r.onload = e => {
-            let wb = XLSX.read(e.target.result, {type:'array'});
-            let json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-            sendData({action:'bulk_scrap', rows:json});
-        };
-        r.readAsArrayBuffer(file);
-    }
-
-    function sendData(payload) {
-        document.getElementById('loader').style.display = 'flex';
-        fetch(API_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)})
-        .then(() => {
-            document.getElementById('loader').style.display = 'none';
-            Swal.fire("Success","Data Saved","success");
-            if(payload.action==='production') document.getElementById('prodForm').reset();
-        });
-    }
+    function setLineType(t) { currentLineType=t; document.querySelectorAll('.controls-bar .btn-group button').forEach(b=>b.classList.remove('active')); if(t==='EARBUDS')document.getElementById('btn-earbuds').classList.add('active'); if(t==='CASE')document.getElementById('btn-case').classList.add('active'); processAndRender(); }
+    function toggleViewMode(m) { viewMode=m; document.getElementById('view-val').classList.toggle('active',m==='VALUE'); document.getElementById('view-qty').classList.toggle('active',m==='QTY'); document.getElementById('breakdown-header').innerText = m==='VALUE'?"Defect Breakdown (Value ₹)":"Defect Breakdown (Qty)"; processAndRender(); }
+    
+    // Save/Upload standard functions
+    function saveProduction() { sendData({action:'production', date:document.getElementById('pDate').value, model:document.getElementById('pModel').value, lineNo:document.getElementById('pLine').value, output:document.getElementById('pOut').value}); }
+    function uploadExcel() { let f=document.getElementById('uploadFile').files[0]; if(!f)return Swal.fire("Error","Select file","warning"); let r=new FileReader(); r.onload=e=>{ let w=XLSX.read(e.target.result,{type:'array'}); let j=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]); sendData({action:'bulk_scrap',rows:j}); }; r.readAsArrayBuffer(f); }
+    function sendData(p) { document.getElementById('loader').style.display='flex'; fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(p)}).then(()=>{ document.getElementById('loader').style.display='none'; Swal.fire("Success","Data Saved","success"); if(p.action==='production')document.getElementById('prodForm').reset(); }); }
 </script>
-
 </body>
 </html>
