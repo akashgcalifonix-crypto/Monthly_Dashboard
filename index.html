@@ -3,427 +3,736 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quality & Scrap Master Dashboard</title>
+    <title>Califonix Quality Dashboard</title>
 
-<!-- CSS & JS Libraries -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<!-- Chart.js & Plugins -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-
-<!-- Export Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<style>
-    :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; --danger: #e74a3b; --success: #1cc88a; }
-    body { background-color: var(--bg); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+    <!-- Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    /* Sidebar */
-    .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%); color: #fff; position: fixed; width: 16.66%; height: 100%; overflow-y: auto; }
-    .nav-link { color: rgba(255,255,255,0.8); padding: 12px 20px; cursor: pointer; border-left: 4px solid transparent; }
-    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: #fff; border-left-color: var(--accent); }
-    .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    <!-- Chart.js and Datalabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
-    /* Main Content Wrapper */
-    .main-content { margin-left: 16.66%; padding: 20px; width: 83.34%; }
+    <style>
+        :root { --primary: #0d1b2a; --accent: #e63946; --bg: #f8f9fa; --success: #2a9d8f; --warning: #ffb703; --info: #00b4d8; }
+        body { background-color: var(--bg); font-family: 'Poppins', sans-serif; font-size: 0.85rem; }
+        .sidebar { min-height: 100vh; background: var(--primary); color: #fff; position: fixed; width: 220px; z-index: 1000; }
+        .sidebar-logo { padding: 15px; background: white; text-align: center; border-bottom: 3px solid var(--accent); }
+        .nav-link { color: rgba(255,255,255,0.7); padding: 12px 15px; margin: 5px 0; border-radius: 0 25px 25px 0; transition: 0.3s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: var(--accent); color: white; font-weight: 600; }
+        .main-content { margin-left: 220px; padding: 25px; }
+        
+        /* Scorecard */
+        .scorecard-row { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .score-card { flex: 1; min-width: 140px; background: white; padding: 15px 10px; text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-bottom: 4px solid transparent; }
+        .score-val { font-size: 1.3rem; font-weight: 700; color: #333; margin-bottom: 5px; }
+        .score-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #888; }
+        
+        /* Product Summary Cards */
+        .prod-summary-container { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
+        .prod-summary-card { min-width: 240px; background: white; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); overflow: hidden; }
+        .prod-header { padding: 8px; font-weight: bold; text-align: center; color: white; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; }
+        .prod-body { padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .prod-stat { text-align: center; flex: 1; }
+        .prod-stat-val { font-size: 1rem; font-weight: 800; color: #333; margin-bottom: 2px; }
+        .prod-stat-rate { font-size: 0.85rem; font-weight: bold; }
+        .prod-stat-lbl { font-size: 0.65rem; color: #777; text-transform: uppercase; margin-top: 2px;}
+        
+        /* Table Styles */
+        .custom-table thead tr:first-child th { background-color: var(--primary); color: white; vertical-align: middle; font-size: 0.75rem; text-transform: uppercase; border: 1px solid #444; }
+        .custom-table td { vertical-align: middle; font-weight: 500; font-size: 0.85rem; }
+        .badge-prod { font-size: 0.7rem; padding: 5px 8px; }
+        
+        /* Sort Controls */
+        .sort-select { width: 100%; font-size: 0.65rem; padding: 2px; border: 1px solid #ccc; border-radius: 4px; background-color: white; cursor: pointer; font-weight: bold; }
+        .sort-select:focus { outline: 2px solid var(--accent); }
+        
+        /* Custom Tabs */
+        .nav-tabs .nav-link { color: #555; font-weight: 600; border-radius: 5px 5px 0 0; }
+        .nav-tabs .nav-link.active { color: var(--accent); border-color: #dee2e6 #dee2e6 #fff; background-color: #fff; }
+        
+        /* Colors & Alerts */
+        .text-orange { color: #fd7e14 !important; }
+        .text-success { color: #198754 !important; }
+        .text-danger { color: #dc3545 !important; }
+        
+        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
-    /* Scorecard */
-    .scorecard-container { background: white; padding: 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
-    .score-box { text-align: center; padding: 15px 5px; border-right: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; }
-    .score-box:last-child { border-right: none; }
-    .score-val { font-weight: 700; font-size: 1.2rem; color: #2c3e50; margin-bottom: 5px; }
-    .score-label { font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-    .text-blue { color: #2980b9; } .text-yellow { color: #f1c40f; } .text-cyan { color: #00bcd4; } .text-red { color: #e74a3b; }
-    .bg-yellow-light { background-color: #fff3cd; } .bg-cyan-light { background-color: #e0f7fa; } .bg-dark-blue { background-color: #2c3e50; color: white; }
-    .bg-dark-blue .score-val { color: white; } .bg-dark-blue .score-label { color: rgba(255,255,255,0.7); }
-
-    /* Cards */
-    .comp-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .comp-header { padding: 15px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #555; display: flex; justify-content: space-between; align-items: center; }
-    .high-stat-card { background: white; border-radius: 8px; padding: 15px; border-left: 5px solid var(--danger); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .high-stat-title { font-size: 0.75rem; color: #777; text-transform: uppercase; }
-    .high-stat-val { font-size: 1.1rem; font-weight: bold; color: #333; }
-    .high-stat-sub { font-size: 0.8rem; color: var(--danger); }
-    
-    /* Controls & Tables */
-    .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; }
-    .table thead { background-color: #2c3e50; color: white; }
-    .table th, .table td { vertical-align: middle; padding: 10px; font-size: 0.85rem; }
-    .badge-lg { font-size: 0.9rem; padding: 6px 10px; }
-    
-    #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    .mini-charts-row { display: flex; gap: 10px; }
-    .mini-chart-box { flex: 1; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    
-    /* Multi Select Dropdown */
-    .checkbox-menu { max-height: 300px; overflow-y: auto; width: 280px; padding: 10px; }
-    .checkbox-menu li { list-style: none; margin-bottom: 5px; }
-    .checkbox-menu label { cursor: pointer; display: flex; align-items: center; width: 100%; }
-    .checkbox-menu label:hover { background-color: #f8f9fa; }
-</style>
+        /* NEW STYLES FOR DETAIL ANALYSIS */
+        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; padding: 15px 0; }
+        .line-box { 
+            background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px 10px; 
+            text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .line-box:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--accent); background: #fff5f5; }
+        .line-box h5 { margin: 0; font-weight: bold; color: var(--primary); }
+        .line-box small { color: #777; font-size: 0.7rem; }
+        
+        /* Modal Styles */
+        .modal-xl { max-width: 95%; }
+        .chart-container-sm { height: 250px; width: 100%; margin-bottom: 20px; }
+        .chart-container-xs { height: 200px; width: 100%; margin-bottom: 10px; }
+    </style>
 </head>
 <body>
-<!-- LOADER -->
+
 <div id="loader">
-    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-    <h5 class="mt-3 text-secondary">Analyzing Quality Data...</h5>
+    <div class="spinner-border text-danger" role="status"></div>
+    <h6 class="mt-3 text-dark">Processing Data...</h6>
 </div>
-<div class="container-fluid p-0">
-    <div class="row g-0">
 
-    <!-- SIDEBAR -->
-    <div class="col-md-2 sidebar">
-        <div class="sidebar-header">
-            <img src="https://i.postimg.cc/5y7SN4xc/logo.png" style="max-height: 50px; background: white; padding: 5px; border-radius: 5px;">
-            <h6 class="mt-3 mb-0">Quality Control</h6>
-        </div>
-        
-        <!-- MONTH SELECTION -->
-        <div class="p-3">
-            <label class="text-white-50 small mb-1">Select Month Report</label>
-            <input type="month" id="globalMonth" class="form-control form-control-sm" onchange="loadData()">
-        </div>
-
-        <nav class="nav flex-column mt-0">
-            <a class="nav-link active" onclick="switchSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i> Main Dashboard</a>
-            
-            <div class="nav-link text-uppercase small text-muted mt-2">New Reports</div>
-            <a class="nav-link" onclick="switchSection('line-perf')"><i class="fas fa-chart-line me-2"></i> Line Performance</a>
-            <a class="nav-link" onclick="switchSection('model-perf')"><i class="fas fa-cubes me-2"></i> Model Analysis</a>
-
-            <div class="nav-link text-uppercase small text-muted mt-2">Component Reports</div>
-            <a class="nav-link" onclick="switchSection('pcba')"><i class="fas fa-microchip me-2"></i> PCBA Report</a>
-            <a class="nav-link" onclick="switchSection('speaker')"><i class="fas fa-volume-up me-2"></i> Speaker Report</a>
-            <a class="nav-link" onclick="switchSection('battery')"><i class="fas fa-battery-full me-2"></i> Battery Report</a>
-
-            <div class="nav-link text-uppercase small text-muted mt-2">Data Entry</div>
-            <a class="nav-link" onclick="switchSection('production')"><i class="fas fa-edit me-2"></i> Production Entry</a>
-            <a class="nav-link" onclick="switchSection('upload')"><i class="fas fa-file-upload me-2"></i> Bulk Upload</a>
-        </nav>
+<div class="sidebar">
+    <div class="sidebar-logo"><img src="https://i.postimg.cc/5y7SN4xc/logo.png" style="max-width: 80%; height: auto;"></div>
+    <div class="p-3">
+        <label class="small text-white-50 fw-bold">DATE RANGE</label>
+        <input type="date" id="dateFrom" class="form-control form-control-sm mb-2" onchange="loadData()">
+        <input type="date" id="dateTo" class="form-control form-control-sm" onchange="loadData()">
     </div>
+    <nav class="nav flex-column">
+        <a class="nav-link active" onclick="switchSection('dashboard')"><i class="fas fa-chart-pie me-2"></i> Main Dashboard</a>
+        <a class="nav-link" onclick="switchSection('detail-analysis')"><i class="fas fa-search-plus me-2"></i> Detail Analysis</a>
+        <a class="nav-link" onclick="switchSection('model-analysis')"><i class="fas fa-cubes me-2"></i> Model Analysis</a>
+        <a class="nav-link" onclick="switchSection('line-analysis')"><i class="fas fa-microchip me-2"></i> Line Analysis</a>
+        <a class="nav-link" onclick="switchSection('upload')"><i class="fas fa-file-upload me-2"></i> Bulk Upload</a>
+        <a class="nav-link" onclick="switchSection('production')"><i class="fas fa-industry me-2"></i> Prod Entry</a>
+    </nav>
+</div>
 
-    <!-- MAIN CONTENT -->
-    <div class="col-md-10 main-content">
+<div class="main-content">
+    <div id="dashboard-section" class="content-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Main Dashboard</h3>
+            <button class="btn btn-success btn-sm" onclick="exportTable()"><i class="fas fa-file-excel me-1"></i> Excel Export</button>
+        </div>
 
-        <!-- ========================= MAIN DASHBOARD ========================= -->
-        <div id="dashboard-section" class="content-section">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="m-0">Main Dashboard</h4>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-success" onclick="exportExcel('dashboard-section', 'Main_Dashboard')"><i class="fas fa-file-excel me-1"></i> Excel</button>
-                    <button class="btn btn-sm btn-danger" onclick="exportPDF('dashboard-section', 'Main_Dashboard')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
-                    <button class="btn btn-sm btn-warning text-dark" onclick="exportPPT('dashboard-section', 'Main_Dashboard')"><i class="fas fa-file-powerpoint me-1"></i> PPT</button>
-                </div>
-            </div>
+        <!-- OVERALL SCORECARD -->
+        <div class="scorecard-row">
+            <div class="score-card" style="border-color:#333"><div class="score-val" id="ovr-qty">0</div><div class="score-label">Total Output</div></div>
+            <div class="score-card" style="border-color:#2a9d8f"><div class="score-val" id="ovr-val" style="color:#2a9d8f">₹0</div><div class="score-label">Prod Value</div></div>
+            <div class="score-card" style="border-color:#ffb703"><div class="score-val text-warning" id="ovr-proc-val">₹0</div><div class="score-label">Process Scrap</div></div>
+            <div class="score-card" style="border-color:#00b4d8"><div class="score-val text-info" id="ovr-rmd-val">₹0</div><div class="score-label">RMD Scrap</div></div>
+            <div class="score-card" style="border-color:#e63946"><div class="score-val text-danger" id="ovr-tot-val">₹0</div><div class="score-label">Total Scrap</div></div>
+            <div class="score-card" style="background:#fff8e1"><div class="score-val text-warning" id="ovr-proc-rate">0%</div><div class="score-label">Proc Rate</div></div>
+            <div class="score-card" style="background:#e0f7fa"><div class="score-val text-info" id="ovr-rmd-rate">0%</div><div class="score-label">RMD Rate</div></div>
+            <div class="score-card" style="background:#2c3e50"><div class="score-val text-white" id="ovr-all-rate">0%</div><div class="score-label text-white-50">Overall Rate</div></div>
+        </div>
 
-            <!-- Scorecard -->
-            <div class="scorecard-container">
-                <div class="row g-0">
-                    <div class="col score-box"><div class="score-val" id="sc-total-out">0</div><div class="score-label">Total Output</div></div>
-                    <div class="col score-box"><div class="score-val text-blue" id="sc-total-val">₹0</div><div class="score-label">Total Value</div></div>
-                    <div class="col score-box"><div class="score-val text-yellow" id="sc-proc-scrap">₹0</div><div class="score-label">Process Scrap</div></div>
-                    <div class="col score-box"><div class="score-val text-cyan" id="sc-rmd-scrap">₹0</div><div class="score-label">RMD Scrap</div></div>
-                    <div class="col score-box"><div class="score-val text-red" id="sc-tot-scrap">₹0</div><div class="score-label">Total Scrap</div></div>
-                    <div class="col score-box bg-yellow-light"><div class="score-val" id="sc-proc-rate">0%</div><div class="score-label">Process Rate</div></div>
-                    <div class="col score-box bg-cyan-light"><div class="score-val" id="sc-rmd-rate">0%</div><div class="score-label">RMD Rate</div></div>
-                    <div class="col score-box bg-dark-blue"><div class="score-val" id="sc-ovr-rate">0%</div><div class="score-label">Overall Rate</div></div>
-                </div>
-            </div>
+        <!-- PRODUCT WISE SUMMARY -->
+        <h6 class="fw-bold text-dark mb-2"><i class="fas fa-layer-group me-2"></i>Product Wise Performance</h6>
+        <div class="prod-summary-container" id="productSummaryContainer"></div>
 
-            <!-- High Stats -->
-            <div class="row mb-3">
-                <div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Highest Scrap Line</div><div class="high-stat-val" id="high-line">N/A</div><div class="high-stat-sub" id="high-line-rate">0% Rate</div></div></div>
-                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#f6c23e;"><div class="high-stat-title">Highest Scrap Model</div><div class="high-stat-val" id="high-model">N/A</div><div class="high-stat-sub" id="high-model-val">₹0 Loss</div></div></div>
-                <div class="col-md-4"><div class="high-stat-card" style="border-left-color:#4e73df;"><div class="high-stat-title">Highest Scrap Floor</div><div class="high-stat-val" id="high-floor">N/A</div><div class="high-stat-sub" id="high-floor-val">₹0 Loss</div></div></div>
-            </div>
-
-            <!-- Controls -->
-            <div class="controls-bar">
-                <div class="btn-group">
-                    <button class="btn btn-outline-dark btn-sm active" id="btn-main-all" onclick="setLineType('ALL')">All</button>
-                    <button class="btn btn-outline-dark btn-sm" id="btn-earbuds" onclick="setLineType('EARBUDS')">Earbuds</button>
-                    <button class="btn btn-outline-dark btn-sm" id="btn-case" onclick="setLineType('CASE')">Switcher Charging</button>
-                </div>
+        <!-- DATE WISE SCRAP TREND -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap py-2">
+                <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-chart-line me-2"></i>Date Wise Scrap Trend (Value vs Rate)</h6>
                 <div class="d-flex gap-2 align-items-center">
-                    <select id="storageFilter" class="form-select form-select-sm" style="width:150px;" onchange="processAndRender()"><option value="ALL">All Storage</option><option value="PROCESS">Process (6003)</option><option value="RMD">RMD (6002)</option></select>
-                    <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-primary active" id="view-val" onclick="toggleViewMode('VALUE')">₹ Value</button>
-                        <button type="button" class="btn btn-outline-primary" id="view-qty" onclick="toggleViewMode('QTY')">123 Qty</button>
-                    </div>
-                    <select id="sortFilter" class="form-select form-select-sm" style="width:140px;" onchange="processAndRender()"><option value="DESC">Rate: High to Low</option><option value="ASC">Rate: Low to High</option></select>
-                    <button class="btn btn-primary btn-sm" onclick="loadData()"><i class="fas fa-sync"></i></button>
+                    <select id="trendGraphProduct" class="form-select form-select-sm" style="width: 150px; border:1px solid #aaa;" onchange="renderTrendChart()">
+                        <option value="ALL">All Products</option>
+                        <option value="EARBUDS">Earbuds</option>
+                        <option value="CHARGING CASE">Charging Case</option>
+                        <option value="SMART WATCH">Smart Watch</option>
+                        <option value="HEADPHONE">Headphone</option>
+                        <option value="DASHCAM">Dashcam</option>
+                    </select>
+                    <select id="trendGraphType" class="form-select form-select-sm" style="width: 150px; border:1px solid #aaa;" onchange="renderTrendChart()">
+                        <option value="ALL">Total (Proc + RMD)</option>
+                        <option value="PROCESS">Process Only</option>
+                        <option value="RMD">RMD Only</option>
+                    </select>
                 </div>
             </div>
-
-            <!-- Table -->
-            <div class="card">
-                <div class="card-header">Line Wise Analysis</div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped table-hover text-center align-middle mb-0" id="mainTable">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Line No</th><th>Prod Value</th><th>Scrap Value</th><th>Rate %</th><th id="breakdown-header" colspan="5">Defect Breakdown (Value ₹)</th>
-                                </tr>
-                                <tr class="table-secondary"><th colspan="4"></th><th>PCBA</th><th>Speaker</th><th>Battery</th><th>Magnet</th><th>Other</th></tr>
-                            </thead>
-                            <tbody id="lineTableBody"></tbody>
-                        </table>
-                    </div>
+            <div class="card-body">
+                <div style="height: 350px; width: 100%;">
+                    <canvas id="scrapTrendCanvas"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- ========================= LINE & FLOOR WISE ========================= -->
-        <div id="line-perf-section" class="content-section" style="display:none;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3>Line & Floor Performance</h3>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-success" onclick="exportExcel('line-perf-section', 'Line_Perf')"><i class="fas fa-file-excel me-1"></i> Excel</button>
-                    <button class="btn btn-sm btn-danger" onclick="exportPDF('line-perf-section', 'Line_Perf')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
-                    <button class="btn btn-sm btn-warning text-dark" onclick="exportPPT('line-perf-section', 'Line_Perf')"><i class="fas fa-file-powerpoint me-1"></i> PPT</button>
-                </div>
-            </div>
-            
-            <div class="controls-bar">
-                <div class="d-flex gap-2">
-                    <div class="btn-group">
-                        <button class="btn btn-outline-dark btn-sm active" id="lp-btn-earbuds" onclick="updateLinePerf('EARBUDS')">Earbuds</button>
-                        <button class="btn btn-outline-dark btn-sm" id="lp-btn-case" onclick="updateLinePerf('CASE')">Switcher Charging</button>
-                    </div>
-                </div>
-                
-                <!-- MULTI SELECT LINE DROPDOWN -->
-                <div class="d-flex gap-2 align-items-center">
-                    <label class="small fw-bold text-muted">Select Line:</label>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="multiLineBtn" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 200px; text-align: left;">
-                            Loading Lines...
-                        </button>
-                        <ul class="dropdown-menu checkbox-menu" id="lp-line-multiselect">
-                            <!-- Content injected via JS -->
-                        </ul>
-                    </div>
-                    <button class="btn btn-sm btn-secondary" onclick="renderLinePerfData()" title="Refresh Chart"><i class="fas fa-sync"></i></button>
-                </div>
-
-                <select id="lp-storage" class="form-select form-select-sm" style="width:150px;" onchange="renderLinePerfData()">
-                    <option value="ALL">Process & RMD</option>
-                    <option value="PROCESS">Process</option>
-                    <option value="RMD">RMD</option>
+        <!-- GLOBAL FILTERS -->
+        <div class="bg-white p-3 rounded shadow-sm mb-3 d-flex gap-2 align-items-center flex-wrap">
+            <div class="input-group input-group-sm" style="width: 200px;">
+                <span class="input-group-text fw-bold">Defect</span>
+                <select id="filterDefect" class="form-select" onchange="processAndRender()">
+                    <option value="ALL">All Defects</option>
+                    <option value="PCBA">PCBA</option>
+                    <option value="BATTERY">Battery</option>
+                    <option value="SPEAKER">Speaker</option>
+                    <option value="SCREEN">Screen</option>
                 </select>
             </div>
+            <button class="btn btn-primary btn-sm ms-auto" onclick="loadData()"><i class="fas fa-sync"></i> Refresh Data</button>
+        </div>
 
-            <!-- Floor Stats -->
-            <div class="card mb-3 border-0 shadow-sm">
-                <div class="card-header bg-dark text-white d-flex justify-content-between">
-                    <span><i class="fas fa-building me-2"></i>Floor Performance Summary</span>
-                    <span id="lp-floor-name" class="badge bg-warning text-dark">Selected Lines</span>
+        <!-- DETAILED TABLE -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3"><i class="fas fa-list me-2"></i> Line Wise Breakdown</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover custom-table text-center mb-0" id="analysisTable">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="align-middle">Line No</th>
+                                <th rowspan="2" class="align-middle">Product</th>
+                                <th rowspan="2" class="align-middle bg-dark">Prod Value</th>
+                                <th colspan="2" class="bg-warning text-dark border-bottom-0">Process (6003)</th>
+                                <th colspan="2" class="bg-info text-white border-bottom-0">RMD (6002)</th>
+                                <th colspan="2" class="bg-danger text-white border-bottom-0">Total Scrap</th>
+                            </tr>
+                            <tr>
+                                <th class="bg-warning bg-opacity-25 text-dark">Value (₹)</th>
+                                <th class="bg-warning bg-opacity-25 text-dark">Rate %</th>
+                                <th class="bg-info bg-opacity-75 text-white">Value (₹)</th>
+                                <th class="bg-info bg-opacity-75 text-white">Rate %</th>
+                                <th class="bg-danger bg-opacity-75 text-white">Value (₹)</th>
+                                <th class="bg-danger bg-opacity-75 text-white">Rate %</th>
+                            </tr>
+                            <!-- SORT/FILTER ROW -->
+                            <tr class="filter-row">
+                                <th><select class="sort-select" onchange="triggerSort(0, 'text', this)"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select></th>
+                                <th>
+                                    <select class="sort-select" id="prodFilterDropdown" onchange="applyProductFilter(this)">
+                                        <option value="">All</option>
+                                        <option value="EARBUDS">Earbuds</option>
+                                        <option value="CHARGING CASE">Case</option>
+                                        <option value="SMART WATCH">Watch</option>
+                                        <option value="HEADPHONE">Headphone</option>
+                                        <option value="DASHCAM">Dashcam</option>
+                                    </select>
+                                </th>
+                                <th><select class="sort-select" onchange="triggerSort(2, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                                <th><select class="sort-select" onchange="triggerSort(3, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                                <th><select class="sort-select" onchange="triggerSort(4, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                                <th><select class="sort-select" onchange="triggerSort(5, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                                <th><select class="sort-select" onchange="triggerSort(6, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                                <th><select class="sort-select" onchange="triggerSort(7, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                                <th><select class="sort-select" onchange="triggerSort(8, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
                 </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-2 border-end"><h6 class="text-muted small">PCBA Qty</h6><h5 id="lp-fl-pcba">0</h5></div>
-                        <div class="col-md-2 border-end"><h6 class="text-muted small">Speaker Qty</h6><h5 id="lp-fl-spk">0</h5></div>
-                        <div class="col-md-2 border-end"><h6 class="text-muted small">Battery Qty</h6><h5 id="lp-fl-bat">0</h5></div>
-                        <div class="col-md-2 border-end"><h6 class="text-muted small">Scrap Value</h6><h5 class="text-danger" id="lp-fl-val">0</h5></div>
-                        <div class="col-md-2 border-end"><h6 class="text-muted small">Total Qty</h6><h5 id="lp-fl-qty">0</h5></div>
-                        <div class="col-md-2"><h6 class="text-muted small">Overall Rate</h6><h5 class="text-primary" id="lp-fl-rate">0%</h5></div>
-                    </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW SECTION: DETAIL ANALYSIS -->
+    <div id="detail-analysis-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark">Detail Analysis & History</h3>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4 bg-white">
+            <div class="d-flex gap-4 mb-4 align-items-end flex-wrap">
+                <div>
+                    <label class="fw-bold small text-secondary">Product Wise</label>
+                    <select id="daProduct" class="form-select" style="width: 200px;" onchange="renderDetailLines()">
+                        <option value="EARBUDS">Earbuds</option>
+                        <option value="CHARGING CASE">Charging Case</option>
+                        <option value="SMART WATCH">Smart Watch</option>
+                        <option value="DASHCAM">Dashcam</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="fw-bold small text-secondary">Process Selection</label>
+                    <select id="daType" class="form-select" style="width: 200px;" onchange="renderDetailLines()">
+                        <option value="ALL">Total (Proc + RMD)</option>
+                        <option value="PROCESS">Process Only</option>
+                        <option value="RMD">RMD Only</option>
+                    </select>
+                </div>
+                <div class="text-muted small ms-auto align-self-center">
+                    Select a Line below to view detailed history
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <div class="comp-card h-100">
-                        <div class="comp-header">
-                            Model Wise Scrap
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="lp-model-switch" onchange="renderLinePerfCharts()">
-                                <label class="form-check-label small" for="lp-model-switch">Show Rate %</label>
+            <h6 class="fw-bold text-dark border-bottom pb-2">Select Line (1-24)</h6>
+            <div class="line-grid" id="lineGridContainer">
+                <!-- Buttons will be generated here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW MODAL FOR LINE HISTORY -->
+    <div class="modal fade" id="lineHistoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="lineModalTitle">Line History</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    
+                    <!-- Weekly / Date Toggle -->
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-daily">Daily Trend</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-weekly">Week Wise Report</button></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- DAILY TAB -->
+                        <div class="tab-pane fade show active" id="tab-daily">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <div class="card shadow-sm border-0">
+                                        <div class="card-header bg-white fw-bold small">Scrap Value & Rate Trend (Date Wise)</div>
+                                        <div class="card-body">
+                                            <div class="chart-container-sm">
+                                                <canvas id="daTrendCanvas"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- SEPARATE COMPONENT GRAPHS ROW (Added) -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm border-0 h-100">
+                                        <div class="card-header bg-white fw-bold small text-primary">PCBA Trend (Qty)</div>
+                                        <div class="card-body">
+                                            <div class="chart-container-xs">
+                                                <canvas id="daPcbaChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm border-0 h-100">
+                                        <div class="card-header bg-white fw-bold small text-warning">Speaker Trend (Qty)</div>
+                                        <div class="card-body">
+                                            <div class="chart-container-xs">
+                                                <canvas id="daSpkrChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm border-0 h-100">
+                                        <div class="card-header bg-white fw-bold small text-success">Battery Trend (Qty)</div>
+                                        <div class="card-body">
+                                            <div class="chart-container-xs">
+                                                <canvas id="daBattChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MODEL WISE DETAIL TABLE ROW (Added) -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="card shadow-sm border-0">
+                                        <div class="card-header bg-white fw-bold small">Model Wise Scrap Breakdown</div>
+                                        <div class="card-body p-0">
+                                            <div class="table-responsive" style="max-height:200px; overflow-y:auto;">
+                                                <table class="table table-sm table-bordered table-striped text-center mb-0" style="font-size:0.8rem;">
+                                                    <thead class="bg-dark text-white" style="position:sticky; top:0;">
+                                                        <tr>
+                                                            <th>Model Name</th>
+                                                            <th>Total Scrap Value (₹)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="daModelTableBody"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="p-3"><canvas id="lpModelChart" height="150"></canvas></div>
+
+                        <!-- WEEKLY TAB -->
+                        <div class="tab-pane fade" id="tab-weekly">
+                            <div class="card shadow-sm border-0 mb-3">
+                                <div class="card-header bg-white fw-bold small">Week Wise Performance</div>
+                                <div class="card-body p-0">
+                                    <table class="table table-bordered table-striped text-center mb-0 custom-table">
+                                        <thead class="bg-dark text-white">
+                                            <tr>
+                                                <th>Week Range</th>
+                                                <th>Prod Qty</th>
+                                                <th>Scrap Value</th>
+                                                <th>Scrap Rate %</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="daWeeklyTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TOP 5 ROW -->
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-header bg-white fw-bold small">Top 5 Materials (Scrap Value & Qty)</div>
+                                <div class="card-body p-0">
+                                    <table class="table table-sm table-hover text-center mb-0" style="font-size:0.8rem">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Material</th>
+                                                <th>Qty</th>
+                                                <th>Value (₹)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="daTop5Body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW SECTION: MODEL WISE ANALYSIS WITH TABS -->
+    <div id="model-analysis-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Model Wise Analysis</h3>
+        </div>
+
+        <!-- Shared Controls -->
+        <div class="bg-white p-3 rounded shadow-sm mb-4 d-flex gap-4 align-items-center flex-wrap">
+            <div>
+                <label class="small fw-bold text-secondary">Product</label>
+                <select id="modelGraphProduct" class="form-select form-select-sm" style="width:150px" onchange="renderModelAnalysisTabs()">
+                    <option value="ALL">All Products</option>
+                    <option value="EARBUDS">Earbuds</option>
+                    <option value="CHARGING CASE">Charging Case</option>
+                    <option value="SMART WATCH">Smart Watch</option>
+                    <option value="DASHCAM">Dashcam</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Type</label>
+                <select id="modelGraphType" class="form-select form-select-sm" style="width:150px" onchange="renderModelAnalysisTabs()">
+                    <option value="ALL">Total (Proc + RMD)</option>
+                    <option value="PROCESS">Process Only</option>
+                    <option value="RMD">RMD Only</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Component</label>
+                <select id="modelGraphComp" class="form-select form-select-sm" style="width:150px" onchange="renderModelAnalysisTabs()">
+                    <option value="ALL">All Components</option>
+                    <option value="PCBA">PCBA</option>
+                    <option value="SPEAKER">Speaker</option>
+                    <option value="BATTERY">Battery</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-3" id="modelTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="val-tab" data-bs-toggle="tab" data-bs-target="#val-content" type="button" role="tab" aria-selected="true"><i class="fas fa-rupee-sign me-2"></i>Value Wise Analysis</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="qty-tab" data-bs-toggle="tab" data-bs-target="#qty-content" type="button" role="tab" aria-selected="false"><i class="fas fa-boxes me-2"></i>Qty Wise Analysis</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="modelTabsContent">
+            
+            <!-- TAB 1: VALUE WISE -->
+            <div class="tab-pane fade show active" id="val-content" role="tabpanel">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold py-2 text-success">Top Models by Scrap Value (INR)</div>
+                    <div class="card-body">
+                        <div style="height: 400px; width: 100%;">
+                            <canvas id="modelValueCanvas"></canvas>
+                        </div>
                     </div>
                 </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold py-3"><i class="fas fa-table me-2"></i> Value Wise Data</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped custom-table text-center mb-0">
+                                <thead class="bg-dark text-white">
+                                    <tr>
+                                        <th rowspan="2" class="align-middle">#</th>
+                                        <th rowspan="2" class="align-middle">Model Name</th>
+                                        <th rowspan="2" class="align-middle">Prod Qty (Sets)</th>
+                                        <th rowspan="2" class="align-middle">Prod Value (₹)</th>
+                                        <th colspan="2" class="bg-white text-dark">Charging case</th>
+                                        <th colspan="2" class="bg-white text-dark">Earbuds</th>
+                                        <th rowspan="2" class="align-middle">Overall process</th>
+                                        <th rowspan="2" class="align-middle">Scrap rate %</th>
+                                    </tr>
+                                    <tr>
+                                        <!-- Sub Headers -->
+                                        <th class="bg-light text-dark">Scrap Value (₹)</th>
+                                        <th class="bg-light text-dark">Scrap Rate %</th>
+                                        <th class="bg-light text-dark">Scrap Value (₹)</th>
+                                        <th class="bg-light text-dark">Scrap Rate %</th>
+                                    </tr>
+                                    <!-- NEW FILTER/SORT ROW -->
+                                    <tr class="bg-secondary p-0">
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(0, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">1-9</option><option value="desc">9-1</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(1, 'text', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(2, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(3, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(4, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(5, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(6, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(7, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(8, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(9, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modelValueTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: QTY WISE -->
+            <div class="tab-pane fade" id="qty-content" role="tabpanel">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold py-2 text-primary">Top Models by Scrap Quantity</div>
+                    <div class="card-body">
+                        <div style="height: 400px; width: 100%;">
+                            <canvas id="modelQtyCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold py-3"><i class="fas fa-table me-2"></i> Qty Wise Data</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped custom-table text-center mb-0">
+                                <thead class="bg-primary text-white">
+                                    <tr>
+                                        <th rowspan="2" class="align-middle">#</th>
+                                        <th rowspan="2" class="align-middle">Model Name</th>
+                                        <th rowspan="2" class="align-middle">Prod Qty (Sets)</th>
+                                        <th colspan="2" class="bg-white text-dark">Charging case (1x)</th>
+                                        <th colspan="2" class="bg-white text-dark">Earbuds (2x)</th>
+                                        <th rowspan="2" class="align-middle">Total Scrap Qty</th>
+                                    </tr>
+                                    <tr>
+                                        <!-- Sub Headers -->
+                                        <th class="bg-light text-dark">Scrap Qty</th>
+                                        <th class="bg-light text-dark">Rate %</th>
+                                        <th class="bg-light text-dark">Scrap Qty</th>
+                                        <th class="bg-light text-dark">Rate %</th>
+                                    </tr>
+                                    <!-- NEW FILTER/SORT ROW -->
+                                    <tr class="bg-secondary p-0">
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(0, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">1-9</option><option value="desc">9-1</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(1, 'text', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(2, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(3, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(4, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(5, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(6, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(7, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modelQtyTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- NEW SECTION: LINE WISE ANALYSIS -->
+    <div id="line-analysis-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Line Wise Component Analysis</h3>
+        </div>
+
+        <!-- Filters for Analysis -->
+        <div class="bg-white p-3 rounded shadow-sm mb-4 d-flex gap-3 align-items-center flex-wrap">
+            <div>
+                <label class="small fw-bold text-secondary">Product</label>
+                <select id="laProduct" class="form-select form-select-sm" style="width:160px" onchange="processAndRender()">
+                    <option value="ALL">All Products</option>
+                    <option value="EARBUDS">Earbuds</option>
+                    <option value="CHARGING CASE">Charging Case</option>
+                    <option value="SMART WATCH">Smart Watch</option>
+                    <option value="DASHCAM">Dashcam</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Type</label>
+                <select id="laType" class="form-select form-select-sm" style="width:160px" onchange="processAndRender()">
+                    <option value="ALL">Total (Proc + RMD)</option>
+                    <option value="PROCESS">Process Only</option>
+                    <option value="RMD">RMD Only</option>
+                </select>
+            </div>
+            <!-- GRAPH FILTER -->
+            <div>
+                <label class="small fw-bold text-secondary">Graph Focus</label>
+                <select id="laComponent" class="form-select form-select-sm" style="width:160px" onchange="processAndRender()">
+                    <option value="ALL">All Components</option>
+                    <option value="PCBA">PCBA Only</option>
+                    <option value="SPEAKER">Speaker Only</option>
+                    <option value="BATTERY">Battery Only</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Component Graph -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold py-2">Pareto Analysis: Scrap Qty & Rate %</div>
+            <div class="card-body">
+                <div style="height: 400px; width: 100%;">
+                    <canvas id="componentAnalysisCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Component Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3"><i class="fas fa-table me-2"></i> Detailed Data</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped custom-table text-center mb-0" id="compTable">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="align-middle bg-dark text-white">Line No
+                                    <select class="sort-select mt-1" onchange="triggerCompSort(0, 'text', this)"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select>
+                                </th>
+                                <th rowspan="2" class="align-middle bg-dark text-white">Product
+                                    <!-- Filter Dropdown -->
+                                    <select class="sort-select mt-1" id="laTableProdFilter" onchange="applyCompProdFilter(this)">
+                                        <option value="">All</option>
+                                        <option value="EARBUDS">Earbuds</option>
+                                        <option value="CHARGING CASE">Case</option>
+                                        <option value="SMART WATCH">Watch</option>
+                                        <option value="DASHCAM">Dashcam</option>
+                                    </select>
+                                </th>
+                                <th rowspan="2" class="align-middle bg-dark text-white">Prod Qty
+                                    <select class="sort-select mt-1" onchange="triggerCompSort(2, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select>
+                                </th>
+                                <th colspan="2" class="bg-primary text-white">PCBA</th>
+                                <th colspan="2" class="bg-warning text-dark">SPEAKER</th>
+                                <th colspan="2" class="bg-success text-white">BATTERY</th>
+                            </tr>
+                            <tr>
+                                <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(3, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(4, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(5, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(6, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(7, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(8, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                            </tr>
+                        </thead>
+                        <tbody id="compTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Sections -->
+    <div id="upload-section" class="content-section" style="display:none;">
+        <h4 class="mb-4">Bulk Upload</h4>
+        <div class="card p-5 text-center shadow-sm">
+            <div class="border dashed p-5 bg-white rounded"><input type="file" id="uploadFile" class="form-control w-50 mx-auto mb-3" accept=".xlsx"><button class="btn btn-primary" onclick="uploadExcel()">Upload</button></div>
+        </div>
+    </div>
+
+    <!-- PRODUCTION ENTRY SECTION -->
+    <div id="production-section" class="content-section" style="display:none;">
+        <h4 class="mb-4">Production Entry</h4>
+        <div class="card p-4 shadow-sm" style="max-width: 500px;">
+            <form id="prodForm">
+                <label class="form-label fw-bold">Date</label>
+                <input type="date" id="pDate" class="form-control mb-3">
                 
-                <div class="col-md-6 mb-3">
-                    <div class="comp-card h-100">
-                        <div class="comp-header">Date Wise Trend (Value)</div>
-                        <div class="p-3"><canvas id="lpTrendChart" height="150"></canvas></div>
-                    </div>
-                </div>
-            </div>
+                <label class="form-label fw-bold">Line Number</label>
+                <input type="text" id="pLine" class="form-control mb-3" placeholder="e.g. 303">
+                
+                <!-- NEW UPDATED PRODUCT DROPDOWN -->
+                <label class="form-label fw-bold">Product Type</label>
+                <select id="pProduct" class="form-select mb-3">
+                    <option value="" disabled selected>Select Product</option>
+                    <option value="Earbuds & Charging case">Earbuds & Charging case</option>
+                    <option value="Dashcam">Dashcam</option>
+                    <option value="Smart Watch">Smart Watch</option>
+                    <option value="Headphone">Headphone</option>
+                    <option value="Other">Other</option>
+                </select>
 
-            <div class="row mini-charts-row">
-                <div class="mini-chart-box">
-                    <h6 class="small text-center fw-bold">PCBA (Qty)</h6>
-                    <canvas id="lpPcbaChart" height="100"></canvas>
-                </div>
-                <div class="mini-chart-box">
-                    <h6 class="small text-center fw-bold">Speaker (Qty)</h6>
-                    <canvas id="lpSpkChart" height="100"></canvas>
-                </div>
-                <div class="mini-chart-box">
-                    <h6 class="small text-center fw-bold">Battery (Qty)</h6>
-                    <canvas id="lpBatChart" height="100"></canvas>
-                </div>
-            </div>
+                <label class="form-label fw-bold">Model</label>
+                <select id="pModel" class="form-select mb-3"></select>
+                
+                <label class="form-label fw-bold">Output Qty</label>
+                <input type="number" id="pOut" class="form-control mb-3" placeholder="0">
+                
+                <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Save Production</button>
+            </form>
         </div>
-
-        <!-- ========================= MODEL WISE ANALYSIS ========================= -->
-        <div id="model-perf-section" class="content-section" style="display:none;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3>Model Wise Analysis</h3>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-success" onclick="exportExcel('model-perf-section', 'Model_Analysis')"><i class="fas fa-file-excel me-1"></i> Excel</button>
-                    <button class="btn btn-sm btn-danger" onclick="exportPDF('model-perf-section', 'Model_Analysis')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
-                    <button class="btn btn-sm btn-warning text-dark" onclick="exportPPT('model-perf-section', 'Model_Analysis')"><i class="fas fa-file-powerpoint me-1"></i> PPT</button>
-                </div>
-            </div>
-            
-            <div class="controls-bar">
-                 <span class="badge bg-secondary">Top 20 Models Only (Sorted by Loss)</span>
-            </div>
-
-            <div class="row">
-                <div class="col-md-12 mb-4">
-                    <div class="comp-card">
-                        <div class="comp-header">Model Wise - Scrap Value & Rate %</div>
-                        <div class="p-3"><canvas id="mpMainChart" height="120"></canvas></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="comp-card">
-                        <div class="comp-header">PCBA Qty (Top Models)</div>
-                        <div class="p-3"><canvas id="mpPcbaChart" height="150"></canvas></div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="comp-card">
-                        <div class="comp-header">Speaker Qty (Top Models)</div>
-                        <div class="p-3"><canvas id="mpSpkChart" height="150"></canvas></div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="comp-card">
-                        <div class="comp-header">Battery Qty (Top Models)</div>
-                        <div class="p-3"><canvas id="mpBatChart" height="150"></canvas></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========================= OTHER SECTIONS ========================= -->
-        <div id="component-container" class="content-section" style="display:none;"></div>
-
-        <div id="production-section" class="content-section" style="display:none;">
-            <h3>Production Entry</h3>
-            <div class="card p-4 shadow-sm" style="max-width: 600px;">
-                <form id="prodForm">
-                    <div class="mb-3"><label>Date</label><input type="date" id="pDate" class="form-control" required></div>
-                    <div class="mb-3"><label>Model</label><select id="pModel" class="form-select"></select></div>
-                    <div class="mb-3"><label>Line No</label><input type="text" id="pLine" class="form-control" required></div>
-                    <div class="mb-3"><label>Output Qty</label><input type="number" id="pOut" class="form-control" required></div>
-                    <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Save Data</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="upload-section" class="content-section" style="display:none;">
-            <h3>Bulk Scrap Upload</h3>
-            <div class="card p-5 text-center">
-                <div class="border dashed p-5 bg-white rounded">
-                    <i class="fas fa-file-excel fa-4x text-success mb-3"></i><h5>Upload Excel</h5>
-                    <input type="file" id="uploadFile" class="form-control w-50 mx-auto mb-3" accept=".xlsx">
-                    <button class="btn btn-primary" onclick="uploadExcel()">Process & Upload</button>
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
-</div>
-<script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyD1Y63nykh84uHHhUWxkfucyVi6crvEdY4KEXVzKg3FgQCGRj55ljmjTZfGyZFcCbUyg/exec"; 
 
-    // DATA LABELS: FORMAT & PRECISION (Max 2 Decimals)
+<!-- BootStrap JS (Required for Tabs) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // **********************************************
+    // PASTE YOUR NEW WEB APP URL HERE
+    // **********************************************
+    const API_URL = "https://script.google.com/macros/s/AKfycbyD8FFtDs-2BR-9k2UkvdhaMcF1WrCWoVNOYcm8qI9aq0uT8OntsthgjgMIwNFlyFCtGw/exec"; 
+
+    // REGISTER DATALABELS PLUGIN GLOBALLY
     Chart.register(ChartDataLabels);
-    Chart.defaults.set('plugins.datalabels', {
-        color: '#444',
-        font: { weight: 'bold', size: 10 },
-        anchor: 'end',
-        align: 'top',
-        formatter: function(value, context) {
-            if (typeof value === 'number') {
-                if (value === 0) return "";
-                if (value < 1) return value.toFixed(2) + "%"; 
-                if (value >= 1000) return (value / 1000).toFixed(1) + "K";
-                return parseFloat(value.toFixed(2));
-            }
-            return value;
-        }
-    });
 
     let rawData = { production: [], scrap: [], models: [] };
     let modelPrices = {};
-    let currentLineType = 'ALL'; 
-    let viewMode = 'VALUE'; 
-    let compCharts = {}; 
-    let linePerfCharts = {}; 
-    let modelPerfCharts = {}; 
-    let currentCompFilter = { type: 'ALL', storage: 'ALL' }; 
-    let linePerfFilter = { type: 'EARBUDS' };
+    let aggregatedModelData = {}; // Store Model Wise Data
+    
+    // Global Chart Instances
+    let scrapTrendChart = null;
+    let componentChart = null;
+    
+    // New Chart Instances for Tabs
+    let modelValueChart = null;
+    let modelQtyChart = null;
 
-    window.onload = loadData;
+    // Detail Analysis Charts
+    let daTrendChart = null;
+    let daPcbaChart = null;
+    let daSpkrChart = null;
+    let daBattChart = null;
+
+    window.onload = function() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        document.getElementById('dateFrom').value = firstDay.toISOString().split('T')[0];
+        document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+        loadData();
+    };
 
     function switchSection(id) {
         document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
-        
-        if(['pcba','speaker','battery'].includes(id)) {
-            currentCompFilter = { type: 'ALL', storage: 'ALL' }; 
-            renderComponentDashboard(id);
-            document.getElementById('component-container').style.display = 'block';
-        } else if(id === 'dashboard') {
-            document.getElementById('dashboard-section').style.display = 'block';
-        } else if(id === 'line-perf') {
-            document.getElementById('line-perf-section').style.display = 'block';
-            updateLinePerf(linePerfFilter.type); // Init dropdown
-        } else if(id === 'model-perf') {
-            document.getElementById('model-perf-section').style.display = 'block';
-            renderModelPerfTab();
-        } else {
-            document.getElementById(id+'-section').style.display = 'block';
-        }
-        
+        document.getElementById(id + '-section').style.display = 'block';
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-    }
+        document.querySelectorAll('.nav-link').forEach(l => {
+             // Handle sidebar links vs tab links
+             if(l.getAttribute('onclick') && l.getAttribute('onclick').includes(id)) l.classList.add('active');
+        });
 
-    function formatCurrencyShort(val) {
-        if (val >= 100000) return "₹" + (val / 100000).toFixed(2) + " L";
-        if (val >= 1000) return "₹" + (val / 1000).toFixed(2) + " K";
-        return "₹" + val.toLocaleString(undefined, { maximumFractionDigits: 0 });
-    }
-    
-    // ROBUST LINE NORMALIZATION
-    function normalizeLine(str) {
-        if(!str) return "";
-        let s = str.toString().toUpperCase().trim();
-        s = s.replace(/^LINE\s*|-|_/g, '').replace(/^L-/g, '');
-        s = s.replace(/\s+/g, '');
-        // If "01", make it "1"
-        if (/^0\d+$/.test(s)) return parseInt(s).toString();
-        return s;
+        // If Detail Analysis is clicked, render the line grid
+        if (id === 'detail-analysis') {
+            renderDetailLines();
+        }
     }
 
     async function loadData() {
@@ -432,502 +741,1282 @@
             let res = await fetch(API_URL);
             let json = await res.json();
             
-            // Validate data
-            if(!json.production || !json.scrap) throw new Error("Invalid Data Format");
-            
+            // Basic validation
+            if(!json.production || !json.scrap) throw new Error("Invalid Data Structure");
+
             rawData = json;
             if(json.models) {
                 let pSelect = document.getElementById('pModel');
                 pSelect.innerHTML = "";
+                // Model is Col A (0), Price is Col B (1) in Model_List sheet
                 json.models.slice(1).forEach(r => {
-                    modelPrices[r[0]] = parseFloat(r[1]) || 0;
+                    let mName = (r[0] || "").toString().trim().toUpperCase();
+                    modelPrices[mName] = parseFloat(r[1]) || 0;
                     pSelect.add(new Option(r[0], r[0]));
                 });
             }
             processAndRender();
         } catch(e) { 
-            Swal.fire({
-                icon: "error",
-                title: "Failed to Load Data",
-                text: "Check Internet or Google Script Permissions. Error: " + e.message
-            });
+            console.error(e);
+            Swal.fire("Error", "Details: " + e.message, "error"); 
         }
         document.getElementById('loader').style.display = 'none';
     }
 
+    // UPDATED NORMALIZE DATE (Fix Timezone/UTC issues)
+    function normalizeDate(dateInput) {
+        if(!dateInput) return null;
+        if (typeof dateInput === 'string') return dateInput.substring(0, 10);
+        if (typeof dateInput === 'number') {
+            const date = new Date(Math.round((dateInput - 25569) * 86400 * 1000));
+            return date.toISOString().substring(0, 10);
+        }
+        let d = new Date(dateInput);
+        if(isNaN(d.getTime())) return null;
+        return d.toISOString().substring(0, 10);
+    }
+
+    function normalizeLine(str) { return str ? str.toString().toUpperCase().trim().replace("L-", "").replace("LINE", "").replace(/^0+/, '') : "Unknown"; }
+    function formatCurrency(val) {
+        if (val >= 100000) return "₹" + (val / 100000).toFixed(2) + "L";
+        if (val >= 1000) return "₹" + (val / 1000).toFixed(2) + "K";
+        return "₹" + Math.round(val).toLocaleString();
+    }
+    
+    // Categorization Logic based on Product/Floor
+    function getProductCategory(prodStr, lineStr) {
+        let p = (prodStr || "").toString().toUpperCase();
+        let l = (lineStr || "").toString().toUpperCase();
+        let combined = p + " " + l;
+
+        if(combined.includes('DASHCAM') || combined.includes('DASH CAM')) return 'DASHCAM';
+        if(combined.includes('WATCH')) return 'SMART WATCH';
+        if(combined.includes('HEADPHONE')) return 'HEADPHONE';
+        if(combined.includes('CHARGING') || combined.includes('CASE')) return 'CHARGING CASE';
+        // Updated Earbuds Logic to include ANC, ENC, POD
+        if(combined.includes('BUD') || combined.includes('EAR') || combined.includes('TWS') || combined.includes('AIR') || combined.includes('ANC') || combined.includes('ENC') || combined.includes('POD')) return 'EARBUDS';
+        
+        return 'OTHER';
+    }
+
     function processAndRender() {
-        const storageFilter = document.getElementById('storageFilter').value;
-        const monthFilter = document.getElementById('globalMonth').value; 
-        
-        let prodMap = getProductionData(monthFilter); 
-        let scrapMap = {}; let modelStats = {}; let floorStats = { 'First Floor':0, 'Second Floor':0, 'Basement':0, 'Other':0 };
-        let totalStats = { out:0, prodVal:0, totScrap:0, procScrap:0, rmdScrap:0 };
+        const dFrom = document.getElementById('dateFrom').value;
+        const dTo = document.getElementById('dateTo').value;
+        const defectFilter = document.getElementById('filterDefect').value;
 
-        Object.values(prodMap).forEach(p => { totalStats.out += p.qty; totalStats.prodVal += p.val; });
-
+        // --- PRE-SCAN SCRAP DATA FOR LINE CATEGORY ---
+        let lineDominantCategory = {}; 
         if(rawData.scrap.length > 0) {
-            let h = rawData.scrap[0].map(x=>x.toLowerCase());
-            let idx = getColIndices(h);
-
             rawData.scrap.slice(1).forEach(row => {
-                let rowDate = row[0]; 
-                if(monthFilter) {
-                     let d = new Date(rowDate);
-                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
-                     if(mStr !== monthFilter) return;
+                let ln = normalizeLine(row[4]); 
+                let floorVal = row[5]; 
+                let cat = getProductCategory(floorVal, ln); 
+                if(cat !== 'OTHER') {
+                    lineDominantCategory[ln] = cat; 
                 }
-
-                let lineRaw = (row[idx.line] || "").toString();
-                let baseLine = normalizeLine(lineRaw);
-                let isCase = lineRaw.toUpperCase().endsWith('C') || lineRaw.includes('-C'); 
-                let storeVal = (row[idx.store] || "").toString().toLowerCase();
-                let isProcess = storeVal.includes('6003') || storeVal.includes('process');
-                let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
-
-                let val = (parseFloat(row[idx.price]) || 0) * (parseFloat(row[idx.qty]) || 0);
-                if(val === 0) return;
-
-                if( (currentLineType === 'EARBUDS' && isCase) || (currentLineType === 'CASE' && !isCase) ) return;
-                if( (storageFilter === 'PROCESS' && !isProcess) || (storageFilter === 'RMD' && !isRMD) ) return;
-
-                totalStats.totScrap += val;
-                if(isProcess) totalStats.procScrap += val;
-                if(isRMD) totalStats.rmdScrap += val;
-
-                let cat = row[idx.cat] || "Other Parts";
-                if(!scrapMap[baseLine]) scrapMap[baseLine] = { total:0, cats:{}, catsQty:{} };
-                scrapMap[baseLine].total += val;
-                if(!scrapMap[baseLine].cats[cat]) scrapMap[baseLine].cats[cat] = 0;
-                scrapMap[baseLine].cats[cat] += val;
-                
-                let qty = parseFloat(row[idx.qty]) || 0;
-                if(!scrapMap[baseLine].catsQty[cat]) scrapMap[baseLine].catsQty[cat] = 0;
-                scrapMap[baseLine].catsQty[cat] += qty;
-
-                let model = row[idx.model] || "Unknown";
-                if(!modelStats[model]) modelStats[model] = 0;
-                modelStats[model] += val;
-
-                let floor = getFloor(baseLine);
-                if(!floorStats[floor]) floorStats[floor] = 0;
-                floorStats[floor] += val;
             });
         }
 
-        renderScorecard(totalStats);
-        renderHighStats(scrapMap, prodMap, modelStats, floorStats);
-        renderTable(prodMap, scrapMap);
-    }
-
-    /* ================= UPDATED LINE PERF LOGIC ================= */
-    let lpDataCache = null;
-
-    function updateLinePerf(type) {
-        linePerfFilter.type = type;
-        document.getElementById('lp-btn-earbuds').classList.remove('active');
-        document.getElementById('lp-btn-case').classList.remove('active');
+        // --- PROCESS PRODUCTION ---
+        let prodMap = {}; 
+        let lineProdQtyMap = {}; 
+        let totalProdQty=0, totalProdVal=0;
         
-        if(type==='EARBUDS') document.getElementById('lp-btn-earbuds').classList.add('active');
-        else document.getElementById('lp-btn-case').classList.add('active');
-        
-        let lines = new Set();
-        
-        // Harvest all unique lines
-        const harvestLines = (dataset, key) => {
-            if(dataset.length > 0) {
-                let h = dataset[0].map(x=>x.toLowerCase());
-                let idx = h.findIndex(x=>x.includes('line'));
-                if(idx > -1) {
-                    dataset.slice(1).forEach(r => {
-                        let raw = (r[idx]||"").toString();
-                        let l = normalizeLine(raw);
-                        let isC = raw.toUpperCase().endsWith('C') || raw.includes('-C');
-                        if(type==='EARBUDS' && !isC && l) lines.add(l);
-                        if(type==='CASE' && isC && l) lines.add(l);
-                    });
-                }
-            }
-        };
-        
-        harvestLines(rawData.production);
-        harvestLines(rawData.scrap);
-        
-        let container = document.getElementById('lp-line-multiselect');
-        container.innerHTML = '<li><label class="dropdown-item"><input type="checkbox" class="form-check-input me-2" value="ALL" checked onchange="toggleAllLines(this)"> <strong>Select All</strong></label></li><li><hr class="dropdown-divider"></li>';
-        
-        let sortedLines = Array.from(lines).sort((a,b)=> a.localeCompare(b, undefined, {numeric: true}));
-        
-        if(sortedLines.length === 0) {
-            container.innerHTML += '<li class="dropdown-item text-muted">No data available</li>';
-            document.getElementById('multiLineBtn').innerText = "No Lines";
-        } else {
-            sortedLines.forEach(l => {
-                container.innerHTML += `<li><label class="dropdown-item"><input type="checkbox" class="form-check-input me-2 lp-line-cb" value="${l}" checked onchange="renderLinePerfData()"> Line ${l}</label></li>`;
-            });
-            document.getElementById('multiLineBtn').innerText = `Select Lines (${sortedLines.length})`;
-        }
-        
-        setTimeout(renderLinePerfData, 100);
-    }
-
-    function toggleAllLines(cb) {
-        document.querySelectorAll('.lp-line-cb').forEach(c => c.checked = cb.checked);
-        renderLinePerfData();
-    }
-
-    function renderLinePerfData() {
-        const monthFilter = document.getElementById('globalMonth').value;
-        const storeSel = document.getElementById('lp-storage').value;
-        
-        let selectedLines = [];
-        document.querySelectorAll('.lp-line-cb:checked').forEach(c => selectedLines.push(c.value));
-        
-        // UI Button Text
-        let total = document.querySelectorAll('.lp-line-cb').length;
-        if(total > 0) {
-            let txt = (selectedLines.length === total) ? "Select Lines (All)" : `Select Lines (${selectedLines.length})`;
-            document.getElementById('multiLineBtn').innerText = txt;
-        }
-
-        let stats = { 
-            floor: { pcba:0, spk:0, bat:0, val:0, qty:0, prodVal:0 },
-            models: {}, trend: {}, compDate: { pcba:{}, spk:{}, bat:{} }
-        };
-
-        // Filter Production for Rate
-        let prodMap = getProductionData(monthFilter);
-        Object.entries(prodMap).forEach(([ln, d]) => {
-            if(selectedLines.includes(ln)) stats.floor.prodVal += d.val;
-        });
-
-        // Filter Scrap
-        if(rawData.scrap.length > 0) {
-             let h = rawData.scrap[0].map(x=>x.toLowerCase());
-             let idx = getColIndices(h);
-
-             rawData.scrap.slice(1).forEach(row => {
-                 let rowDate = row[0];
-                 if(monthFilter) {
-                     let d = new Date(rowDate);
-                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
-                     if(mStr !== monthFilter) return;
-                 }
-
-                 let lineRaw = (row[idx.line] || "").toString();
-                 let baseLine = normalizeLine(lineRaw);
-                 if(!selectedLines.includes(baseLine)) return;
-
-                 // Double Check Type
-                 let isCase = lineRaw.toUpperCase().endsWith('C') || lineRaw.includes('-C');
-                 if(linePerfFilter.type === 'EARBUDS' && isCase) return;
-                 if(linePerfFilter.type === 'CASE' && !isCase) return;
-
-                 let storeVal = (row[idx.store] || "").toString().toLowerCase();
-                 let isProcess = storeVal.includes('6003') || storeVal.includes('process');
-                 let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
-                 if(storeSel === 'PROCESS' && !isProcess) return;
-                 if(storeSel === 'RMD' && !isRMD) return;
-
-                 let qty = parseFloat(row[idx.qty]) || 0;
-                 let val = (parseFloat(row[idx.price]) || 0) * qty;
-                 let cat = (row[idx.cat] || "").toLowerCase();
-                 let model = row[idx.model] || "Unknown";
-                 let date = new Date(rowDate).toLocaleDateString();
-
-                 stats.floor.val += val;
-                 stats.floor.qty += qty;
-                 if(cat.includes('pcba')) stats.floor.pcba += qty;
-                 if(cat.includes('speaker')) stats.floor.spk += qty;
-                 if(cat.includes('battery')) stats.floor.bat += qty;
-
-                 if(!stats.models[model]) stats.models[model] = 0;
-                 stats.models[model] += val;
-
-                 if(!stats.trend[date]) stats.trend[date] = 0;
-                 stats.trend[date] += val;
-
-                 if(cat.includes('pcba')) { if(!stats.compDate.pcba[date]) stats.compDate.pcba[date]=0; stats.compDate.pcba[date]+=qty; }
-                 if(cat.includes('speaker')) { if(!stats.compDate.spk[date]) stats.compDate.spk[date]=0; stats.compDate.spk[date]+=qty; }
-                 if(cat.includes('battery')) { if(!stats.compDate.bat[date]) stats.compDate.bat[date]=0; stats.compDate.bat[date]+=qty; }
-             });
-        }
-        
-        lpDataCache = stats;
-
-        document.getElementById('lp-floor-name').innerText = selectedLines.length + " Lines";
-        document.getElementById('lp-fl-pcba').innerText = formatCurrencyShort(stats.floor.pcba).replace('₹','');
-        document.getElementById('lp-fl-spk').innerText = formatCurrencyShort(stats.floor.spk).replace('₹','');
-        document.getElementById('lp-fl-bat').innerText = formatCurrencyShort(stats.floor.bat).replace('₹','');
-        document.getElementById('lp-fl-val').innerText = formatCurrencyShort(stats.floor.val);
-        document.getElementById('lp-fl-qty').innerText = formatCurrencyShort(stats.floor.qty).replace('₹','');
-        let ovrRate = stats.floor.prodVal > 0 ? (stats.floor.val / stats.floor.prodVal)*100 : 0;
-        document.getElementById('lp-fl-rate').innerText = ovrRate.toFixed(2) + "%";
-
-        renderLinePerfCharts();
-    }
-
-    function renderLinePerfCharts() {
-        if(!lpDataCache) return;
-        let stats = lpDataCache;
-        let isRate = document.getElementById('lp-model-switch').checked;
-
-        let mLabels = Object.keys(stats.models).sort((a,b) => stats.models[b] - stats.models[a]).slice(0, 15);
-        let mData = [];
-        let totalScrap = stats.floor.val;
-        mLabels.forEach(m => {
-            if(isRate) {
-                let r = totalScrap>0 ? (stats.models[m]/totalScrap)*100 : 0;
-                mData.push(parseFloat(r.toFixed(2))); // 2 Decimals Only
-            } else {
-                mData.push(stats.models[m]);
-            }
-        });
-
-        if(linePerfCharts.model) linePerfCharts.model.destroy();
-        linePerfCharts.model = new Chart(document.getElementById('lpModelChart'), {
-            type: 'bar',
-            data: { 
-                labels: mLabels, 
-                datasets: [{ 
-                    label: isRate?'Share %':'Value ₹', 
-                    data: mData, 
-                    backgroundColor: isRate?'#1cc88a':'#4e73df',
-                    datalabels: { rotation: -90, align: 'end', anchor: 'end' } 
-                }] 
-            },
-            options: { scales: { x: { ticks: { autoSkip: false, maxRotation: 90 } } } }
-        });
-
-        let tLabels = Object.keys(stats.trend).sort((a,b)=>new Date(a)-new Date(b));
-        let tData = tLabels.map(d => stats.trend[d]);
-        if(linePerfCharts.trend) linePerfCharts.trend.destroy();
-        linePerfCharts.trend = new Chart(document.getElementById('lpTrendChart'), {
-            type: 'line',
-            data: { labels: tLabels, datasets: [{ label: 'Value', data: tData, borderColor: '#e74a3b', tension: 0.1 }] }
-        });
-
-        ['pcba','spk','bat'].forEach(k => {
-            let cLabels = Object.keys(stats.compDate[k]).sort((a,b)=>new Date(a)-new Date(b));
-            let cData = cLabels.map(d => stats.compDate[k][d]);
-            let cvs = document.getElementById(k==='pcba'?'lpPcbaChart':(k==='spk'?'lpSpkChart':'lpBatChart'));
-            if(linePerfCharts[k]) linePerfCharts[k].destroy();
-            linePerfCharts[k] = new Chart(cvs, {
-                type: 'bar',
-                data: { labels: cLabels, datasets: [{ label: 'Qty', data: cData, backgroundColor: '#36b9cc' }] },
-                options: { plugins: { legend: { display: false } }, scales: { x: { display: false } } }
-            });
-        });
-    }
-
-    function renderModelPerfTab() {
-        const monthFilter = document.getElementById('globalMonth').value;
-        let stats = { models: {} }; 
-        let prodByModel = {};
+        // Reset Aggregated Model Data
+        aggregatedModelData = {};
 
         if(rawData.production.length > 0) {
-             let h = rawData.production[0].map(x=>x.toLowerCase());
-             let idxMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2;
-             let idxOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1;
-             rawData.production.slice(1).forEach(row => {
-                 if(monthFilter) {
-                     let d = new Date(row[0]);
-                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
-                     if(mStr !== monthFilter) return;
-                 }
-                 let m = row[idxMod];
-                 let q = parseFloat(row[idxOut])||0;
-                 let pr = modelPrices[m]||0;
-                 if(!prodByModel[m]) prodByModel[m] = {val:0, qty:0};
-                 prodByModel[m].val += (q*pr);
-             });
-        }
+            rawData.production.slice(1).forEach(row => {
+                let rDate = normalizeDate(row[0]);
+                if (!rDate || rDate < dFrom || rDate > dTo) return;
+                
+                let ln = normalizeLine(row[3]); // Line No
+                let model = (row[2] || "").toString().trim().toUpperCase(); // NORMALIZE
+                let rawOut = parseFloat(row[4]) || 0; // Output (Col E)
+                let productCol = (row[1] || "").toString().toUpperCase(); // Product
 
-        if(rawData.scrap.length > 0) {
-            let h = rawData.scrap[0].map(x=>x.toLowerCase());
-            let idx = getColIndices(h);
-            rawData.scrap.slice(1).forEach(row => {
-                if(monthFilter) {
-                     let d = new Date(row[0]);
-                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
-                     if(mStr !== monthFilter) return;
+                let val = rawOut * (modelPrices[model]||0); // Use normalized model for price lookup
+
+                // Detect Category
+                let cat = "OTHER";
+                if(productCol !== "") {
+                     cat = getProductCategory(productCol, "");
+                } else {
+                    cat = getProductCategory(model, ln);
+                    if(cat === 'OTHER' && lineDominantCategory[ln]) {
+                        cat = lineDominantCategory[ln];
+                    }
                 }
-                let m = row[idx.model] || "Unknown";
-                let qty = parseFloat(row[idx.qty]) || 0;
-                let val = (parseFloat(row[idx.price]) || 0) * qty;
-                let cat = (row[idx.cat]||"").toLowerCase();
 
-                if(!stats.models[m]) stats.models[m] = { val:0, pcba:0, spk:0, bat:0 };
-                stats.models[m].val += val;
-                if(cat.includes('pcba')) stats.models[m].pcba += qty;
-                if(cat.includes('speaker')) stats.models[m].spk += qty;
-                if(cat.includes('battery')) stats.models[m].bat += qty;
+                if(!prodMap[ln]) prodMap[ln] = 0;
+                prodMap[ln] += val; 
+
+                // Split Logic for Earbuds & Charging Case
+                if(productCol.includes("EARBUDS") && productCol.includes("CHARGING")) {
+                    let keyE = ln + "|EARBUDS";
+                    if(!lineProdQtyMap[keyE]) lineProdQtyMap[keyE] = 0;
+                    lineProdQtyMap[keyE] += rawOut;
+                    
+                    let keyC = ln + "|CHARGING CASE";
+                    if(!lineProdQtyMap[keyC]) lineProdQtyMap[keyC] = 0;
+                    lineProdQtyMap[keyC] += rawOut;
+                } else {
+                    let key = ln + "|" + cat;
+                    if(!lineProdQtyMap[key]) lineProdQtyMap[key] = 0;
+                    lineProdQtyMap[key] += rawOut;
+                }
+
+                totalProdQty += rawOut;
+                totalProdVal += val;
             });
         }
 
-        let labels = Object.keys(stats.models).sort((a,b) => stats.models[b].val - stats.models[a].val).slice(0, 20);
-        let vals = [];
-        let rates = [];
-        let pcba = [], spk = [], bat = [];
+        // --- PROCESS SCRAP ---
+        let lineStats = {}; 
+        let lineCompStats = {}; 
 
-        labels.forEach(m => {
-            let sVal = stats.models[m].val;
-            let pVal = prodByModel[m] ? prodByModel[m].val : 0;
-            vals.push(sVal);
-            let r = pVal > 0 ? (sVal/pVal)*100 : 0;
-            rates.push(parseFloat(r.toFixed(2))); // 2 Decimals Only
-            pcba.push(stats.models[m].pcba);
-            spk.push(stats.models[m].spk);
-            bat.push(stats.models[m].bat);
+        let overallStats = { proc:0, rmd:0, tot:0 };
+        let productStats = {
+            'EARBUDS': { val: 0, proc: 0, rmd: 0 },
+            'CHARGING CASE': { val: 0, proc: 0, rmd: 0 },
+            'SMART WATCH': { val: 0, proc: 0, rmd: 0 },
+            'HEADPHONE': { val: 0, proc: 0, rmd: 0 },
+            'DASHCAM': { val: 0, proc: 0, rmd: 0 },
+            'OTHER': { val: 0, proc: 0, rmd: 0 }
+        };
+
+        if(rawData.scrap.length > 0) {
+            rawData.scrap.slice(1).forEach(row => {
+                let rDate = normalizeDate(row[0]);
+                if (!rDate || rDate < dFrom || rDate > dTo) return;
+                
+                let ln = normalizeLine(row[4]); // Line No
+                let floorVal = row[5]; // Floor column contains "Buds", "Charging"
+                let model = (row[8] || "").toString().trim().toUpperCase(); // NORMALIZE
+                let prodName = getProductCategory(floorVal, ln);
+                if(!productStats[prodName]) prodName = 'OTHER';
+
+                let typeVal = (row[9]||"").toString().toUpperCase(); // Type (PCBA, etc)
+                let rejTypeVal = (row[10] || "").toString().toUpperCase(); // Rej Type
+                let fullType = typeVal + " " + rejTypeVal; 
+
+                if(defectFilter !== 'ALL' && !typeVal.includes(defectFilter)) return;
+
+                let q = parseFloat(row[12])||0; // Qty
+                let val = q * (parseFloat(row[11])||0); // Price
+                let storeVal = String(row[1] || "").toUpperCase(); // Storage
+                
+                let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejTypeVal.includes('PROCESS');
+                let isRMD = storeVal.includes('6002') || storeVal.includes('RMD') || rejTypeVal.includes('RMD');
+
+                let key = ln + "_" + prodName; 
+                if(!lineStats[key]) lineStats[key] = { ln: ln, cat: prodName, proc:0, rmd:0, total:0 };
+                
+                if(isProc) { 
+                    lineStats[key].proc += val; 
+                    overallStats.proc += val; 
+                    productStats[prodName].proc += val;
+                } else if(isRMD) { 
+                    lineStats[key].rmd += val; 
+                    overallStats.rmd += val; 
+                    productStats[prodName].rmd += val;
+                }
+                lineStats[key].total += val;
+                overallStats.tot += val;
+
+                // Component Analysis Data
+                let compKey = ln + "|" + prodName;
+                if(!lineCompStats[compKey]) lineCompStats[compKey] = { ln: ln, cat: prodName, raw: { pcba_proc:0, pcba_rmd:0, spkr_proc:0, spkr_rmd:0, batt_proc:0, batt_rmd:0 } };
+                
+                let compType = "";
+                if(fullType.includes("PCBA") || fullType.includes("MAIN BOARD") || fullType.includes("PCB")) compType = "pcba";
+                else if(fullType.includes("BATTERY") || fullType.includes("CELL") || fullType.includes("BATT")) compType = "batt";
+                else if(fullType.includes("SPEAKER") || fullType.includes("DRIVER") || fullType.includes("SPK")) compType = "spkr";
+
+                if(compType) {
+                    if(isProc) lineCompStats[compKey].raw[compType + "_proc"] += q;
+                    else if(isRMD) lineCompStats[compKey].raw[compType + "_rmd"] += q;
+                }
+            });
+        }
+
+        // --- DASHBOARD UPDATE ---
+        document.getElementById('ovr-qty').innerText = totalProdQty.toLocaleString();
+        document.getElementById('ovr-val').innerText = formatCurrency(totalProdVal);
+        document.getElementById('ovr-proc-val').innerText = formatCurrency(overallStats.proc);
+        document.getElementById('ovr-rmd-val').innerText = formatCurrency(overallStats.rmd);
+        document.getElementById('ovr-tot-val').innerText = formatCurrency(overallStats.tot);
+        document.getElementById('ovr-proc-rate').innerText = totalProdVal>0?((overallStats.proc/totalProdVal)*100).toFixed(2)+"%":"0%";
+        document.getElementById('ovr-rmd-rate').innerText = totalProdVal>0?((overallStats.rmd/totalProdVal)*100).toFixed(2)+"%":"0%";
+        document.getElementById('ovr-all-rate').innerText = totalProdVal>0?((overallStats.tot/totalProdVal)*100).toFixed(2)+"%":"0%";
+
+        // Merge Production into Line Stats for Table
+        Object.keys(prodMap).forEach(ln => {
+            let val = prodMap[ln];
+            let potentialCats = [];
+            // Find existing categories for this line in scrap data
+            Object.values(lineStats).forEach(s => { if(s.ln === ln && !potentialCats.includes(s.cat)) potentialCats.push(s.cat); });
+            // If no scrap, guess category
+            if(potentialCats.length === 0) {
+                 let guessed = getProductCategory('', ln);
+                 potentialCats.push(guessed !== 'OTHER' ? guessed : 'EARBUDS');
+            }
+            potentialCats.forEach(cat => {
+                if(productStats[cat]) productStats[cat].val += val;
+                let key = ln + "_" + cat;
+                if(!lineStats[key]) lineStats[key] = { ln: ln, cat: cat, proc:0, rmd:0, total:0 };
+                if(!lineStats[key].prodVal) lineStats[key].prodVal = 0;
+                lineStats[key].prodVal += val;
+            });
         });
 
-        if(modelPerfCharts.main) modelPerfCharts.main.destroy();
-        modelPerfCharts.main = new Chart(document.getElementById('mpMainChart'), {
+        // Product Summary Cards
+        const prodContainer = document.getElementById('productSummaryContainer');
+        prodContainer.innerHTML = "";
+        const productsToCheck = ['EARBUDS', 'CHARGING CASE', 'SMART WATCH', 'HEADPHONE', 'DASHCAM'];
+        const prodColors = { 'EARBUDS': '#0d6efd', 'CHARGING CASE': '#dc3545', 'SMART WATCH': '#198754', 'HEADPHONE': '#6610f2', 'DASHCAM': '#212529', 'OTHER': '#6c757d' };
+        productsToCheck.forEach(cat => {
+            let s = productStats[cat];
+            if(s.val > 0 || s.proc > 0 || s.rmd > 0) {
+                let pRate = s.val > 0 ? (s.proc/s.val)*100 : 0;
+                let rRate = s.val > 0 ? (s.rmd/s.val)*100 : 0;
+                let card = `<div class="prod-summary-card"><div class="prod-header" style="background:${prodColors[cat]}">${cat}</div>
+                <div class="prod-body"><div class="prod-stat border-end"><div class="prod-stat-val text-dark">${formatCurrency(s.proc)}</div>
+                <div class="prod-stat-rate text-warning">${pRate.toFixed(2)}%</div><div class="prod-stat-lbl">Process</div></div>
+                <div class="prod-stat"><div class="prod-stat-val text-dark">${formatCurrency(s.rmd)}</div>
+                <div class="prod-stat-rate text-info">${rRate.toFixed(2)}%</div><div class="prod-stat-lbl">RMD</div></div></div></div>`;
+                prodContainer.innerHTML += card;
+            }
+        });
+
+        // Render Table
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = "";
+        let allKeys = Object.keys(lineStats);
+        allKeys.sort((a,b) => lineStats[b].total - lineStats[a].total);
+        allKeys.forEach(k => {
+            let s = lineStats[k];
+            let pVal = s.prodVal || 0;
+            let pRate = pVal>0 ? (s.proc/pVal)*100 : 0;
+            let rRate = pVal>0 ? (s.rmd/pVal)*100 : 0;
+            let tRate = pVal>0 ? (s.total/pVal)*100 : 0;
+            let pClass = pRate <= 0.20 ? 'text-success' : (pRate <= 0.25 ? 'text-orange' : 'text-danger');
+            let bClass = s.cat === 'EARBUDS' ? 'bg-primary' : (s.cat === 'CHARGING CASE' ? 'bg-danger' : (s.cat === 'SMART WATCH' ? 'bg-success' : 'bg-dark'));
+            
+            let row = `<tr><td class="fw-bold" data-val="${s.ln}">${s.ln}</td><td data-val="${s.cat}"><span class="badge ${bClass} badge-prod">${s.cat}</span></td>
+            <td class="text-muted small fw-bold" data-val="${pVal}">${formatCurrency(pVal)}</td><td class="text-warning fw-bold" data-val="${s.proc}">${formatCurrency(s.proc)}</td>
+            <td class="${pClass} small fw-bold" data-val="${pRate}">${pRate.toFixed(2)}%</td><td class="text-info fw-bold" data-val="${s.rmd}">${formatCurrency(s.rmd)}</td>
+            <td class="small text-muted fw-bold" data-val="${rRate}">${rRate.toFixed(2)}%</td><td class="text-danger fw-bold border-start border-2" data-val="${s.total}">${formatCurrency(s.total)}</td>
+            <td class="fw-bold text-danger" data-val="${tRate}">${tRate.toFixed(2)}%</td></tr>`;
+            tbody.innerHTML += row;
+        });
+
+        renderTrendChart();
+        renderLineComponentAnalysis(lineCompStats, lineProdQtyMap);
+        renderModelAnalysisTabs();
+    }
+
+    // --- NEW: RENDER DETAIL ANALYSIS LINE GRID ---
+    function renderDetailLines() {
+        const grid = document.getElementById('lineGridContainer');
+        grid.innerHTML = "";
+        // Create Buttons for Lines 1 to 24
+        for (let i = 1; i <= 24; i++) {
+            let ln = i.toString();
+            let div = document.createElement('div');
+            div.className = 'line-box';
+            div.innerHTML = `<h5>${ln}</h5><small>Click for History</small>`;
+            div.onclick = () => openLineHistory(ln);
+            grid.appendChild(div);
+        }
+    }
+
+    // --- NEW: OPEN LINE HISTORY MODAL & PROCESS DATA ---
+    function openLineHistory(lineNo) {
+        document.getElementById('lineModalTitle').innerText = `Line ${lineNo} Detailed Analysis`;
+        const modal = new bootstrap.Modal(document.getElementById('lineHistoryModal'));
+        modal.show();
+
+        const selProd = document.getElementById('daProduct').value;
+        const selType = document.getElementById('daType').value;
+        const dFrom = document.getElementById('dateFrom').value;
+        const dTo = document.getElementById('dateTo').value;
+
+        // 1. Gather Daily Data for specific line & product
+        let dailyData = {};
+        let lineModelMap = {}; // Aggregator for Model Table
+        
+        // Scrap Data
+        if(rawData.scrap.length > 0) {
+            rawData.scrap.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+
+                let ln = normalizeLine(row[4]);
+                // Soft match line number (e.g., "1" matches "L-01", "Line 1")
+                if(ln !== lineNo && ln !== "0"+lineNo) return; 
+
+                let floorVal = row[5];
+                let cat = getProductCategory(floorVal, ln);
+                if(cat !== selProd) return; // Filter by Selected Product Tab
+
+                let typeVal = (row[9]||"").toString().toUpperCase(); 
+                let rejTypeVal = (row[10] || "").toString().toUpperCase();
+                let storeVal = String(row[1] || "").toUpperCase();
+                let model = (row[8] || "Unknown").toString().toUpperCase();
+
+                let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejTypeVal.includes('PROCESS');
+                let isRMD = storeVal.includes('6002') || storeVal.includes('RMD') || rejTypeVal.includes('RMD');
+                
+                if (selType === 'PROCESS' && !isProc) return;
+                if (selType === 'RMD' && !isRMD) return;
+
+                let q = parseFloat(row[12])||0;
+                let val = q * (parseFloat(row[11])||0);
+                let matName = (row[7] || row[6] || "Unknown").toString(); // Description
+
+                if(!dailyData[d]) dailyData[d] = { scrapVal: 0, prodVal: 0, scrapProc:0, scrapRmd:0, pcba:0, batt:0, spkr:0, materials: {} };
+                
+                dailyData[d].scrapVal += val;
+                
+                // Aggregate Model Scrap Value for this line
+                if(!lineModelMap[model]) lineModelMap[model] = 0;
+                lineModelMap[model] += val;
+
+                // Component Trend Data (Qty Wise)
+                let fullType = typeVal + " " + rejTypeVal; 
+                if(fullType.includes("PCBA") || fullType.includes("MAIN BOARD")) dailyData[d].pcba += q;
+                if(fullType.includes("BATTERY") || fullType.includes("CELL")) dailyData[d].batt += q;
+                if(fullType.includes("SPEAKER") || fullType.includes("DRIVER")) dailyData[d].spkr += q;
+
+                // Material Aggregation for Top 5
+                if(!dailyData[d].materials[matName]) dailyData[d].materials[matName] = {q:0, v:0};
+                dailyData[d].materials[matName].q += q;
+                dailyData[d].materials[matName].v += val;
+            });
+        }
+
+        // Production Data (for Rate)
+        if(rawData.production.length > 0) {
+            rawData.production.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+                let ln = normalizeLine(row[3]);
+                if(ln !== lineNo && ln !== "0"+lineNo) return;
+                
+                let productCol = (row[1] || "").toString().toUpperCase();
+                let model = (row[2] || "").toString().trim().toUpperCase();
+                let cat = productCol !== "" ? getProductCategory(productCol, "") : getProductCategory(model, ln);
+                
+                if (selProd === 'EARBUDS' && (productCol.includes("EARBUDS") || cat === 'EARBUDS')) {} // Allow
+                else if(cat !== selProd) return;
+
+                let rawOut = parseFloat(row[4]) || 0;
+                let val = rawOut * (modelPrices[model]||0);
+
+                if(!dailyData[d]) dailyData[d] = { scrapVal: 0, prodVal: 0, scrapProc:0, scrapRmd:0, pcba:0, batt:0, spkr:0, materials: {} };
+                dailyData[d].prodVal += val;
+                dailyData[d].prodQty = (dailyData[d].prodQty || 0) + rawOut;
+            });
+        }
+
+        // 2. Prepare Chart Data & Top 5
+        let sortedDates = Object.keys(dailyData).sort();
+        let chartLabels = [];
+        let scrapVals = [];
+        let scrapRates = [];
+        let compPCBA = [], compBatt = [], compSpkr = [];
+        let allMaterials = {};
+        
+        // Weekly Aggregation Vars
+        let weeklyMap = {};
+
+        sortedDates.forEach(d => {
+            let item = dailyData[d];
+            chartLabels.push(d);
+            scrapVals.push(item.scrapVal);
+            let rate = item.prodVal > 0 ? (item.scrapVal / item.prodVal * 100) : 0;
+            scrapRates.push(rate);
+            
+            compPCBA.push(item.pcba);
+            compBatt.push(item.batt);
+            compSpkr.push(item.spkr);
+
+            // Top 5 Global
+            Object.keys(item.materials).forEach(m => {
+                if(!allMaterials[m]) allMaterials[m] = {q:0, v:0};
+                allMaterials[m].q += item.materials[m].q;
+                allMaterials[m].v += item.materials[m].v;
+            });
+
+            // Weekly Logic
+            let dateObj = new Date(d);
+            // Simple logic: Group consecutive dates or ISO weeks. 
+            // The user asked for "1jan-4jan" then "5jan-11jan". 
+            // We can approximate by getting the Sunday of the week.
+            let firstDay = new Date(dateObj.getFullYear(), 0, 1);
+            let pastDays = (dateObj - firstDay) / 86400000;
+            let weekNum = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+            
+            let wLabel = weekNum; 
+            
+            if(!weeklyMap[wLabel]) weeklyMap[wLabel] = { prodQty:0, scrapVal:0, prodVal:0, dates:[] };
+            weeklyMap[wLabel].prodQty += (item.prodQty || 0);
+            weeklyMap[wLabel].prodVal += item.prodVal;
+            weeklyMap[wLabel].scrapVal += item.scrapVal;
+            weeklyMap[wLabel].dates.push(d);
+        });
+
+        // 3. Render Trend Chart
+        const ctxTrend = document.getElementById('daTrendCanvas').getContext('2d');
+        if(daTrendChart) daTrendChart.destroy();
+        daTrendChart = new Chart(ctxTrend, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [
+                    {
+                        label: 'Scrap Value',
+                        data: scrapVals,
+                        backgroundColor: '#dc3545',
+                        order: 2,
+                        yAxisID: 'y',
+                        datalabels: { color:'white', anchor:'end', align:'bottom', font:{size:9}, formatter: v=>v>999?(v/1000).toFixed(1)+'k':Math.round(v) }
+                    },
+                    {
+                        type: 'line',
+                        label: 'Rate %',
+                        data: scrapRates,
+                        borderColor: '#0d6efd',
+                        borderWidth: 2,
+                        order: 1,
+                        yAxisID: 'y1',
+                        datalabels: { color:'#0d6efd', align:'top', anchor:'start', font:{size:10, weight:'bold'}, formatter: v=>v.toFixed(2)+'%' }
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: {display:true, text:'Value'} },
+                    y1: { position:'right', beginAtZero: true, title: {display:true, text:'Rate %'}, grid:{drawOnChartArea:false} }
+                }
+            }
+        });
+
+        // 4. Render 3 Separate Component Charts
+        const ctxP = document.getElementById('daPcbaChart').getContext('2d');
+        if(daPcbaChart) daPcbaChart.destroy();
+        daPcbaChart = new Chart(ctxP, {
+            type: 'line',
+            data: { labels: chartLabels, datasets: [{ label:'PCBA Qty', data:compPCBA, borderColor:'#0d6efd', backgroundColor:'rgba(13,110,253,0.1)', borderWidth:2, fill:true }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins:{legend:{display:false}} }
+        });
+
+        const ctxS = document.getElementById('daSpkrChart').getContext('2d');
+        if(daSpkrChart) daSpkrChart.destroy();
+        daSpkrChart = new Chart(ctxS, {
+            type: 'line',
+            data: { labels: chartLabels, datasets: [{ label:'Speaker Qty', data:compSpkr, borderColor:'#ffc107', backgroundColor:'rgba(255,193,7,0.1)', borderWidth:2, fill:true }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins:{legend:{display:false}} }
+        });
+
+        const ctxB = document.getElementById('daBattChart').getContext('2d');
+        if(daBattChart) daBattChart.destroy();
+        daBattChart = new Chart(ctxB, {
+            type: 'line',
+            data: { labels: chartLabels, datasets: [{ label:'Battery Qty', data:compBatt, borderColor:'#198754', backgroundColor:'rgba(25,135,84,0.1)', borderWidth:2, fill:true }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins:{legend:{display:false}} }
+        });
+
+        // 5. Render Top 5 Table
+        let top5 = Object.keys(allMaterials).map(k => ({ name: k, ...allMaterials[k] }))
+                         .sort((a,b) => b.v - a.v).slice(0, 5);
+        const t5body = document.getElementById('daTop5Body');
+        t5body.innerHTML = "";
+        top5.forEach(m => {
+            t5body.innerHTML += `<tr><td class="text-start">${m.name}</td><td>${m.q}</td><td class="fw-bold">${formatCurrency(m.v)}</td></tr>`;
+        });
+
+        // 6. Render Model Wise Table (NEW)
+        let sortedModels = Object.keys(lineModelMap).map(k => ({ name: k, val: lineModelMap[k] })).sort((a,b) => b.val - a.val);
+        const mBody = document.getElementById('daModelTableBody');
+        mBody.innerHTML = "";
+        sortedModels.forEach(m => {
+             mBody.innerHTML += `<tr><td class="text-start fw-bold">${m.name}</td><td class="text-danger">${formatCurrency(m.val)}</td></tr>`;
+        });
+
+        // 7. Render Weekly Table
+        const wBody = document.getElementById('daWeeklyTableBody');
+        wBody.innerHTML = "";
+        Object.keys(weeklyMap).forEach(w => {
+            let d = weeklyMap[w];
+            d.dates.sort();
+            let range = d.dates.length > 0 ? `${d.dates[0]} to ${d.dates[d.dates.length-1]}` : `Week ${w}`;
+            let rate = d.prodVal > 0 ? (d.scrapVal / d.prodVal * 100) : 0;
+            wBody.innerHTML += `<tr>
+                <td class="text-muted small fw-bold">${range}</td>
+                <td>${d.prodQty.toLocaleString()}</td>
+                <td class="text-danger fw-bold">${formatCurrency(d.scrapVal)}</td>
+                <td class="fw-bold ${rate>1?'text-danger':'text-success'}">${rate.toFixed(2)}%</td>
+            </tr>`;
+        });
+    }
+
+    // --- NEW SPLIT LOGIC: RENDER MODEL ANALYSIS TABS ---
+    function renderModelAnalysisTabs() {
+        const filterProd = document.getElementById('modelGraphProduct').value;
+        const filterType = document.getElementById('modelGraphType').value;
+        const filterComp = document.getElementById('modelGraphComp').value;
+        const dFrom = document.getElementById('dateFrom').value;
+        const dTo = document.getElementById('dateTo').value;
+
+        // Common Data Gathering
+        let modelDataMap = {};
+
+        // 1. Calculate Production
+        if(rawData.production.length > 0) {
+            rawData.production.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+
+                let ln = normalizeLine(row[3]);
+                let model = (row[2] || "").toString().trim().toUpperCase();
+                let rawOut = parseFloat(row[4]) || 0;
+                let val = rawOut * (modelPrices[model]||0);
+                let productCol = (row[1] || "").toString().toUpperCase(); 
+                let cat = productCol !== "" ? getProductCategory(productCol, "") : getProductCategory(model, ln);
+
+                if(!modelDataMap[model]) modelDataMap[model] = { 
+                    cat: cat, 
+                    prodQty:0, 
+                    prodVal:0, 
+                    scrapQty:0, 
+                    scrapVal:0,
+                    // New Fields for Split
+                    caseScrapVal: 0, budsScrapVal: 0, otherScrapVal: 0,
+                    caseScrapQty: 0, budsScrapQty: 0, otherScrapQty: 0
+                };
+                
+                modelDataMap[model].prodQty += rawOut; 
+                modelDataMap[model].prodVal += val;
+                if(cat !== 'OTHER') modelDataMap[model].cat = cat;
+            });
+        }
+
+        // 2. Calculate Scrap based on filters and SPLIT into Case/Buds
+        if(rawData.scrap.length > 0) {
+            rawData.scrap.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+
+                let ln = normalizeLine(row[4]);
+                let floorVal = row[5];
+                let model = (row[8] || "").toString().trim().toUpperCase();
+                let prodName = getProductCategory(floorVal, ln);
+                
+                let typeVal = (row[9]||"").toString().toUpperCase(); 
+                let rejTypeVal = (row[10] || "").toString().toUpperCase();
+                let fullType = typeVal + " " + rejTypeVal; 
+                let storeVal = String(row[1] || "").toUpperCase();
+
+                // Filters
+                let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejTypeVal.includes('PROCESS');
+                let isRMD = storeVal.includes('6002') || storeVal.includes('RMD') || rejTypeVal.includes('RMD');
+                if (filterType === 'PROCESS' && !isProc) return;
+                if (filterType === 'RMD' && !isRMD) return;
+
+                if (filterComp !== 'ALL') {
+                    let isTargetComp = false;
+                    if (filterComp === 'PCBA' && (fullType.includes("PCBA") || fullType.includes("MAIN BOARD") || fullType.includes("PCB"))) isTargetComp = true;
+                    if (filterComp === 'BATTERY' && (fullType.includes("BATTERY") || fullType.includes("CELL") || fullType.includes("BATT"))) isTargetComp = true;
+                    if (filterComp === 'SPEAKER' && (fullType.includes("SPEAKER") || fullType.includes("DRIVER") || fullType.includes("SPK"))) isTargetComp = true;
+                    if (!isTargetComp) return;
+                }
+
+                let q = parseFloat(row[12])||0; 
+                let val = q * (parseFloat(row[11])||0);
+
+                if(!modelDataMap[model]) modelDataMap[model] = { 
+                    cat: prodName, prodQty:0, prodVal:0, scrapQty:0, scrapVal:0,
+                    caseScrapVal: 0, budsScrapVal: 0, otherScrapVal: 0,
+                    caseScrapQty: 0, budsScrapQty: 0, otherScrapQty: 0
+                };
+                
+                modelDataMap[model].scrapQty += q;
+                modelDataMap[model].scrapVal += val;
+                
+                // --- SPLIT LOGIC ---
+                if(prodName === 'CHARGING CASE') {
+                    modelDataMap[model].caseScrapVal += val;
+                    modelDataMap[model].caseScrapQty += q;
+                } else if (prodName === 'EARBUDS') {
+                    modelDataMap[model].budsScrapVal += val;
+                    modelDataMap[model].budsScrapQty += q;
+                } else {
+                    modelDataMap[model].otherScrapVal += val;
+                    modelDataMap[model].otherScrapQty += q;
+                }
+
+                if(modelDataMap[model].cat === 'OTHER' && prodName !== 'OTHER') modelDataMap[model].cat = prodName;
+            });
+        }
+
+        // Separate Arrays for Value and Qty
+        let valList = [];
+        let qtyList = [];
+
+        Object.keys(modelDataMap).forEach(m => {
+            let d = modelDataMap[m];
+            if (filterProd !== 'ALL' && d.cat !== filterProd) return;
+            if (d.prodQty === 0 && d.scrapQty === 0) return;
+
+            // --- VALUE LOGIC with SPLIT ---
+            let totalScrapVal = d.caseScrapVal + d.budsScrapVal + d.otherScrapVal;
+            let den = d.prodVal;
+            
+            let caseRate = den > 0 ? (d.caseScrapVal / den * 100) : 0;
+            let budsRate = den > 0 ? (d.budsScrapVal / den * 100) : 0;
+            let overallRate = den > 0 ? (totalScrapVal / den * 100) : 0;
+            
+            valList.push({
+                model: m, cat: d.cat,
+                prodQty: d.prodQty, prodVal: d.prodVal,
+                caseVal: d.caseScrapVal, caseRate: caseRate,
+                budsVal: d.budsScrapVal, budsRate: budsRate,
+                overallVal: totalScrapVal, overallRate: overallRate
+            });
+
+            // --- QTY LOGIC with SPLIT (2x for Buds) ---
+            let totalScrapQty = d.caseScrapQty + d.budsScrapQty + d.otherScrapQty;
+            
+            // Case Rate (1x)
+            let caseQtyRate = d.prodQty > 0 ? (d.caseScrapQty / d.prodQty * 100) : 0;
+            
+            // Buds Rate (2x)
+            let budsQtyRate = d.prodQty > 0 ? (d.budsScrapQty / (d.prodQty * 2) * 100) : 0; 
+
+            qtyList.push({
+                model: m, cat: d.cat,
+                prodQty: d.prodQty, 
+                caseScrap: d.caseScrapQty, caseRate: caseQtyRate,
+                budsScrap: d.budsScrapQty, budsRate: budsQtyRate,
+                totalScrap: totalScrapQty
+            });
+        });
+
+        // --- RENDER TAB 1: VALUE ---
+        valList.sort((a,b) => b.overallVal - a.overallVal); 
+        renderValueTab(valList);
+
+        // --- RENDER TAB 2: QTY ---
+        qtyList.sort((a,b) => b.totalScrap - a.totalScrap);
+        renderQtyTab(qtyList);
+    }
+
+    // MODIFIED: STRUCTURED AS PER SCREENSHOT + DATA-VAL
+    function renderValueTab(data) {
+        const tbody = document.getElementById('modelValueTableBody');
+        tbody.innerHTML = "";
+        
+        // Table
+        data.forEach((m, idx) => {
+            let row = `<tr>
+                <td class="align-middle" data-val="${idx+1}">${idx+1}</td>
+                <td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td>
+                <td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td>
+                <td class="text-dark align-middle fw-bold" data-val="${m.prodVal}">${formatCurrency(m.prodVal)}</td>
+                
+                <!-- Charging Case -->
+                <td class="align-middle" data-val="${m.caseVal}">${m.caseVal > 0 ? formatCurrency(m.caseVal) : '-'}</td>
+                <td class="align-middle text-muted small" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
+                
+                <!-- Earbuds -->
+                <td class="align-middle" data-val="${m.budsVal}">${m.budsVal > 0 ? formatCurrency(m.budsVal) : '-'}</td>
+                <td class="align-middle text-muted small" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
+                
+                <!-- Overall -->
+                <td class="text-danger fw-bold align-middle border-start" data-val="${m.overallVal}">${formatCurrency(m.overallVal)}</td>
+                <td class="fw-bold align-middle ${m.overallRate>1?'text-danger':'text-success'}" data-val="${m.overallRate}">${m.overallRate.toFixed(2)}%</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        // Graph (Points to Overall Value)
+        let graphData = data.slice(0, 15);
+        const ctx = document.getElementById('modelValueCanvas').getContext('2d');
+        if (modelValueChart) modelValueChart.destroy();
+
+        const lblStyle = { display: true, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 3, color: 'black', font: { weight: 'bold', size: 9 }, padding: 3 };
+
+        modelValueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: graphData.map(m => m.model),
+                datasets: [
+                    {
+                        label: 'Total Scrap Value (₹)',
+                        data: graphData.map(m => m.overallVal),
+                        backgroundColor: '#198754',
+                        order: 2,
+                        yAxisID: 'y',
+                        datalabels: { align: 'end', anchor: 'end', ...lblStyle, formatter: v => formatCurrency(v) }
+                    },
+                    {
+                        label: 'Overall Rate %',
+                        data: graphData.map(m => m.overallRate),
+                        type: 'line',
+                        borderColor: '#dc3545',
+                        backgroundColor: '#dc3545',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        order: 1,
+                        yAxisID: 'y1',
+                        datalabels: { align: 'top', anchor: 'start', offset: 5, ...lblStyle, color: '#dc3545', formatter: v => v.toFixed(2) + '%' }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Value (INR)' } },
+                    y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Rate %' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    function renderQtyTab(data) {
+        const tbody = document.getElementById('modelQtyTableBody');
+        tbody.innerHTML = "";
+        
+        // Table
+        data.forEach((m, idx) => {
+            let row = `<tr>
+                <td class="align-middle" data-val="${idx+1}">${idx+1}</td>
+                <td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td>
+                <td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td>
+                
+                <!-- Charging Case (1x Logic) -->
+                <td class="align-middle text-danger" data-val="${m.caseScrap}">${m.caseScrap > 0 ? m.caseScrap : '-'}</td>
+                <td class="align-middle small fw-bold" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
+                
+                <!-- Earbuds (2x Logic) -->
+                <td class="align-middle text-danger" data-val="${m.budsScrap}">${m.budsScrap > 0 ? m.budsScrap : '-'}</td>
+                <td class="align-middle small fw-bold" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
+                
+                <!-- Total -->
+                <td class="text-danger fw-bold align-middle border-start" data-val="${m.totalScrap}">${m.totalScrap.toLocaleString()}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        // Graph
+        let graphData = data.slice(0, 15);
+        const ctx = document.getElementById('modelQtyCanvas').getContext('2d');
+        if (modelQtyChart) modelQtyChart.destroy();
+
+        const lblStyle = { display: true, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 3, color: 'black', font: { weight: 'bold', size: 9 }, padding: 3 };
+
+        modelQtyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: graphData.map(m => m.model),
+                datasets: [
+                    {
+                        label: 'Total Scrap Qty',
+                        data: graphData.map(m => m.totalScrap),
+                        backgroundColor: '#0d6efd',
+                        order: 2,
+                        yAxisID: 'y',
+                        datalabels: { align: 'end', anchor: 'end', ...lblStyle }
+                    },
+                    {
+                        label: 'Case Rate %',
+                        data: graphData.map(m => m.caseRate),
+                        type: 'line',
+                        borderColor: '#dc3545',
+                        backgroundColor: '#dc3545', // needed for legend
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        order: 1,
+                        yAxisID: 'y1',
+                        datalabels: { 
+                            display: true, 
+                            align: 'top', 
+                            anchor: 'start', 
+                            offset: 4, 
+                            ...lblStyle, 
+                            color: '#dc3545', 
+                            formatter: v => v > 0 ? v.toFixed(1) + '%' : '' 
+                        }
+                    },
+                    {
+                        label: 'Buds Rate %',
+                        data: graphData.map(m => m.budsRate),
+                        type: 'line',
+                        borderColor: '#fd7e14',
+                        backgroundColor: '#fd7e14', // needed for legend
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        order: 1,
+                        yAxisID: 'y1',
+                        datalabels: { 
+                            display: true, 
+                            align: 'bottom', // Offset to avoid overlap
+                            anchor: 'start', 
+                            offset: 4, 
+                            ...lblStyle, 
+                            color: '#fd7e14', 
+                            formatter: v => v > 0 ? v.toFixed(1) + '%' : '' 
+                        }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Quantity' } },
+                    y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Rate %' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    // --- UPDATED TREND GRAPH (MASTER FIX) ---
+    function renderTrendChart() {
+        const pFilter = document.getElementById('trendGraphProduct').value;
+        const tFilter = document.getElementById('trendGraphType').value;
+        const dFrom = document.getElementById('dateFrom').value;
+        const dTo = document.getElementById('dateTo').value;
+
+        // 1. Calculate Daily Production Value for Rate Denominator
+        let dailyProd = {};
+        if(rawData.production.length > 0) {
+            rawData.production.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+                
+                let productCol = (row[1] || "").toString().toUpperCase(); 
+                let ln = normalizeLine(row[3]);
+                
+                // *** FIX: STRICT MODEL NAME NORMALIZATION ***
+                let model = (row[2] || "").toString().trim().toUpperCase(); 
+                
+                let cat = "";
+                
+                if(productCol !== "") cat = getProductCategory(productCol, "");
+                else cat = getProductCategory(model, ln);
+                
+                if (productCol.includes("EARBUDS") && productCol.includes("CHARGING")) {
+                    if (pFilter === 'EARBUDS') {
+                        cat = 'EARBUDS';
+                    } else if (pFilter === 'CHARGING CASE') {
+                        cat = 'CHARGING CASE';
+                    }
+                }
+
+                // *** FIX: IF FILTER IS 'ALL', INCLUDE EVERYTHING ***
+                if(pFilter !== 'ALL' && cat !== pFilter) return;
+
+                let val = (parseFloat(row[4])||0) * (modelPrices[model]||0);
+                if(!dailyProd[d]) dailyProd[d] = 0;
+                dailyProd[d] += val;
+            });
+        }
+
+        // 2. Calculate Daily Scrap Value
+        let trendData = {}; 
+        if(rawData.scrap.length > 0) {
+            rawData.scrap.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+
+                let ln = normalizeLine(row[4]); 
+                let floorVal = row[5]; 
+                let cat = getProductCategory(floorVal, ln);
+                
+                // *** FIX: IF FILTER IS 'ALL', INCLUDE EVERYTHING ***
+                if(pFilter !== 'ALL' && cat !== pFilter) return;
+
+                let val = (parseFloat(row[11])||0) * (parseFloat(row[12])||0); 
+                let storeVal = String(row[1]||"").toUpperCase();
+                let rejVal = String(row[10]||"").toUpperCase();
+
+                let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejVal.includes('PROCESS');
+                let isRMD = storeVal.includes('6002') || storeVal.includes('RMD') || rejVal.includes('RMD');
+
+                if(!trendData[d]) trendData[d] = { proc:0, rmd:0 };
+                if(isProc) trendData[d].proc += val;
+                if(isRMD) trendData[d].rmd += val;
+            });
+        }
+
+        // --- MASTER DATE LIST (Merge both lists) ---
+        let allDates = new Set([...Object.keys(dailyProd), ...Object.keys(trendData)]);
+        let labels = Array.from(allDates).sort();
+        
+        let barData = [];
+        let lineRateData = [];
+        let lbl = '';
+
+        labels.forEach(d => {
+            let scrapVal = 0;
+            let currentScrap = trendData[d] || { proc:0, rmd:0 }; // Default 0 if no scrap
+
+            if(tFilter === 'PROCESS') scrapVal = currentScrap.proc;
+            else if (tFilter === 'RMD') scrapVal = currentScrap.rmd;
+            else scrapVal = currentScrap.proc + currentScrap.rmd;
+
+            barData.push(scrapVal);
+
+            let prodVal = dailyProd[d] || 0; // Default 0 if no production
+            let rate = prodVal > 0 ? (scrapVal / prodVal) * 100 : 0;
+            lineRateData.push(rate);
+        });
+
+        if(tFilter === 'PROCESS') lbl = 'Process';
+        else if(tFilter === 'RMD') lbl = 'RMD';
+        else lbl = 'Total';
+
+        const ctx = document.getElementById('scrapTrendCanvas').getContext('2d');
+        if(scrapTrendChart) scrapTrendChart.destroy();
+
+        scrapTrendChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Scrap Value', data: vals, backgroundColor: '#4e73df', yAxisID: 'y', datalabels: { rotation: -90, align: 'end', anchor: 'end' } },
-                    { label: 'Rate %', data: rates, type: 'line', borderColor: '#e74a3b', yAxisID: 'y1', datalabels: { align: 'top', anchor: 'start', offset: 10, color: '#e74a3b' } }
+                    {
+                        type: 'bar',
+                        label: lbl + ' Value (₹)',
+                        data: barData,
+                        backgroundColor: '#dc3545',
+                        order: 2,
+                        yAxisID: 'y',
+                        datalabels: {
+                            display: true,
+                            color: 'white',
+                            anchor: 'end',
+                            align: 'bottom',
+                            backgroundColor: 'rgba(220, 53, 69, 0.9)',
+                            borderRadius: 4,
+                            padding: 4,
+                            font: { size: 10, weight: 'bold' },
+                            formatter: function(value) { return value >= 1000 ? (value/1000).toFixed(1) + 'k' : Math.round(value); }
+                        }
+                    },
+                    {
+                        type: 'line',
+                        label: lbl + ' Rate (%)',
+                        data: lineRateData,
+                        borderColor: '#0d6efd',
+                        backgroundColor: '#0d6efd',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        order: 1,
+                        yAxisID: 'y1',
+                        datalabels: {
+                            display: true,
+                            color: 'white',
+                            align: 'top',
+                            backgroundColor: '#0d6efd',
+                            borderRadius: 4,
+                            padding: 4,
+                            font: { size: 10, weight: 'bold' },
+                            formatter: function(value) { return value.toFixed(2) + '%'; }
+                        }
+                    }
                 ]
             },
-            options: { 
-                plugins: { legend: { display: true } },
-                scales: { 
-                    x: { ticks: { autoSkip: false, maxRotation: 90, minRotation: 90 } }, 
-                    y: { position: 'left' }, 
-                    y1: { position: 'right', grid: { drawOnChartArea: false } } 
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: { mode: 'index', intersect: false }
                 },
-                layout: { padding: { top: 30 } }
+                scales: { 
+                    y: { 
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Value (₹)' },
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return value >= 1000 ? (value/1000) + 'K' : value; } }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Rate (%)' },
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false } 
+                    }
+                }
             }
         });
+    }
 
-        const drawCompChart = (id, key, label, color, data) => {
-            if(modelPerfCharts[key]) modelPerfCharts[key].destroy();
-            modelPerfCharts[key] = new Chart(document.getElementById(id), {
-                type: 'bar',
-                data: { labels: labels, datasets: [{ label: label, data: data, backgroundColor: color }] },
-                options: {
-                    plugins: { datalabels: { rotation: -90, align: 'end', anchor: 'end' } },
-                    scales: { x: { ticks: { maxRotation: 90, minRotation: 90 } } }
-                }
+    // --- UPDATED LINE ANALYSIS GRAPH ---
+    function renderLineComponentAnalysis(lineCompStats, lineProdQtyMap) {
+        const prodFilter = document.getElementById('laProduct').value;
+        const typeFilter = document.getElementById('laType').value; 
+        const compFilter = document.getElementById('laComponent').value; 
+
+        let allKeys = new Set([...Object.keys(lineCompStats), ...Object.keys(lineProdQtyMap)]);
+        let keys = Array.from(allKeys).sort(); 
+
+        let processedData = []; 
+        let totalEffectiveProd = 0; 
+        let totalRawProd = 0; 
+        let totalP = 0, totalS = 0, totalB = 0;
+
+        keys.forEach(k => {
+            let [ln, cat] = k.split("|");
+            
+            if (prodFilter !== 'ALL' && cat !== prodFilter) return;
+
+            let stats = lineCompStats[k] || { raw: {} };
+            let raw = stats.raw || {};
+            
+            let pQ = 0, sQ = 0, bQ = 0;
+            if(typeFilter === 'ALL') {
+                pQ = (raw.pcba_proc||0) + (raw.pcba_rmd||0);
+                sQ = (raw.spkr_proc||0) + (raw.spkr_rmd||0);
+                bQ = (raw.batt_proc||0) + (raw.batt_rmd||0);
+            } else if (typeFilter === 'PROCESS') {
+                pQ = raw.pcba_proc||0; sQ = raw.spkr_proc||0; bQ = raw.batt_proc||0;
+            } else { 
+                pQ = raw.pcba_rmd||0; sQ = raw.spkr_rmd||0; bQ = raw.batt_rmd||0;
+            }
+
+            let prodRaw = lineProdQtyMap[k] || 0;
+            
+            let effectiveProd = prodRaw; 
+            if (cat === 'EARBUDS') { effectiveProd = prodRaw * 2; } 
+            else { effectiveProd = prodRaw * 1; }
+            
+            if(prodRaw === 0 && pQ === 0 && sQ === 0 && bQ === 0) return;
+
+            let pR = effectiveProd > 0 ? (pQ / effectiveProd * 100) : 0;
+            let sR = effectiveProd > 0 ? (sQ / effectiveProd * 100) : 0;
+            let bR = effectiveProd > 0 ? (bQ / effectiveProd * 100) : 0;
+
+            totalEffectiveProd += effectiveProd;
+            totalRawProd += prodRaw; 
+            totalP += pQ; totalS += sQ; totalB += bQ;
+            
+            processedData.push({
+                ln: ln, cat: cat, 
+                prodDisplay: prodRaw,
+                prodEffective: effectiveProd,
+                pQ: pQ, pR: pR,
+                sQ: sQ, sR: sR,
+                bQ: bQ, bR: bR,
+                sortMetric: (compFilter==='ALL'?(pQ+sQ+bQ):(compFilter==='PCBA'?pQ:(compFilter==='SPEAKER'?sQ:bQ)))
             });
-        };
+        });
 
-        drawCompChart('mpPcbaChart', 'pcba', 'PCBA Qty', '#1cc88a', pcba);
-        drawCompChart('mpSpkChart', 'spk', 'Speaker Qty', '#36b9cc', spk);
-        drawCompChart('mpBatChart', 'bat', 'Battery Qty', '#f6c23e', bat);
-    }
+        processedData.sort((a,b) => {
+            if (a.cat < b.cat) return -1;
+            if (a.cat > b.cat) return 1;
+            if (a.ln < b.ln) return -1;
+            if (a.ln > b.ln) return 1;
+            return 0;
+        });
 
-    function getFloor(lineStr) {
-        let num = parseInt(lineStr);
-        if(isNaN(num)) return "Other";
-        if(num >= 1 && num <= 8) return "First Floor";
-        if(num >= 9 && num <= 16) return "Second Floor";
-        if(num >= 17 && num <= 24) return "Basement";
-        return "Other";
-    }
+        // --- RENDER TABLE ---
+        let totPR = totalEffectiveProd > 0 ? (totalP/totalEffectiveProd*100) : 0;
+        let totSR = totalEffectiveProd > 0 ? (totalS/totalEffectiveProd*100) : 0;
+        let totBR = totalEffectiveProd > 0 ? (totalB/totalEffectiveProd*100) : 0;
 
-    function getColIndices(h) {
-        return {
-            line: h.findIndex(x=>x.includes('line')),
-            store: h.findIndex(x=>x.includes('storage')),
-            cat: h.indexOf('category'),
-            model: h.indexOf('model'),
-            price: h.indexOf('price'),
-            qty: h.findIndex(x=>x.includes('reject')||x.includes('qty'))
-        };
-    }
-    
-    function getProductionData(monthFilter) {
-        let map = {}; 
-        if(rawData.production.length > 0) {
-            let h = rawData.production[0].map(x=>x.toLowerCase());
-            let idxLine = h.findIndex(x=>x.includes('line'));
-            let idxMod = h.indexOf('model') > -1 ? h.indexOf('model') : 2;
-            let idxOut = h.indexOf('output') > -1 ? h.indexOf('output') : h.length-1;
-
-            rawData.production.slice(1).forEach(row => {
-                if(monthFilter) {
-                     let d = new Date(row[0]);
-                     let mStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
-                     if(mStr !== monthFilter) return;
-                }
-                let ln = normalizeLine((row[idxLine]||"").toString());
-                let mod = row[idxMod];
-                let qty = parseFloat(row[idxOut])||0;
-                let pr = modelPrices[mod]||0;
-                if(!map[ln]) map[ln] = {val:0, qty:0};
-                map[ln].val += (qty*pr);
-                map[ln].qty += qty;
-            });
-        }
-        return map;
-    }
-
-    function exportExcel(elementId, name) { let table = document.querySelector(`#${elementId} table`); if(!table) { Swal.fire("Info", "No table data to export here", "info"); return; } let wb = XLSX.utils.table_to_book(table); XLSX.writeFile(wb, name + ".xlsx"); }
-    function exportPDF(elementId, name) { const { jsPDF } = window.jspdf; let el = document.getElementById(elementId); document.getElementById('loader').style.display='flex'; html2canvas(el, { scale: 2 }).then(canvas => { let pdf = new jsPDF('p', 'mm', 'a4'); let imgData = canvas.toDataURL('image/png'); let w = pdf.internal.pageSize.getWidth(); let h = (canvas.height * w) / canvas.width; pdf.addImage(imgData, 'PNG', 0, 0, w, h); pdf.save(name + ".pdf"); document.getElementById('loader').style.display='none'; }); }
-    function exportPPT(elementId, name) { let pres = new PptxGenJS(); document.getElementById('loader').style.display='flex'; let el = document.getElementById(elementId); html2canvas(el, { scale: 2 }).then(canvas => { let slide = pres.addSlide(); let imgData = canvas.toDataURL('image/png'); slide.addImage({ data: imgData, x: 0.5, y: 0.5, w: '90%', h: 'auto' }); pres.writeFile({ fileName: name + ".pptx" }).then(() => { document.getElementById('loader').style.display='none'; }); }); }
-    function renderScorecard(s) { document.getElementById('sc-total-out').innerText = formatCurrencyShort(s.out).replace('₹',''); document.getElementById('sc-total-val').innerText = formatCurrencyShort(s.prodVal); document.getElementById('sc-proc-scrap').innerText = formatCurrencyShort(s.procScrap); document.getElementById('sc-rmd-scrap').innerText = formatCurrencyShort(s.rmdScrap); document.getElementById('sc-tot-scrap').innerText = formatCurrencyShort(s.totScrap); let pR = s.prodVal > 0 ? (s.procScrap/s.prodVal)*100 : 0; let rR = s.prodVal > 0 ? (s.rmdScrap/s.prodVal)*100 : 0; let oR = s.prodVal > 0 ? (s.totScrap/s.prodVal)*100 : 0; document.getElementById('sc-proc-rate').innerText = pR.toFixed(2) + "%"; document.getElementById('sc-rmd-rate').innerText = rR.toFixed(2) + "%"; document.getElementById('sc-ovr-rate').innerText = oR.toFixed(2) + "%"; }
-    function renderHighStats(lineScrap, prodMap, modelScrap, floorStats) { let topLine="N/A", topRate=0; Object.keys(lineScrap).forEach(ln => { let p = prodMap[ln] ? prodMap[ln].val : 0; let s = lineScrap[ln].total; let r = p>0 ? (s/p)*100 : 0; if(r > topRate) { topRate=r; topLine="Line "+ln; } }); document.getElementById('high-line').innerText = topLine; document.getElementById('high-line-rate').innerText = topRate.toFixed(2) + "% Rate"; let topMod="N/A", topVal=0; Object.entries(modelScrap).forEach(([m,v])=>{ if(v>topVal){topVal=v; topMod=m;} }); document.getElementById('high-model').innerText = topMod; document.getElementById('high-model-val').innerText = formatCurrencyShort(topVal); let topFlr="N/A", topFVal=0; Object.entries(floorStats).forEach(([f,v])=>{ if(v>topFVal){topFVal=v; topFlr=f;} }); document.getElementById('high-floor').innerText = topFlr; document.getElementById('high-floor-val').innerText = formatCurrencyShort(topFVal); }
-    function renderTable(prodMap, scrapMap) { const tbody = document.getElementById('lineTableBody'); tbody.innerHTML = ""; let allLines = new Set([...Object.keys(prodMap), ...Object.keys(scrapMap)]); let arr = []; allLines.forEach(ln => { let pVal = prodMap[ln] ? prodMap[ln].val : 0; let sVal = scrapMap[ln] ? scrapMap[ln].total : 0; let rate = pVal>0 ? (sVal/pVal)*100 : 0; if(pVal===0 && sVal>0) rate=100; let cats = scrapMap[ln] ? scrapMap[ln].cats : {}; let catsQty = scrapMap[ln] ? scrapMap[ln].catsQty : {}; arr.push({ln, pVal, sVal, rate, cats, catsQty}); }); let sort = document.getElementById('sortFilter').value; arr.sort((a,b) => sort==='DESC' ? b.rate - a.rate : a.rate - b.rate); arr.forEach(i => { let src = viewMode==='VALUE' ? i.cats : i.catsQty; let sym = viewMode==='VALUE' ? '₹' : ''; let lnName = isNaN(i.ln) ? i.ln : "Line "+i.ln; const fmt = (n) => n ? n.toLocaleString() : "0"; let row = `<tr><td class="fw-bold text-start ps-3">${lnName}</td><td>₹${formatCurrencyShort(i.pVal).replace('₹','')}</td><td class="text-danger fw-bold">₹${formatCurrencyShort(i.sVal).replace('₹','')}</td><td><span class="badge ${i.rate>5?'bg-danger':'bg-success'} badge-lg">${i.rate.toFixed(2)}%</span></td><td>${sym}${fmt(src['PCBA'])}</td><td>${sym}${fmt(src['Speaker'])}</td><td>${sym}${fmt(src['Battery'])}</td><td>${sym}${fmt(src['Magnet'])}</td><td>${sym}${fmt(src['Other Parts']||src['Other'])}</td></tr>`; tbody.innerHTML += row; }); }
-    function setLineType(t) { currentLineType=t; document.querySelectorAll('.controls-bar .btn-group button').forEach(b=>b.classList.remove('active')); if(t==='ALL')document.getElementById('btn-main-all').classList.add('active'); if(t==='EARBUDS')document.getElementById('btn-earbuds').classList.add('active'); if(t==='CASE')document.getElementById('btn-case').classList.add('active'); processAndRender(); }
-    function toggleViewMode(m) { viewMode=m; document.getElementById('view-val').classList.toggle('active',m==='VALUE'); document.getElementById('view-qty').classList.toggle('active',m==='QTY'); document.getElementById('breakdown-header').innerText = m==='VALUE'?"Defect Breakdown (Value ₹)":"Defect Breakdown (Qty)"; processAndRender(); }
-    
-    function saveProduction() { sendData({action:'production', date:document.getElementById('pDate').value, model:document.getElementById('pModel').value, lineNo:document.getElementById('pLine').value, output:document.getElementById('pOut').value}); }
-    function uploadExcel() { let f=document.getElementById('uploadFile').files[0]; if(!f)return Swal.fire("Error","Select file","warning"); let r=new FileReader(); r.onload=e=>{ let w=XLSX.read(e.target.result,{type:'array'}); let j=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]); sendData({action:'bulk_scrap',rows:j}); }; r.readAsArrayBuffer(f); }
-    function sendData(p) { document.getElementById('loader').style.display='flex'; fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(p)}).then(()=>{ document.getElementById('loader').style.display='none'; Swal.fire("Success","Data Saved","success"); if(p.action==='production')document.getElementById('prodForm').reset(); }); }
-    
-    // Component Render (kept succinct)
-    function renderComponentDashboard(compName) { /* Implementation is same as previously provided, ensures robustness via normalizeLine */ 
-        /* ... Reuse component render logic from above full block ... */
-        /* For brevity, assume standard component render is present or call switchSection re-render */
-        /* In full file this is fully implemented */
-        const container = document.getElementById('component-container');
-        const monthFilter = document.getElementById('globalMonth').value;
-        let title = compName.toUpperCase();
-        let prodMap = getProductionData(monthFilter); 
-        let stats = { totalVal: 0, totalQty: 0, trendDate: {}, byLine: {}, byModel: {}, tableRows: [] };
+        let tableHTML = `
+            <tr class="fw-bold bg-secondary text-white border-top border-3 border-dark" id="subtotalRow">
+                <td class="text-end">GRAND TOTAL</td>
+                <td>-</td>
+                <td data-val="${totalRawProd}">${totalRawProd.toLocaleString()}</td> 
+                <td data-val="${totalP}">${totalP}</td>
+                <td class="small text-danger fw-bold" data-val="${totPR}">${totPR.toFixed(2)}%</td>
+                <td data-val="${totalS}">${totalS}</td>
+                <td class="small text-danger fw-bold" data-val="${totSR}">${totSR.toFixed(2)}%</td>
+                <td data-val="${totalB}">${totalB}</td>
+                <td class="small text-danger fw-bold" data-val="${totBR}">${totBR.toFixed(2)}%</td>
+            </tr>`;
         
-        if(rawData.scrap.length > 0) {
-            let h = rawData.scrap[0].map(x=>x.toLowerCase());
-            let idx = getColIndices(h);
-            rawData.scrap.slice(1).forEach(row => {
-                let cat = (row[idx.cat]||"").toLowerCase();
-                if(!cat.includes(compName)) return; 
-                if(monthFilter) { let d=new Date(row[0]); let mStr=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0'); if(mStr!==monthFilter) return; }
-                let lineRaw = (row[idx.line] || "").toString().toUpperCase();
-                let baseLine = normalizeLine(lineRaw);
-                let isCase = lineRaw.endsWith('C') || lineRaw.includes('-C');
-                let storeVal = (row[idx.store] || "").toString().toLowerCase();
-                let isProcess = storeVal.includes('6003') || storeVal.includes('process');
-                let isRMD = storeVal.includes('6002') || storeVal.includes('rmd');
-                if(currentCompFilter.type === 'EARBUDS' && isCase) return;
-                if(currentCompFilter.type === 'CASE' && !isCase) return;
-                if(currentCompFilter.storage === 'PROCESS' && !isProcess) return;
-                if(currentCompFilter.storage === 'RMD' && !isRMD) return;
-                let date = new Date(row[0]).toLocaleDateString(); 
-                let qty = parseFloat(row[idx.qty]) || 0;
-                let val = (parseFloat(row[idx.price]) || 0) * qty;
-                let model = row[idx.model] || "Unknown";
-                stats.totalVal += val; stats.totalQty += qty;
-                if(!stats.trendDate[date]) stats.trendDate[date] = 0; stats.trendDate[date] += val;
-                if(!stats.byLine[baseLine]) stats.byLine[baseLine] = { val: 0, qty: 0 }; stats.byLine[baseLine].val += val; stats.byLine[baseLine].qty += qty;
-                if(!stats.byModel[model]) stats.byModel[model] = { val: 0, qty: 0 }; stats.byModel[model].val += val; stats.byModel[model].qty += qty;
-                stats.tableRows.push({ date, line: lineRaw, model, qty, val });
-            });
+        processedData.forEach(d => {
+            let bClass = d.cat === 'EARBUDS' ? 'bg-primary' : (d.cat === 'CHARGING CASE' ? 'bg-danger' : 'bg-dark');
+            tableHTML += `
+            <tr>
+                <td class="fw-bold" data-val="${d.ln}">${d.ln}</td>
+                <td data-val="${d.cat}"><span class="badge ${bClass} badge-prod">${d.cat}</span></td>
+                <td class="bg-light fw-bold" data-val="${d.prodDisplay}">${d.prodDisplay.toLocaleString()}</td>
+                <td class="text-primary" data-val="${d.pQ}">${d.pQ}</td>
+                <td class="text-danger fw-bold small" data-val="${d.pR}">${d.pR.toFixed(2)}%</td>
+                <td class="text-warning text-dark" data-val="${d.sQ}">${d.sQ}</td>
+                <td class="text-danger fw-bold small" data-val="${d.sR}">${d.sR.toFixed(2)}%</td>
+                <td class="text-success" data-val="${d.bQ}">${d.bQ}</td>
+                <td class="text-danger fw-bold small" data-val="${d.bR}">${d.bR.toFixed(2)}%</td>
+            </tr>`;
+        });
+        document.getElementById('compTableBody').innerHTML = tableHTML;
+
+        // Graph
+        let graphData = [...processedData].sort((a,b) => b.sortMetric - a.sortMetric);
+        const ctx = document.getElementById('componentAnalysisCanvas').getContext('2d');
+        if (componentChart) componentChart.destroy();
+        let gl = graphData.map(d => d.ln);
+        let gpQ = graphData.map(d => d.pQ); let gpR = graphData.map(d => d.pR);
+        let gsQ = graphData.map(d => d.sQ); let gsR = graphData.map(d => d.sR);
+        let gbQ = graphData.map(d => d.bQ); let gbR = graphData.map(d => d.bR);
+        
+        const lblStyle = { display: true, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 3, color: 'black', font: { weight: 'bold', size: 9 }, padding: 3 };
+        
+        let datasets = [];
+        if(compFilter === 'ALL') {
+             datasets.push({ label: 'PCBA Qty', data: gpQ, backgroundColor: '#0d6efd', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle } });
+             datasets.push({ label: 'Spkr Qty', data: gsQ, backgroundColor: '#ffc107', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle } });
+             datasets.push({ label: 'Batt Qty', data: gbQ, backgroundColor: '#198754', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle } });
+        } else if (compFilter === 'PCBA') {
+            datasets.push({ label: 'PCBA Qty', data: gpQ, backgroundColor: '#0d6efd', order:2, yAxisID: 'y', datalabels: { align:'end', anchor:'end', ...lblStyle } });
+            datasets.push({ label: 'PCBA Rate %', data: gpR, type: 'line', borderColor: '#0d6efd', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#0d6efd', formatter: v=>v.toFixed(2)+'%' } });
+        } else if (compFilter === 'SPEAKER') {
+            datasets.push({ label: 'Spkr Qty', data: gsQ, backgroundColor: '#ffc107', order:2, yAxisID: 'y', datalabels: { align:'end', anchor:'end', ...lblStyle } });
+            datasets.push({ label: 'Spkr Rate %', data: gsR, type: 'line', borderColor: '#ffc107', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#d39e00', formatter: v=>v.toFixed(2)+'%' } });
+        } else if (compFilter === 'BATTERY') {
+            datasets.push({ label: 'Batt Qty', data: gbQ, backgroundColor: '#198754', order:2, yAxisID: 'y', datalabels: { align:'end', anchor:'end', ...lblStyle } });
+            datasets.push({ label: 'Batt Rate %', data: gbR, type: 'line', borderColor: '#198754', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#198754', formatter: v=>v.toFixed(2)+'%' } });
         }
-        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h3 class="text-primary"><i class="fas fa-layer-group me-2"></i> ${title} REPORT</h3>
-        <div class="d-flex gap-2"><div class="btn-group"><button class="btn btn-sm btn-outline-dark ${currentCompFilter.type=='EARBUDS'?'active':''}" onclick="updateCompFilter('${compName}','type','EARBUDS')">Earbuds</button><button class="btn btn-sm btn-outline-dark ${currentCompFilter.type=='CASE'?'active':''}" onclick="updateCompFilter('${compName}','type','CASE')">Charging Case</button><button class="btn btn-sm btn-outline-secondary ${currentCompFilter.type=='ALL'?'active':''}" onclick="updateCompFilter('${compName}','type','ALL')">All Types</button></div>
-        <select class="form-select form-select-sm" style="width:120px;" onchange="updateCompFilter('${compName}','storage',this.value)"><option value="ALL">All</option><option value="PROCESS">Process</option><option value="RMD">RMD</option></select></div></div>
-        <div class="row mb-4"><div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Total Loss</div><div class="high-stat-val text-danger">${formatCurrencyShort(stats.totalVal)}</div></div></div><div class="col-md-4"><div class="high-stat-card"><div class="high-stat-title">Total Qty</div><div class="high-stat-val">${stats.totalQty.toLocaleString()}</div></div></div></div>
-        <div class="comp-card"><div class="comp-header">Daily Trend</div><div class="p-3"><canvas id="trendChart" height="80"></canvas></div></div>
-        <div class="row"><div class="col-md-6"><div class="comp-card"><div class="comp-header">Line Wise</div><div class="p-3"><canvas id="lineCompChart"></canvas></div></div></div><div class="col-md-6"><div class="comp-card"><div class="comp-header">Model Wise</div><div class="p-3"><canvas id="modelCompChart"></canvas></div></div></div></div>`;
-        container.innerHTML = html;
-        if(compCharts.trend) compCharts.trend.destroy(); compCharts.trend = new Chart(document.getElementById('trendChart'), {type: 'line', data: {labels: Object.keys(stats.trendDate), datasets: [{label:'Loss', data:Object.values(stats.trendDate), borderColor:'red'}]}});
-        if(compCharts.line) compCharts.line.destroy(); compCharts.line = new Chart(document.getElementById('lineCompChart'), {type: 'bar', data: {labels: Object.keys(stats.byLine), datasets: [{label:'Value', data:Object.values(stats.byLine).map(x=>x.val), backgroundColor:'blue'}]}});
-        if(compCharts.model) compCharts.model.destroy(); compCharts.model = new Chart(document.getElementById('modelCompChart'), {type: 'bar', data: {labels: Object.keys(stats.byModel).slice(0,10), datasets: [{label:'Value', data:Object.values(stats.byModel).map(x=>x.val).slice(0,10), backgroundColor:'orange'}]}});
+        componentChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: gl, datasets: datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: {display:true, text:'Quantity'} },
+                    y1: { display: (compFilter!=='ALL'), position: 'right', beginAtZero: true, title: {display:true, text:'Rate %'}, grid: {drawOnChartArea:false} }
+                }
+            }
+        });
     }
-    function updateCompFilter(comp, key, val) { currentCompFilter[key] = val; renderComponentDashboard(comp); }
+
+    // --- GENERIC SORT FUNCTIONS ---
+    // For Line Wise Table
+    function triggerSort(colIndex, type, selectEl) { 
+        let dir = selectEl.value; if(!dir) return; 
+        document.querySelectorAll('#analysisTable .sort-select').forEach(el => { if(el !== selectEl && el.id !== 'prodFilterDropdown') el.selectedIndex = 0; }); 
+        sortTable(colIndex, type, dir, 'tableBody'); 
+    }
+
+    // For Model Value Table (NEW)
+    function triggerModelSort(colIndex, type, selectEl, tbodyId) {
+        let dir = selectEl.value; if(!dir) return;
+        // Reset other dropdowns in this table
+        const headerRow = selectEl.closest('tr');
+        headerRow.querySelectorAll('.sort-select').forEach(el => { if(el !== selectEl) el.selectedIndex = 0; });
+        sortTable(colIndex, type, dir, tbodyId);
+    }
+
+    // For Component Table
+    function triggerCompSort(colIndex, type, selectEl) { 
+        let dir = selectEl.value; if(!dir) return; 
+        // Reset other dropdowns is handled manually in layout, but let's add logic if needed
+        sortCompTable(colIndex, type, dir); 
+    }
+
+    // Generic Sort Logic
+    function sortTable(colIndex, type, dir, tbodyId) { 
+        const tbody = document.getElementById(tbodyId); 
+        const rows = Array.from(tbody.querySelectorAll('tr')); 
+        
+        rows.sort((rowA, rowB) => { 
+            const cellA = rowA.children[colIndex]; 
+            const cellB = rowB.children[colIndex]; 
+            let valA, valB; 
+            
+            if (type === 'num') { 
+                valA = parseFloat(cellA.getAttribute('data-val')) || 0; 
+                valB = parseFloat(cellB.getAttribute('data-val')) || 0; 
+            } else { 
+                // Fallback to data-val or innerText
+                valA = (cellA.getAttribute('data-val') || cellA.innerText).trim().toLowerCase(); 
+                valB = (cellB.getAttribute('data-val') || cellB.innerText).trim().toLowerCase(); 
+            } 
+            
+            if (valA < valB) return dir === 'asc' ? -1 : 1; 
+            if (valA > valB) return dir === 'asc' ? 1 : -1; 
+            return 0; 
+        }); 
+        
+        rows.forEach(row => tbody.appendChild(row)); 
+    }
+
+    function sortCompTable(colIndex, type, dir) { 
+        const tbody = document.getElementById('compTableBody'); 
+        const rows = Array.from(tbody.querySelectorAll('tr')); 
+        const subtotalRow = rows.shift(); // Remove subtotal
+        
+        rows.sort((rowA, rowB) => { 
+            const cellA = rowA.children[colIndex]; 
+            const cellB = rowB.children[colIndex]; 
+            let valA, valB; 
+            if (type === 'num') { 
+                valA = parseFloat(cellA.getAttribute('data-val')) || 0; 
+                valB = parseFloat(cellB.getAttribute('data-val')) || 0; 
+            } else { 
+                valA = cellA.innerText.trim().toLowerCase(); 
+                valB = cellB.innerText.trim().toLowerCase(); 
+            } 
+            if (valA < valB) return dir === 'asc' ? -1 : 1; 
+            if (valA > valB) return dir === 'asc' ? 1 : -1; 
+            return 0; 
+        }); 
+        
+        tbody.appendChild(subtotalRow); 
+        rows.forEach(row => tbody.appendChild(row)); 
+    }
+
+    function applyProductFilter(selectEl) { 
+        const filter = selectEl.value.toUpperCase(); 
+        const tr = document.getElementById("analysisTable").getElementsByTagName("tr"); 
+        for (let i = 2; i < tr.length; i++) { 
+            const td = tr[i].getElementsByTagName("td")[1]; 
+            if (td) { 
+                const txt = td.getAttribute('data-val') || td.textContent; 
+                tr[i].style.display = (filter === "" || txt.toUpperCase().indexOf(filter) > -1) ? "" : "none"; 
+            } 
+        } 
+    }
+    
+    function applyCompProdFilter(selectEl) { 
+        const filter = selectEl.value.toUpperCase(); 
+        const tr = document.getElementById("compTable").getElementsByTagName("tr"); 
+        for (let i = 2; i < tr.length; i++) { 
+            const td = tr[i].getElementsByTagName("td")[1]; 
+            if (td) { 
+                const txt = td.getAttribute('data-val') || td.textContent; 
+                tr[i].style.display = (filter === "" || txt.toUpperCase().indexOf(filter) > -1) ? "" : "none"; 
+            } 
+        } 
+    }
+    
+    // Existing functions (upload, save, export) remain same...
+    function uploadExcel() { let f = document.getElementById('uploadFile').files[0]; if(!f) return Swal.fire("Error","Select file","warning"); let r = new FileReader(); r.onload = e => { let w = XLSX.read(e.target.result,{type:'array'}); let j = XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]); document.getElementById('loader').style.display='flex'; fetch(API_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'bulk_scrap',rows:j})}).then(()=>{ document.getElementById('loader').style.display='none'; Swal.fire("Success","Uploaded","success"); }); }; r.readAsArrayBuffer(f); }
+    function saveProduction() { 
+        let dateVal = document.getElementById('pDate').value;
+        let lineVal = document.getElementById('pLine').value;
+        let productVal = document.getElementById('pProduct').value;
+        let modelVal = document.getElementById('pModel').value;
+        let outVal = document.getElementById('pOut').value;
+        if(!dateVal || !lineVal || !productVal || !modelVal || !outVal) { Swal.fire("Incomplete Data", "Please fill all fields", "warning"); return; }
+        let p = { action:'production', date: dateVal, lineNo: lineVal, product: productVal, model: modelVal, output: outVal }; 
+        document.getElementById('loader').style.display='flex';
+        fetch(API_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(p)}).then(()=>{ document.getElementById('loader').style.display='none'; Swal.fire("Saved","Production Entry Saved Successfully","success"); document.getElementById('prodForm').reset(); }); 
+    }
+    function exportTable() { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById("analysisTable")), "Quality_Report.xlsx"); }
 </script>
 </body>
 </html>
