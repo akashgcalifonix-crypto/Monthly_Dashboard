@@ -74,7 +74,17 @@
         /* Modal Styles */
         .modal-xl { max-width: 95%; }
         .chart-container-sm { height: 250px; width: 100%; margin-bottom: 20px; }
-        .chart-container-xs { height: 200px; width: 100%; margin-bottom: 10px; }
+        .chart-container-xs { height: 250px; width: 100%; margin-bottom: 10px; }
+        
+        /* Table Input Filter Styles */
+        .filter-input { width: 100%; font-size: 0.7rem; padding: 2px 5px; border: 1px solid #ccc; border-radius: 3px; }
+
+        /* Comparison Table */
+        .comp-header-1 { background-color: #e0f2f1; color: #004d40; border-bottom: 2px solid #004d40; }
+        .comp-header-2 { background-color: #fff3e0; color: #e65100; border-bottom: 2px solid #e65100; }
+        .comp-header-3 { background-color: #f3e5f5; color: #4a148c; border-bottom: 2px solid #4a148c; }
+        .comp-header-4 { background-color: #e3f2fd; color: #0d47a1; border-bottom: 2px solid #0d47a1; }
+        .comp-header-diff { background-color: #212529; color: #fff; border-bottom: 2px solid #000; }
     </style>
 </head>
 <body>
@@ -87,12 +97,13 @@
 <div class="sidebar">
     <div class="sidebar-logo"><img src="https://i.postimg.cc/5y7SN4xc/logo.png" style="max-width: 80%; height: auto;"></div>
     <div class="p-3">
-        <label class="small text-white-50 fw-bold">DATE RANGE</label>
+        <label class="small text-white-50 fw-bold">DATE RANGE (Global)</label>
         <input type="date" id="dateFrom" class="form-control form-control-sm mb-2" onchange="loadData()">
         <input type="date" id="dateTo" class="form-control form-control-sm" onchange="loadData()">
     </div>
     <nav class="nav flex-column">
         <a class="nav-link active" onclick="switchSection('dashboard')"><i class="fas fa-chart-pie me-2"></i> Main Dashboard</a>
+        <a class="nav-link" onclick="switchSection('weekly-comparison')"><i class="fas fa-balance-scale me-2"></i> Weekly Comparison</a>
         <a class="nav-link" onclick="switchSection('detail-analysis')"><i class="fas fa-search-plus me-2"></i> Detail Analysis</a>
         <a class="nav-link" onclick="switchSection('model-analysis')"><i class="fas fa-cubes me-2"></i> Model Analysis</a>
         <a class="nav-link" onclick="switchSection('line-analysis')"><i class="fas fa-microchip me-2"></i> Line Analysis</a>
@@ -218,6 +229,134 @@
         </div>
     </div>
 
+    <!-- WEEKLY COMPARISON REPORT (UPDATED FOR 4 WEEKS & FILTER & DIFF) -->
+    <div id="weekly-comparison-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Weekly Comparison Report (Week 1 - 4)</h3>
+        </div>
+
+        <div class="card shadow-sm border-0 p-3 bg-white mb-4">
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <label class="fw-bold text-success small">Week 1 (Base)</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="wcFrom1" class="form-control">
+                        <input type="date" id="wcTo1" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="fw-bold text-warning small">Week 2</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="wcFrom2" class="form-control">
+                        <input type="date" id="wcTo2" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="fw-bold text-info small">Week 3</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="wcFrom3" class="form-control">
+                        <input type="date" id="wcTo3" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="fw-bold text-primary small">Week 4</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="wcFrom4" class="form-control">
+                        <input type="date" id="wcTo4" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row align-items-end g-3">
+                <div class="col-md-4">
+                    <label class="small fw-bold">Product Filter</label>
+                    <select id="wcProductInput" class="form-select form-select-sm">
+                        <option value="ALL">All Products</option>
+                        <option value="EARBUDS">Earbuds</option>
+                        <option value="CHARGING CASE">Charging Case</option>
+                        <option value="DASHCAM">Dashcam</option>
+                        <option value="SMART WATCH">Smart Watch</option>
+                        <option value="HEADPHONE">Headphone</option>
+                    </select>
+                </div>
+                <!-- NEW DIFFERENCE SELECTOR -->
+                <div class="col-md-4">
+                    <label class="small fw-bold">Select Comparison (Difference)</label>
+                    <select id="wcDiffSelect" class="form-select form-select-sm">
+                        <option value="none">No Difference Column</option>
+                        <option value="1_0">Week 2 vs Week 1</option>
+                        <option value="2_1">Week 3 vs Week 2</option>
+                        <option value="3_2">Week 4 vs Week 3</option>
+                        <option value="3_0">Week 4 vs Week 1</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-dark btn-sm w-100" onclick="renderWeeklyComparison()"><i class="fas fa-exchange-alt me-2"></i>Compare Data</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">Performance Summary</div>
+                    <div class="card-body p-0">
+                        <table class="table table-bordered text-center mb-0">
+                            <thead class="bg-light">
+                                <tr id="wcTableHeaders">
+                                    <th>Metric</th>
+                                    <th class="comp-header-1">Week 1</th>
+                                    <th class="comp-header-2">Week 2</th>
+                                    <th class="comp-header-3">Week 3</th>
+                                    <th class="comp-header-4">Week 4</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wcTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Line Wise Comparison for Weeks -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">Line Wise Scrap Value Comparison</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-striped table-hover text-center mb-0 custom-table">
+                                <thead class="bg-dark text-white" style="position: sticky; top: 0;">
+                                    <tr id="wcLineTableHeaders">
+                                        <th>Line No</th>
+                                        <th class="comp-header-1">W1 Scrap (₹)</th>
+                                        <th class="comp-header-2">W2 Scrap (₹)</th>
+                                        <th class="comp-header-3">W3 Scrap (₹)</th>
+                                        <th class="comp-header-4">W4 Scrap (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wcLineTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">Scrap Value Trend Chart</div>
+                    <div class="card-body">
+                        <div style="height: 300px;">
+                            <canvas id="wcChartCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- NEW SECTION: DETAIL ANALYSIS -->
     <div id="detail-analysis-section" class="content-section" style="display:none;">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -291,7 +430,7 @@
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <div class="card shadow-sm border-0 h-100">
-                                        <div class="card-header bg-white fw-bold small text-primary">PCBA Trend (Qty)</div>
+                                        <div class="card-header bg-white fw-bold small text-primary">PCBA Analysis (Qty & Rate)</div>
                                         <div class="card-body">
                                             <div class="chart-container-xs">
                                                 <canvas id="daPcbaChart"></canvas>
@@ -301,7 +440,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="card shadow-sm border-0 h-100">
-                                        <div class="card-header bg-white fw-bold small text-warning">Speaker Trend (Qty)</div>
+                                        <div class="card-header bg-white fw-bold small text-warning">Speaker Analysis (Qty & Rate)</div>
                                         <div class="card-body">
                                             <div class="chart-container-xs">
                                                 <canvas id="daSpkrChart"></canvas>
@@ -311,7 +450,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="card shadow-sm border-0 h-100">
-                                        <div class="card-header bg-white fw-bold small text-success">Battery Trend (Qty)</div>
+                                        <div class="card-header bg-white fw-bold small text-success">Battery Analysis (Qty & Rate)</div>
                                         <div class="card-body">
                                             <div class="chart-container-xs">
                                                 <canvas id="daBattChart"></canvas>
@@ -344,10 +483,17 @@
                             </div>
                         </div>
 
-                        <!-- WEEKLY TAB -->
+                        <!-- WEEKLY TAB (Updated with Custom Dates) -->
                         <div class="tab-pane fade" id="tab-weekly">
                             <div class="card shadow-sm border-0 mb-3">
-                                <div class="card-header bg-white fw-bold small">Week Wise Performance</div>
+                                <div class="card-header bg-white fw-bold small d-flex justify-content-between align-items-center">
+                                    <span>Week Wise Performance</span>
+                                    <div class="d-flex gap-2">
+                                        <input type="date" id="lineWFrom" class="form-control form-control-sm" style="width:130px">
+                                        <input type="date" id="lineWTo" class="form-control form-control-sm" style="width:130px">
+                                        <button class="btn btn-sm btn-primary" onclick="filterLineWeeklyTable()">Filter</button>
+                                    </div>
+                                </div>
                                 <div class="card-body p-0">
                                     <table class="table table-bordered table-striped text-center mb-0 custom-table">
                                         <thead class="bg-dark text-white">
@@ -365,22 +511,42 @@
                         </div>
                     </div>
 
-                    <!-- TOP 5 ROW -->
+                    <!-- UPDATED: ALL MATERIALS TABLE WITH SEARCH & SORT -->
                     <div class="row mt-3">
                         <div class="col-md-12">
                             <div class="card shadow-sm border-0 h-100">
-                                <div class="card-header bg-white fw-bold small">Top 5 Materials (Scrap Value & Qty)</div>
+                                <div class="card-header bg-white fw-bold small d-flex justify-content-between align-items-center">
+                                    <span>All Materials Breakdown</span>
+                                    <select id="matSort" class="form-select form-select-sm" style="width:200px;" onchange="filterMaterials()">
+                                        <option value="val_desc" selected>Sort Value: High - Low</option>
+                                        <option value="val_asc">Sort Value: Low - High</option>
+                                        <option value="qty_desc">Sort Qty: High - Low</option>
+                                        <option value="qty_asc">Sort Qty: Low - High</option>
+                                    </select>
+                                </div>
                                 <div class="card-body p-0">
-                                    <table class="table table-sm table-hover text-center mb-0" style="font-size:0.8rem">
-                                        <thead class="bg-light">
-                                            <tr>
-                                                <th>Material</th>
-                                                <th>Qty</th>
-                                                <th>Value (₹)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="daTop5Body"></tbody>
-                                    </table>
+                                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover text-center mb-0" style="font-size:0.8rem">
+                                            <thead class="bg-primary text-white" style="position:sticky; top:0; z-index:10;">
+                                                <tr>
+                                                    <th>Material Description</th>
+                                                    <th>Model</th>
+                                                    <th>Type</th>
+                                                    <th style="width:100px;">Total Qty</th>
+                                                    <th style="width:120px;">Total Value (₹)</th>
+                                                </tr>
+                                                <!-- FILTER ROW -->
+                                                <tr class="bg-light">
+                                                    <th><input type="text" id="sDesc" class="filter-input" placeholder="Search..." onkeyup="filterMaterials()"></th>
+                                                    <th><input type="text" id="sModel" class="filter-input" placeholder="Search..." onkeyup="filterMaterials()"></th>
+                                                    <th><input type="text" id="sType" class="filter-input" placeholder="Search..." onkeyup="filterMaterials()"></th>
+                                                    <th><input type="text" id="sQty" class="filter-input" placeholder="Filter..." onkeyup="filterMaterials()"></th>
+                                                    <th><input type="text" id="sVal" class="filter-input" placeholder="Filter..." onkeyup="filterMaterials()"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="daMatTableBody"></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -696,21 +862,20 @@
 
     let rawData = { production: [], scrap: [], models: [] };
     let modelPrices = {};
-    let aggregatedModelData = {}; // Store Model Wise Data
+    let aggregatedModelData = {}; 
     
     // Global Chart Instances
     let scrapTrendChart = null;
     let componentChart = null;
-    
-    // New Chart Instances for Tabs
     let modelValueChart = null;
     let modelQtyChart = null;
-
-    // Detail Analysis Charts
     let daTrendChart = null;
     let daPcbaChart = null;
     let daSpkrChart = null;
     let daBattChart = null;
+    let wcChart = null;
+    let currentMaterialsList = [];
+    let currentLineWeeklyData = {}; 
 
     window.onload = function() {
         const today = new Date();
@@ -725,11 +890,8 @@
         document.getElementById(id + '-section').style.display = 'block';
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(l => {
-             // Handle sidebar links vs tab links
              if(l.getAttribute('onclick') && l.getAttribute('onclick').includes(id)) l.classList.add('active');
         });
-
-        // If Detail Analysis is clicked, render the line grid
         if (id === 'detail-analysis') {
             renderDetailLines();
         }
@@ -740,15 +902,11 @@
         try {
             let res = await fetch(API_URL);
             let json = await res.json();
-            
-            // Basic validation
             if(!json.production || !json.scrap) throw new Error("Invalid Data Structure");
-
             rawData = json;
             if(json.models) {
                 let pSelect = document.getElementById('pModel');
                 pSelect.innerHTML = "";
-                // Model is Col A (0), Price is Col B (1) in Model_List sheet
                 json.models.slice(1).forEach(r => {
                     let mName = (r[0] || "").toString().trim().toUpperCase();
                     modelPrices[mName] = parseFloat(r[1]) || 0;
@@ -763,7 +921,6 @@
         document.getElementById('loader').style.display = 'none';
     }
 
-    // UPDATED NORMALIZE DATE (Fix Timezone/UTC issues)
     function normalizeDate(dateInput) {
         if(!dateInput) return null;
         if (typeof dateInput === 'string') return dateInput.substring(0, 10);
@@ -777,13 +934,14 @@
     }
 
     function normalizeLine(str) { return str ? str.toString().toUpperCase().trim().replace("L-", "").replace("LINE", "").replace(/^0+/, '') : "Unknown"; }
+    
     function formatCurrency(val) {
+        if (val >= 10000000) return "₹" + (val / 10000000).toFixed(2) + "Cr";
         if (val >= 100000) return "₹" + (val / 100000).toFixed(2) + "L";
         if (val >= 1000) return "₹" + (val / 1000).toFixed(2) + "K";
         return "₹" + Math.round(val).toLocaleString();
     }
     
-    // Categorization Logic based on Product/Floor
     function getProductCategory(prodStr, lineStr) {
         let p = (prodStr || "").toString().toUpperCase();
         let l = (lineStr || "").toString().toUpperCase();
@@ -793,9 +951,7 @@
         if(combined.includes('WATCH')) return 'SMART WATCH';
         if(combined.includes('HEADPHONE')) return 'HEADPHONE';
         if(combined.includes('CHARGING') || combined.includes('CASE')) return 'CHARGING CASE';
-        // Updated Earbuds Logic to include ANC, ENC, POD
         if(combined.includes('BUD') || combined.includes('EAR') || combined.includes('TWS') || combined.includes('AIR') || combined.includes('ANC') || combined.includes('ENC') || combined.includes('POD')) return 'EARBUDS';
-        
         return 'OTHER';
     }
 
@@ -803,136 +959,83 @@
         const dFrom = document.getElementById('dateFrom').value;
         const dTo = document.getElementById('dateTo').value;
         const defectFilter = document.getElementById('filterDefect').value;
-
-        // --- PRE-SCAN SCRAP DATA FOR LINE CATEGORY ---
         let lineDominantCategory = {}; 
         if(rawData.scrap.length > 0) {
             rawData.scrap.slice(1).forEach(row => {
                 let ln = normalizeLine(row[4]); 
                 let floorVal = row[5]; 
                 let cat = getProductCategory(floorVal, ln); 
-                if(cat !== 'OTHER') {
-                    lineDominantCategory[ln] = cat; 
-                }
+                if(cat !== 'OTHER') lineDominantCategory[ln] = cat; 
             });
         }
-
-        // --- PROCESS PRODUCTION ---
         let prodMap = {}; 
         let lineProdQtyMap = {}; 
         let totalProdQty=0, totalProdVal=0;
-        
-        // Reset Aggregated Model Data
         aggregatedModelData = {};
 
         if(rawData.production.length > 0) {
             rawData.production.slice(1).forEach(row => {
                 let rDate = normalizeDate(row[0]);
                 if (!rDate || rDate < dFrom || rDate > dTo) return;
-                
-                let ln = normalizeLine(row[3]); // Line No
-                let model = (row[2] || "").toString().trim().toUpperCase(); // NORMALIZE
-                let rawOut = parseFloat(row[4]) || 0; // Output (Col E)
-                let productCol = (row[1] || "").toString().toUpperCase(); // Product
-
-                let val = rawOut * (modelPrices[model]||0); // Use normalized model for price lookup
-
-                // Detect Category
+                let ln = normalizeLine(row[3]); 
+                let model = (row[2] || "").toString().trim().toUpperCase(); 
+                let rawOut = parseFloat(row[4]) || 0; 
+                let productCol = (row[1] || "").toString().toUpperCase(); 
+                let val = rawOut * (modelPrices[model]||0); 
                 let cat = "OTHER";
-                if(productCol !== "") {
-                     cat = getProductCategory(productCol, "");
-                } else {
+                if(productCol !== "") cat = getProductCategory(productCol, "");
+                else {
                     cat = getProductCategory(model, ln);
-                    if(cat === 'OTHER' && lineDominantCategory[ln]) {
-                        cat = lineDominantCategory[ln];
-                    }
+                    if(cat === 'OTHER' && lineDominantCategory[ln]) cat = lineDominantCategory[ln];
                 }
-
                 if(!prodMap[ln]) prodMap[ln] = 0;
                 prodMap[ln] += val; 
-
-                // Split Logic for Earbuds & Charging Case
                 if(productCol.includes("EARBUDS") && productCol.includes("CHARGING")) {
-                    let keyE = ln + "|EARBUDS";
-                    if(!lineProdQtyMap[keyE]) lineProdQtyMap[keyE] = 0;
-                    lineProdQtyMap[keyE] += rawOut;
-                    
-                    let keyC = ln + "|CHARGING CASE";
-                    if(!lineProdQtyMap[keyC]) lineProdQtyMap[keyC] = 0;
-                    lineProdQtyMap[keyC] += rawOut;
+                    let keyE = ln + "|EARBUDS"; if(!lineProdQtyMap[keyE]) lineProdQtyMap[keyE] = 0; lineProdQtyMap[keyE] += rawOut;
+                    let keyC = ln + "|CHARGING CASE"; if(!lineProdQtyMap[keyC]) lineProdQtyMap[keyC] = 0; lineProdQtyMap[keyC] += rawOut;
                 } else {
-                    let key = ln + "|" + cat;
-                    if(!lineProdQtyMap[key]) lineProdQtyMap[key] = 0;
-                    lineProdQtyMap[key] += rawOut;
+                    let key = ln + "|" + cat; if(!lineProdQtyMap[key]) lineProdQtyMap[key] = 0; lineProdQtyMap[key] += rawOut;
                 }
-
                 totalProdQty += rawOut;
                 totalProdVal += val;
             });
         }
 
-        // --- PROCESS SCRAP ---
         let lineStats = {}; 
         let lineCompStats = {}; 
-
         let overallStats = { proc:0, rmd:0, tot:0 };
-        let productStats = {
-            'EARBUDS': { val: 0, proc: 0, rmd: 0 },
-            'CHARGING CASE': { val: 0, proc: 0, rmd: 0 },
-            'SMART WATCH': { val: 0, proc: 0, rmd: 0 },
-            'HEADPHONE': { val: 0, proc: 0, rmd: 0 },
-            'DASHCAM': { val: 0, proc: 0, rmd: 0 },
-            'OTHER': { val: 0, proc: 0, rmd: 0 }
-        };
+        let productStats = { 'EARBUDS': { val: 0, proc: 0, rmd: 0 }, 'CHARGING CASE': { val: 0, proc: 0, rmd: 0 }, 'SMART WATCH': { val: 0, proc: 0, rmd: 0 }, 'HEADPHONE': { val: 0, proc: 0, rmd: 0 }, 'DASHCAM': { val: 0, proc: 0, rmd: 0 }, 'OTHER': { val: 0, proc: 0, rmd: 0 } };
 
         if(rawData.scrap.length > 0) {
             rawData.scrap.slice(1).forEach(row => {
                 let rDate = normalizeDate(row[0]);
                 if (!rDate || rDate < dFrom || rDate > dTo) return;
-                
-                let ln = normalizeLine(row[4]); // Line No
-                let floorVal = row[5]; // Floor column contains "Buds", "Charging"
-                let model = (row[8] || "").toString().trim().toUpperCase(); // NORMALIZE
+                let ln = normalizeLine(row[4]); 
+                let floorVal = row[5]; 
+                let model = (row[8] || "").toString().trim().toUpperCase(); 
                 let prodName = getProductCategory(floorVal, ln);
                 if(!productStats[prodName]) prodName = 'OTHER';
-
-                let typeVal = (row[9]||"").toString().toUpperCase(); // Type (PCBA, etc)
-                let rejTypeVal = (row[10] || "").toString().toUpperCase(); // Rej Type
+                let typeVal = (row[9]||"").toString().toUpperCase(); 
+                let rejTypeVal = (row[10] || "").toString().toUpperCase(); 
                 let fullType = typeVal + " " + rejTypeVal; 
-
                 if(defectFilter !== 'ALL' && !typeVal.includes(defectFilter)) return;
-
-                let q = parseFloat(row[12])||0; // Qty
-                let val = q * (parseFloat(row[11])||0); // Price
-                let storeVal = String(row[1] || "").toUpperCase(); // Storage
-                
+                let q = parseFloat(row[12])||0; 
+                let val = q * (parseFloat(row[11])||0); 
+                let storeVal = String(row[1] || "").toUpperCase(); 
                 let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejTypeVal.includes('PROCESS');
                 let isRMD = storeVal.includes('6002') || storeVal.includes('RMD') || rejTypeVal.includes('RMD');
-
                 let key = ln + "_" + prodName; 
                 if(!lineStats[key]) lineStats[key] = { ln: ln, cat: prodName, proc:0, rmd:0, total:0 };
-                
-                if(isProc) { 
-                    lineStats[key].proc += val; 
-                    overallStats.proc += val; 
-                    productStats[prodName].proc += val;
-                } else if(isRMD) { 
-                    lineStats[key].rmd += val; 
-                    overallStats.rmd += val; 
-                    productStats[prodName].rmd += val;
-                }
+                if(isProc) { lineStats[key].proc += val; overallStats.proc += val; productStats[prodName].proc += val; } 
+                else if(isRMD) { lineStats[key].rmd += val; overallStats.rmd += val; productStats[prodName].rmd += val; }
                 lineStats[key].total += val;
                 overallStats.tot += val;
-
-                // Component Analysis Data
                 let compKey = ln + "|" + prodName;
                 if(!lineCompStats[compKey]) lineCompStats[compKey] = { ln: ln, cat: prodName, raw: { pcba_proc:0, pcba_rmd:0, spkr_proc:0, spkr_rmd:0, batt_proc:0, batt_rmd:0 } };
-                
                 let compType = "";
                 if(fullType.includes("PCBA") || fullType.includes("MAIN BOARD") || fullType.includes("PCB")) compType = "pcba";
                 else if(fullType.includes("BATTERY") || fullType.includes("CELL") || fullType.includes("BATT")) compType = "batt";
                 else if(fullType.includes("SPEAKER") || fullType.includes("DRIVER") || fullType.includes("SPK")) compType = "spkr";
-
                 if(compType) {
                     if(isProc) lineCompStats[compKey].raw[compType + "_proc"] += q;
                     else if(isRMD) lineCompStats[compKey].raw[compType + "_rmd"] += q;
@@ -940,7 +1043,6 @@
             });
         }
 
-        // --- DASHBOARD UPDATE ---
         document.getElementById('ovr-qty').innerText = totalProdQty.toLocaleString();
         document.getElementById('ovr-val').innerText = formatCurrency(totalProdVal);
         document.getElementById('ovr-proc-val').innerText = formatCurrency(overallStats.proc);
@@ -950,17 +1052,11 @@
         document.getElementById('ovr-rmd-rate').innerText = totalProdVal>0?((overallStats.rmd/totalProdVal)*100).toFixed(2)+"%":"0%";
         document.getElementById('ovr-all-rate').innerText = totalProdVal>0?((overallStats.tot/totalProdVal)*100).toFixed(2)+"%":"0%";
 
-        // Merge Production into Line Stats for Table
         Object.keys(prodMap).forEach(ln => {
             let val = prodMap[ln];
             let potentialCats = [];
-            // Find existing categories for this line in scrap data
             Object.values(lineStats).forEach(s => { if(s.ln === ln && !potentialCats.includes(s.cat)) potentialCats.push(s.cat); });
-            // If no scrap, guess category
-            if(potentialCats.length === 0) {
-                 let guessed = getProductCategory('', ln);
-                 potentialCats.push(guessed !== 'OTHER' ? guessed : 'EARBUDS');
-            }
+            if(potentialCats.length === 0) { let guessed = getProductCategory('', ln); potentialCats.push(guessed !== 'OTHER' ? guessed : 'EARBUDS'); }
             potentialCats.forEach(cat => {
                 if(productStats[cat]) productStats[cat].val += val;
                 let key = ln + "_" + cat;
@@ -970,7 +1066,6 @@
             });
         });
 
-        // Product Summary Cards
         const prodContainer = document.getElementById('productSummaryContainer');
         prodContainer.innerHTML = "";
         const productsToCheck = ['EARBUDS', 'CHARGING CASE', 'SMART WATCH', 'HEADPHONE', 'DASHCAM'];
@@ -989,7 +1084,6 @@
             }
         });
 
-        // Render Table
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
         let allKeys = Object.keys(lineStats);
@@ -1016,11 +1110,224 @@
         renderModelAnalysisTabs();
     }
 
-    // --- NEW: RENDER DETAIL ANALYSIS LINE GRID ---
+    // ******************************************************
+    // UPDATED FUNCTION: WEEKLY COMPARISON (Fix for Earbuds/Case Production)
+    // ******************************************************
+    function renderWeeklyComparison() {
+        const ranges = [
+            { from: document.getElementById('wcFrom1').value, to: document.getElementById('wcTo1').value, name: 'Week 1' },
+            { from: document.getElementById('wcFrom2').value, to: document.getElementById('wcTo2').value, name: 'Week 2' },
+            { from: document.getElementById('wcFrom3').value, to: document.getElementById('wcTo3').value, name: 'Week 3' },
+            { from: document.getElementById('wcFrom4').value, to: document.getElementById('wcTo4').value, name: 'Week 4' }
+        ];
+
+        const productFilter = document.getElementById('wcProductInput').value;
+        const diffMode = document.getElementById('wcDiffSelect').value;
+
+        if(!ranges[0].from || !ranges[0].to || !ranges[1].from || !ranges[1].to) {
+            Swal.fire("Inputs Missing", "Please select at least Week 1 and Week 2 ranges", "warning");
+            return;
+        }
+
+        function calculateStats(start, end) {
+            let stats = { prodQty:0, prodVal:0, scrapVal:0, proc:0, rmd:0, pcba:0, batt:0, spkr:0, lineBreakdown: {} };
+            if(!start || !end) return stats;
+
+            // --- 1. PRODUCTION CALCULATION (FIXED LOGIC) ---
+            rawData.production.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < start || d > end) return;
+
+                let ln = normalizeLine(row[3]); 
+                let model = (row[2] || "").toString().trim().toUpperCase();
+                let productCol = (row[1] || "").toString().toUpperCase(); 
+                
+                // Normal Category check
+                let cat = productCol !== "" ? getProductCategory(productCol, "") : getProductCategory(model, ln);
+
+                // Check if this is a Combined Production (Earbuds + Case)
+                let isCombo = productCol.includes("EARBUDS") && productCol.includes("CHARGING");
+
+                // FILTER LOGIC
+                if(productFilter !== 'ALL') {
+                    if (isCombo) {
+                        // Agar Combo hai, to Earbuds ya Charging Case dono filters me allow karein
+                        if (productFilter !== 'EARBUDS' && productFilter !== 'CHARGING CASE') return;
+                    } else {
+                        // Normal strict matching for other products
+                        if (cat !== productFilter) return;
+                    }
+                }
+
+                let rawOut = parseFloat(row[4]) || 0;
+                let val = rawOut * (modelPrices[model]||0);
+                stats.prodQty += rawOut;
+                stats.prodVal += val;
+            });
+
+            // --- 2. SCRAP CALCULATION ---
+            rawData.scrap.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < start || d > end) return;
+                
+                let ln = normalizeLine(row[4]); 
+                let floorVal = row[5]; 
+                let cat = getProductCategory(floorVal, ln);
+                
+                if(productFilter !== 'ALL' && cat !== productFilter) return;
+
+                let q = parseFloat(row[12])||0;
+                let val = q * (parseFloat(row[11])||0);
+                
+                let typeVal = (row[9]||"").toString().toUpperCase(); 
+                let rejTypeVal = (row[10] || "").toString().toUpperCase();
+                let storeVal = String(row[1] || "").toUpperCase();
+                let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejTypeVal.includes('PROCESS');
+                
+                stats.scrapVal += val;
+                if(isProc) stats.proc += val; else stats.rmd += val;
+
+                let fullType = typeVal + " " + rejTypeVal; 
+                if(fullType.includes("PCBA") || fullType.includes("MAIN BOARD")) stats.pcba += q;
+                if(fullType.includes("BATTERY") || fullType.includes("CELL")) stats.batt += q;
+                if(fullType.includes("SPEAKER") || fullType.includes("DRIVER")) stats.spkr += q;
+
+                if(!stats.lineBreakdown[ln]) stats.lineBreakdown[ln] = 0;
+                stats.lineBreakdown[ln] += val;
+            });
+            return stats;
+        }
+
+        let results = ranges.map(r => calculateStats(r.from, r.to));
+        
+        // --- RENDER TABLE WITH DIFFERENCE ---
+        let thRow = `<th>Metric</th><th class="comp-header-1">Week 1</th><th class="comp-header-2">Week 2</th><th class="comp-header-3">Week 3</th><th class="comp-header-4">Week 4</th>`;
+        
+        // UPDATED LINE HEADERS WITH SORT FILTERS
+        let lineThRow = `<th>Line No <select class="sort-select mt-1" onchange="triggerWcSort(0, 'text', this)"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select></th>`;
+        lineThRow += `<th class="comp-header-1">W1 Scrap (₹) <select class="sort-select mt-1" onchange="triggerWcSort(1, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>`;
+        lineThRow += `<th class="comp-header-2">W2 Scrap (₹) <select class="sort-select mt-1" onchange="triggerWcSort(2, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>`;
+        lineThRow += `<th class="comp-header-3">W3 Scrap (₹) <select class="sort-select mt-1" onchange="triggerWcSort(3, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>`;
+        lineThRow += `<th class="comp-header-4">W4 Scrap (₹) <select class="sort-select mt-1" onchange="triggerWcSort(4, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>`;
+        
+        let diffLabel = "";
+        let iA = -1, iB = -1;
+        if(diffMode !== 'none') {
+            let parts = diffMode.split('_');
+            iA = parseInt(parts[0]);
+            iB = parseInt(parts[1]);
+            diffLabel = `Diff (W${iA+1}-W${iB+1})`;
+            thRow += `<th class="comp-header-diff">${diffLabel}</th>`;
+            lineThRow += `<th class="comp-header-diff">${diffLabel} <select class="sort-select mt-1" onchange="triggerWcSort(5, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>`;
+        }
+        document.getElementById('wcTableHeaders').innerHTML = thRow;
+        document.getElementById('wcLineTableHeaders').innerHTML = lineThRow;
+
+        let tbody = document.getElementById('wcTableBody');
+        tbody.innerHTML = "";
+        
+        let metrics = [
+            { lbl: "Production Qty", fmt: v=>v.toLocaleString(), key: 'prodQty', isProd:true },
+            { lbl: "Production Value", fmt: formatCurrency, key: 'prodVal', isProd:true },
+            { lbl: "Total Scrap Value", fmt: formatCurrency, key: 'scrapVal' },
+            { lbl: "Overall Scrap Rate %", fmt: v=>v.toFixed(2)+'%', calc: (s)=> s.prodVal>0 ? (s.scrapVal/s.prodVal*100) : 0 },
+            
+            // NEW ADDITIONS
+            { lbl: "Process Scrap Rate %", fmt: v=>v.toFixed(2)+'%', calc: (s)=> s.prodVal>0 ? (s.proc/s.prodVal*100) : 0 },
+            { lbl: "RMD Scrap Rate %", fmt: v=>v.toFixed(2)+'%', calc: (s)=> s.prodVal>0 ? (s.rmd/s.prodVal*100) : 0 },
+            
+            { lbl: "Process Scrap (₹)", fmt: formatCurrency, key: 'proc' },
+            { lbl: "RMD Scrap (₹)", fmt: formatCurrency, key: 'rmd' },
+            { lbl: "PCBA Defect Qty", fmt: v=>v, key: 'pcba' },
+            
+            // NEW ADDITION
+            { lbl: "Speaker Defect Qty", fmt: v=>v, key: 'spkr' },
+            
+            { lbl: "Battery Defect Qty", fmt: v=>v, key: 'batt' }
+        ];
+
+        metrics.forEach(m => {
+            let vals = results.map(r => m.key ? r[m.key] : m.calc(r));
+            let row = `<tr><td class="text-start fw-bold">${m.lbl}</td>`;
+            vals.forEach(v => row += `<td>${m.fmt(v)}</td>`);
+            
+            if(diffMode !== 'none') {
+                let valA = vals[iA];
+                let valB = vals[iB];
+                let diff = valA - valB;
+                let colorClass = "";
+                if (m.isProd) {
+                    colorClass = diff > 0 ? "text-success" : (diff < 0 ? "text-danger" : "text-white");
+                } else {
+                    colorClass = diff > 0 ? "text-danger" : (diff < 0 ? "text-success" : "text-white");
+                }
+                
+                let diffStr = m.fmt(diff);
+                if (diff > 0) diffStr = "+" + diffStr;
+                row += `<td class="bg-dark fw-bold ${colorClass}">${diffStr}</td>`;
+            }
+            row += `</tr>`;
+            tbody.innerHTML += row;
+        });
+
+        let lineBody = document.getElementById('wcLineTableBody');
+        lineBody.innerHTML = "";
+        let allLines = new Set();
+        results.forEach(r => Object.keys(r.lineBreakdown).forEach(ln => allLines.add(ln)));
+        let sortedLines = Array.from(allLines).sort();
+        
+        sortedLines.forEach(ln => {
+            let row = `<tr><td class="fw-bold" data-val="${ln}">${ln}</td>`;
+            let vals = [];
+            results.forEach(r => {
+                let val = r.lineBreakdown[ln] || 0;
+                vals.push(val);
+                row += `<td data-val="${val}">${formatCurrency(val)}</td>`;
+            });
+
+            if(diffMode !== 'none') {
+                let valA = vals[iA];
+                let valB = vals[iB];
+                let diff = valA - valB;
+                let colorClass = diff > 0 ? "text-danger" : (diff < 0 ? "text-success" : "text-white");
+                let diffStr = formatCurrency(diff);
+                if (diff > 0) diffStr = "+" + diffStr;
+                row += `<td class="bg-dark fw-bold ${colorClass}" data-val="${diff}">${diffStr}</td>`;
+            }
+
+            row += `</tr>`;
+            lineBody.innerHTML += row;
+        });
+
+        const ctx = document.getElementById('wcChartCanvas').getContext('2d');
+        if(wcChart) wcChart.destroy();
+        const colors = ['#004d40', '#e65100', '#4a148c', '#0d47a1'];
+        let barData = results.map(r => r.scrapVal);
+        let labels = ranges.map(r => r.name);
+        wcChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [ { label: 'Total Scrap Value', data: barData, backgroundColor: colors } ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } },
+                plugins: { datalabels: { color: 'white', anchor: 'end', align: 'bottom', formatter: (val) => formatCurrency(val) } }
+            }
+        });
+    }
+
+    // NEW HELPER: SORT WEEKLY COMPARISON LINE TABLE
+    function triggerWcSort(colIndex, type, selectEl) {
+        let dir = selectEl.value; if(!dir) return;
+        const headerRow = selectEl.closest('tr');
+        headerRow.querySelectorAll('.sort-select').forEach(el => { if(el !== selectEl) el.selectedIndex = 0; });
+        sortTable(colIndex, type, dir, 'wcLineTableBody');
+    }
+
     function renderDetailLines() {
         const grid = document.getElementById('lineGridContainer');
         grid.innerHTML = "";
-        // Create Buttons for Lines 1 to 24
         for (let i = 1; i <= 24; i++) {
             let ln = i.toString();
             let div = document.createElement('div');
@@ -1031,7 +1338,9 @@
         }
     }
 
-    // --- NEW: OPEN LINE HISTORY MODAL & PROCESS DATA ---
+    // ******************************************************
+    // UPDATED FUNCTION: OPEN LINE HISTORY (Better Labels)
+    // ******************************************************
     function openLineHistory(lineNo) {
         document.getElementById('lineModalTitle').innerText = `Line ${lineNo} Detailed Analysis`;
         const modal = new bootstrap.Modal(document.getElementById('lineHistoryModal'));
@@ -1042,23 +1351,22 @@
         const dFrom = document.getElementById('dateFrom').value;
         const dTo = document.getElementById('dateTo').value;
 
-        // 1. Gather Daily Data for specific line & product
+        document.getElementById('lineWFrom').value = dFrom;
+        document.getElementById('lineWTo').value = dTo;
+
         let dailyData = {};
-        let lineModelMap = {}; // Aggregator for Model Table
+        let lineModelMap = {}; 
         
-        // Scrap Data
+        // Scrap Processing
         if(rawData.scrap.length > 0) {
             rawData.scrap.slice(1).forEach(row => {
                 let d = normalizeDate(row[0]);
-                if(!d || d < dFrom || d > dTo) return;
-
                 let ln = normalizeLine(row[4]);
-                // Soft match line number (e.g., "1" matches "L-01", "Line 1")
                 if(ln !== lineNo && ln !== "0"+lineNo) return; 
 
                 let floorVal = row[5];
                 let cat = getProductCategory(floorVal, ln);
-                if(cat !== selProd) return; // Filter by Selected Product Tab
+                if(cat !== selProd) return; 
 
                 let typeVal = (row[9]||"").toString().toUpperCase(); 
                 let rejTypeVal = (row[10] || "").toString().toUpperCase();
@@ -1073,34 +1381,34 @@
 
                 let q = parseFloat(row[12])||0;
                 let val = q * (parseFloat(row[11])||0);
-                let matName = (row[7] || row[6] || "Unknown").toString(); // Description
+                let matName = (row[7] || row[6] || "Unknown").toString(); 
 
-                if(!dailyData[d]) dailyData[d] = { scrapVal: 0, prodVal: 0, scrapProc:0, scrapRmd:0, pcba:0, batt:0, spkr:0, materials: {} };
+                if(!dailyData[d]) dailyData[d] = { 
+                    scrapVal: 0, prodVal: 0, prodQty: 0,
+                    pcbaQ:0, pcbaV:0, battQ:0, battV:0, spkrQ:0, spkrV:0, 
+                    materials: {} 
+                };
                 
                 dailyData[d].scrapVal += val;
-                
-                // Aggregate Model Scrap Value for this line
                 if(!lineModelMap[model]) lineModelMap[model] = 0;
                 lineModelMap[model] += val;
 
-                // Component Trend Data (Qty Wise)
                 let fullType = typeVal + " " + rejTypeVal; 
-                if(fullType.includes("PCBA") || fullType.includes("MAIN BOARD")) dailyData[d].pcba += q;
-                if(fullType.includes("BATTERY") || fullType.includes("CELL")) dailyData[d].batt += q;
-                if(fullType.includes("SPEAKER") || fullType.includes("DRIVER")) dailyData[d].spkr += q;
+                if(fullType.includes("PCBA") || fullType.includes("MAIN BOARD")) { dailyData[d].pcbaQ += q; dailyData[d].pcbaV += val; }
+                if(fullType.includes("BATTERY") || fullType.includes("CELL")) { dailyData[d].battQ += q; dailyData[d].battV += val; }
+                if(fullType.includes("SPEAKER") || fullType.includes("DRIVER")) { dailyData[d].spkrQ += q; dailyData[d].spkrV += val; }
 
-                // Material Aggregation for Top 5
-                if(!dailyData[d].materials[matName]) dailyData[d].materials[matName] = {q:0, v:0};
-                dailyData[d].materials[matName].q += q;
-                dailyData[d].materials[matName].v += val;
+                let uniqueMatKey = `${matName}|${model}|${fullType}`;
+                if(!dailyData[d].materials[uniqueMatKey]) dailyData[d].materials[uniqueMatKey] = {desc: matName, model: model, type: fullType, q:0, v:0};
+                dailyData[d].materials[uniqueMatKey].q += q;
+                dailyData[d].materials[uniqueMatKey].v += val;
             });
         }
 
-        // Production Data (for Rate)
+        // Production Processing
         if(rawData.production.length > 0) {
             rawData.production.slice(1).forEach(row => {
                 let d = normalizeDate(row[0]);
-                if(!d || d < dFrom || d > dTo) return;
                 let ln = normalizeLine(row[3]);
                 if(ln !== lineNo && ln !== "0"+lineNo) return;
                 
@@ -1108,66 +1416,55 @@
                 let model = (row[2] || "").toString().trim().toUpperCase();
                 let cat = productCol !== "" ? getProductCategory(productCol, "") : getProductCategory(model, ln);
                 
-                if (selProd === 'EARBUDS' && (productCol.includes("EARBUDS") || cat === 'EARBUDS')) {} // Allow
+                if (selProd === 'EARBUDS' && (productCol.includes("EARBUDS") || cat === 'EARBUDS')) {} 
                 else if(cat !== selProd) return;
 
                 let rawOut = parseFloat(row[4]) || 0;
                 let val = rawOut * (modelPrices[model]||0);
 
-                if(!dailyData[d]) dailyData[d] = { scrapVal: 0, prodVal: 0, scrapProc:0, scrapRmd:0, pcba:0, batt:0, spkr:0, materials: {} };
+                if(!dailyData[d]) dailyData[d] = { 
+                    scrapVal: 0, prodVal: 0, prodQty: 0,
+                    pcbaQ:0, pcbaV:0, battQ:0, battV:0, spkrQ:0, spkrV:0, 
+                    materials: {} 
+                };
                 dailyData[d].prodVal += val;
-                dailyData[d].prodQty = (dailyData[d].prodQty || 0) + rawOut;
+                dailyData[d].prodQty += rawOut;
             });
         }
 
-        // 2. Prepare Chart Data & Top 5
-        let sortedDates = Object.keys(dailyData).sort();
-        let chartLabels = [];
-        let scrapVals = [];
-        let scrapRates = [];
-        let compPCBA = [], compBatt = [], compSpkr = [];
-        let allMaterials = {};
-        
-        // Weekly Aggregation Vars
-        let weeklyMap = {};
+        currentLineWeeklyData = dailyData;
 
-        sortedDates.forEach(d => {
+        let filteredKeys = Object.keys(dailyData).filter(d => d >= dFrom && d <= dTo).sort();
+        
+        let chartLabels = [];
+        let scrapVals = [], scrapRates = [];
+        let cPCBA = {q:[], qR:[], vR:[]}, cBATT = {q:[], qR:[], vR:[]}, cSPKR = {q:[], qR:[], vR:[]};
+        let allMaterials = {};
+
+        filteredKeys.forEach(d => {
             let item = dailyData[d];
             chartLabels.push(d);
+            
             scrapVals.push(item.scrapVal);
             let rate = item.prodVal > 0 ? (item.scrapVal / item.prodVal * 100) : 0;
             scrapRates.push(rate);
             
-            compPCBA.push(item.pcba);
-            compBatt.push(item.batt);
-            compSpkr.push(item.spkr);
+            let denQ = item.prodQty > 0 ? item.prodQty : 1;
+            let denV = item.prodVal > 0 ? item.prodVal : 1;
+            
+            cPCBA.q.push(item.pcbaQ); cPCBA.qR.push(item.prodQty > 0 ? (item.pcbaQ / denQ * 100) : 0); cPCBA.vR.push(item.prodVal > 0 ? (item.pcbaV / denV * 100) : 0);
+            cBATT.q.push(item.battQ); cBATT.qR.push(item.prodQty > 0 ? (item.battQ / denQ * 100) : 0); cBATT.vR.push(item.prodVal > 0 ? (item.battV / denV * 100) : 0);
+            cSPKR.q.push(item.spkrQ); cSPKR.qR.push(item.prodQty > 0 ? (item.spkrQ / denQ * 100) : 0); cSPKR.vR.push(item.prodVal > 0 ? (item.spkrV / denV * 100) : 0);
 
-            // Top 5 Global
-            Object.keys(item.materials).forEach(m => {
-                if(!allMaterials[m]) allMaterials[m] = {q:0, v:0};
-                allMaterials[m].q += item.materials[m].q;
-                allMaterials[m].v += item.materials[m].v;
+            Object.values(item.materials).forEach(m => {
+                let uniqueKey = `${m.desc}|${m.model}|${m.type}`;
+                if(!allMaterials[uniqueKey]) allMaterials[uniqueKey] = {desc:m.desc, model:m.model, type:m.type, q:0, v:0};
+                allMaterials[uniqueKey].q += m.q;
+                allMaterials[uniqueKey].v += m.v;
             });
-
-            // Weekly Logic
-            let dateObj = new Date(d);
-            // Simple logic: Group consecutive dates or ISO weeks. 
-            // The user asked for "1jan-4jan" then "5jan-11jan". 
-            // We can approximate by getting the Sunday of the week.
-            let firstDay = new Date(dateObj.getFullYear(), 0, 1);
-            let pastDays = (dateObj - firstDay) / 86400000;
-            let weekNum = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
-            
-            let wLabel = weekNum; 
-            
-            if(!weeklyMap[wLabel]) weeklyMap[wLabel] = { prodQty:0, scrapVal:0, prodVal:0, dates:[] };
-            weeklyMap[wLabel].prodQty += (item.prodQty || 0);
-            weeklyMap[wLabel].prodVal += item.prodVal;
-            weeklyMap[wLabel].scrapVal += item.scrapVal;
-            weeklyMap[wLabel].dates.push(d);
         });
 
-        // 3. Render Trend Chart
+        // --- UPDATED MAIN TREND CHART FOR VISIBILITY ---
         const ctxTrend = document.getElementById('daTrendCanvas').getContext('2d');
         if(daTrendChart) daTrendChart.destroy();
         daTrendChart = new Chart(ctxTrend, {
@@ -1175,23 +1472,44 @@
             data: {
                 labels: chartLabels,
                 datasets: [
-                    {
-                        label: 'Scrap Value',
-                        data: scrapVals,
-                        backgroundColor: '#dc3545',
-                        order: 2,
+                    { 
+                        label: 'Scrap Value', 
+                        data: scrapVals, 
+                        backgroundColor: '#dc3545', 
+                        order: 2, 
                         yAxisID: 'y',
-                        datalabels: { color:'white', anchor:'end', align:'bottom', font:{size:9}, formatter: v=>v>999?(v/1000).toFixed(1)+'k':Math.round(v) }
+                        datalabels: {
+                            display: true,
+                            color: '#fff',
+                            backgroundColor: 'rgba(220, 53, 69, 0.9)',
+                            borderRadius: 4,
+                            font: { weight: 'bold', size: 10 },
+                            padding: 4,
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (v) => v > 0 ? formatCurrency(v) : ''
+                        }
                     },
-                    {
-                        type: 'line',
-                        label: 'Rate %',
-                        data: scrapRates,
-                        borderColor: '#0d6efd',
-                        borderWidth: 2,
-                        order: 1,
+                    { 
+                        type: 'line', 
+                        label: 'Rate %', 
+                        data: scrapRates, 
+                        borderColor: '#0d6efd', 
+                        borderWidth: 2, 
+                        order: 1, 
                         yAxisID: 'y1',
-                        datalabels: { color:'#0d6efd', align:'top', anchor:'start', font:{size:10, weight:'bold'}, formatter: v=>v.toFixed(2)+'%' }
+                        datalabels: {
+                            display: true,
+                            color: '#fff',
+                            backgroundColor: '#0d6efd',
+                            borderRadius: 4,
+                            font: { weight: 'bold', size: 10 },
+                            padding: 4,
+                            anchor: 'end',
+                            align: 'top',
+                            // 2 DIGITS FIXED HERE
+                            formatter: (v) => v > 0 ? v.toFixed(2) + '%' : '' 
+                        }
                     }
                 ]
             },
@@ -1204,41 +1522,14 @@
             }
         });
 
-        // 4. Render 3 Separate Component Charts
-        const ctxP = document.getElementById('daPcbaChart').getContext('2d');
-        if(daPcbaChart) daPcbaChart.destroy();
-        daPcbaChart = new Chart(ctxP, {
-            type: 'line',
-            data: { labels: chartLabels, datasets: [{ label:'PCBA Qty', data:compPCBA, borderColor:'#0d6efd', backgroundColor:'rgba(13,110,253,0.1)', borderWidth:2, fill:true }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins:{legend:{display:false}} }
-        });
+        // Render 3 Separate Component Charts using UPDATED function
+        renderMixedChart('daPcbaChart', 'PCBA', chartLabels, cPCBA, daPcbaChart, (c) => daPcbaChart = c);
+        renderMixedChart('daSpkrChart', 'Speaker', chartLabels, cSPKR, daSpkrChart, (c) => daSpkrChart = c);
+        renderMixedChart('daBattChart', 'Battery', chartLabels, cBATT, daBattChart, (c) => daBattChart = c);
 
-        const ctxS = document.getElementById('daSpkrChart').getContext('2d');
-        if(daSpkrChart) daSpkrChart.destroy();
-        daSpkrChart = new Chart(ctxS, {
-            type: 'line',
-            data: { labels: chartLabels, datasets: [{ label:'Speaker Qty', data:compSpkr, borderColor:'#ffc107', backgroundColor:'rgba(255,193,7,0.1)', borderWidth:2, fill:true }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins:{legend:{display:false}} }
-        });
+        currentMaterialsList = Object.values(allMaterials).map(m => ({ name: m.desc, model: m.model, type: m.type, q: m.q, v: m.v }));
+        filterMaterials(); 
 
-        const ctxB = document.getElementById('daBattChart').getContext('2d');
-        if(daBattChart) daBattChart.destroy();
-        daBattChart = new Chart(ctxB, {
-            type: 'line',
-            data: { labels: chartLabels, datasets: [{ label:'Battery Qty', data:compBatt, borderColor:'#198754', backgroundColor:'rgba(25,135,84,0.1)', borderWidth:2, fill:true }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins:{legend:{display:false}} }
-        });
-
-        // 5. Render Top 5 Table
-        let top5 = Object.keys(allMaterials).map(k => ({ name: k, ...allMaterials[k] }))
-                         .sort((a,b) => b.v - a.v).slice(0, 5);
-        const t5body = document.getElementById('daTop5Body');
-        t5body.innerHTML = "";
-        top5.forEach(m => {
-            t5body.innerHTML += `<tr><td class="text-start">${m.name}</td><td>${m.q}</td><td class="fw-bold">${formatCurrency(m.v)}</td></tr>`;
-        });
-
-        // 6. Render Model Wise Table (NEW)
         let sortedModels = Object.keys(lineModelMap).map(k => ({ name: k, val: lineModelMap[k] })).sort((a,b) => b.val - a.val);
         const mBody = document.getElementById('daModelTableBody');
         mBody.innerHTML = "";
@@ -1246,86 +1537,187 @@
              mBody.innerHTML += `<tr><td class="text-start fw-bold">${m.name}</td><td class="text-danger">${formatCurrency(m.val)}</td></tr>`;
         });
 
-        // 7. Render Weekly Table
-        const wBody = document.getElementById('daWeeklyTableBody');
-        wBody.innerHTML = "";
-        Object.keys(weeklyMap).forEach(w => {
-            let d = weeklyMap[w];
-            d.dates.sort();
-            let range = d.dates.length > 0 ? `${d.dates[0]} to ${d.dates[d.dates.length-1]}` : `Week ${w}`;
-            let rate = d.prodVal > 0 ? (d.scrapVal / d.prodVal * 100) : 0;
-            wBody.innerHTML += `<tr>
-                <td class="text-muted small fw-bold">${range}</td>
-                <td>${d.prodQty.toLocaleString()}</td>
-                <td class="text-danger fw-bold">${formatCurrency(d.scrapVal)}</td>
-                <td class="fw-bold ${rate>1?'text-danger':'text-success'}">${rate.toFixed(2)}%</td>
+        filterLineWeeklyTable();
+    }
+
+    // ******************************************************
+    // UPDATED HELPER: RENDER MIXED CHART (High Visibility Labels)
+    // ******************************************************
+    function renderMixedChart(canvasId, label, labels, dataObj, chartInstance, setChartInstance) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+
+        // UPDATED LABEL STYLE FOR HIGH VISIBILITY
+        const labelStyle = {
+            backgroundColor: 'rgba(255, 255, 255, 1)', // Solid White Background
+            borderColor: '#333', // Dark Border
+            borderWidth: 1,
+            borderRadius: 4,
+            color: '#000', // Black Text
+            font: { weight: 'bold', size: 10 }, // Bold and readable size
+            padding: 4
+        };
+
+        let barColor = label==='PCBA'?'#0d6efd':(label==='Battery'?'#198754':'#ffc107');
+
+        let newChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Scrap Qty',
+                        data: dataObj.q,
+                        backgroundColor: barColor,
+                        order: 3,
+                        yAxisID: 'y',
+                        datalabels: { 
+                            display: 'auto',
+                            anchor: 'end', 
+                            align: 'top', 
+                            // Custom style for Bar
+                            backgroundColor: barColor,
+                            color: '#fff', 
+                            borderRadius: 3,
+                            font: { weight: 'bold', size: 10 },
+                            padding: 3,
+                            formatter: (v) => v > 0 ? v : '' 
+                        }
+                    },
+                    {
+                        type: 'line',
+                        label: 'Qty Rate %',
+                        data: dataObj.qR,
+                        borderColor: '#333',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        order: 1,
+                        yAxisID: 'y1',
+                        datalabels: { 
+                            display: true, // Force display
+                            align: 'top', 
+                            anchor: 'start', 
+                            offset: 6, 
+                            ...labelStyle, // Apply High Vis Style
+                            color: '#333',
+                            // FORCE 2 DIGITS
+                            formatter: (v) => v > 0 ? v.toFixed(2)+'%' : ''
+                        }
+                    },
+                    {
+                        type: 'line',
+                        label: 'Val Rate %',
+                        data: dataObj.vR,
+                        borderColor: '#dc3545',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 3,
+                        order: 2,
+                        yAxisID: 'y1',
+                        datalabels: { 
+                            display: true, 
+                            align: 'bottom', 
+                            anchor: 'start', 
+                            offset: 6, 
+                            ...labelStyle, // Apply High Vis Style
+                            borderColor: '#dc3545',
+                            color: '#dc3545',
+                            // FORCE 2 DIGITS
+                            formatter: (v) => v > 0 ? v.toFixed(2)+'%' : ''
+                        }
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: {display:true, text:'Qty'} },
+                    y1: { position: 'right', beginAtZero: true, title: {display:true, text:'Rate %'}, grid: {drawOnChartArea:false} }
+                },
+                plugins: { legend: { labels: { boxWidth: 10, font: {size:10} } } }
+            }
+        });
+        setChartInstance(newChart);
+    }
+
+    function filterMaterials() {
+        const sDesc = document.getElementById('sDesc').value.toLowerCase();
+        const sModel = document.getElementById('sModel').value.toLowerCase();
+        const sType = document.getElementById('sType').value.toLowerCase();
+        const sQty = document.getElementById('sQty').value.toLowerCase();
+        const sVal = document.getElementById('sVal').value.toLowerCase();
+        
+        const sortMode = document.getElementById('matSort').value;
+        const tbody = document.getElementById('daMatTableBody');
+        tbody.innerHTML = "";
+
+        let filtered = currentMaterialsList.filter(m => {
+            return m.name.toLowerCase().includes(sDesc) &&
+                   m.model.toLowerCase().includes(sModel) &&
+                   m.type.toLowerCase().includes(sType) &&
+                   m.q.toString().includes(sQty) &&
+                   Math.round(m.v).toString().includes(sVal);
+        });
+
+        filtered.sort((a,b) => {
+            if(sortMode === 'val_desc') return b.v - a.v;
+            if(sortMode === 'val_asc') return a.v - b.v;
+            if(sortMode === 'qty_desc') return b.q - a.q;
+            if(sortMode === 'qty_asc') return a.q - b.q;
+            return 0;
+        });
+
+        filtered.forEach(m => {
+            tbody.innerHTML += `<tr>
+                <td class="text-start">${m.name}</td>
+                <td class="text-start small">${m.model}</td>
+                <td class="text-start small">${m.type}</td>
+                <td class="fw-bold">${m.q}</td>
+                <td class="fw-bold text-danger">${formatCurrency(m.v)}</td>
             </tr>`;
         });
     }
 
-    // --- NEW SPLIT LOGIC: RENDER MODEL ANALYSIS TABS ---
     function renderModelAnalysisTabs() {
         const filterProd = document.getElementById('modelGraphProduct').value;
         const filterType = document.getElementById('modelGraphType').value;
         const filterComp = document.getElementById('modelGraphComp').value;
         const dFrom = document.getElementById('dateFrom').value;
         const dTo = document.getElementById('dateTo').value;
-
-        // Common Data Gathering
         let modelDataMap = {};
 
-        // 1. Calculate Production
         if(rawData.production.length > 0) {
             rawData.production.slice(1).forEach(row => {
                 let d = normalizeDate(row[0]);
                 if(!d || d < dFrom || d > dTo) return;
-
                 let ln = normalizeLine(row[3]);
                 let model = (row[2] || "").toString().trim().toUpperCase();
                 let rawOut = parseFloat(row[4]) || 0;
                 let val = rawOut * (modelPrices[model]||0);
                 let productCol = (row[1] || "").toString().toUpperCase(); 
                 let cat = productCol !== "" ? getProductCategory(productCol, "") : getProductCategory(model, ln);
-
-                if(!modelDataMap[model]) modelDataMap[model] = { 
-                    cat: cat, 
-                    prodQty:0, 
-                    prodVal:0, 
-                    scrapQty:0, 
-                    scrapVal:0,
-                    // New Fields for Split
-                    caseScrapVal: 0, budsScrapVal: 0, otherScrapVal: 0,
-                    caseScrapQty: 0, budsScrapQty: 0, otherScrapQty: 0
-                };
-                
-                modelDataMap[model].prodQty += rawOut; 
-                modelDataMap[model].prodVal += val;
+                if(!modelDataMap[model]) modelDataMap[model] = { cat: cat, prodQty:0, prodVal:0, scrapQty:0, scrapVal:0, caseScrapVal: 0, budsScrapVal: 0, otherScrapVal: 0, caseScrapQty: 0, budsScrapQty: 0, otherScrapQty: 0 };
+                modelDataMap[model].prodQty += rawOut; modelDataMap[model].prodVal += val;
                 if(cat !== 'OTHER') modelDataMap[model].cat = cat;
             });
         }
-
-        // 2. Calculate Scrap based on filters and SPLIT into Case/Buds
         if(rawData.scrap.length > 0) {
             rawData.scrap.slice(1).forEach(row => {
                 let d = normalizeDate(row[0]);
                 if(!d || d < dFrom || d > dTo) return;
-
                 let ln = normalizeLine(row[4]);
                 let floorVal = row[5];
                 let model = (row[8] || "").toString().trim().toUpperCase();
                 let prodName = getProductCategory(floorVal, ln);
-                
                 let typeVal = (row[9]||"").toString().toUpperCase(); 
                 let rejTypeVal = (row[10] || "").toString().toUpperCase();
                 let fullType = typeVal + " " + rejTypeVal; 
-                let storeVal = String(row[1] || "").toUpperCase();
-
-                // Filters
+                let storeVal = String(row[1]||"").toUpperCase();
                 let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejTypeVal.includes('PROCESS');
                 let isRMD = storeVal.includes('6002') || storeVal.includes('RMD') || rejTypeVal.includes('RMD');
                 if (filterType === 'PROCESS' && !isProc) return;
                 if (filterType === 'RMD' && !isRMD) return;
-
                 if (filterComp !== 'ALL') {
                     let isTargetComp = false;
                     if (filterComp === 'PCBA' && (fullType.includes("PCBA") || fullType.includes("MAIN BOARD") || fullType.includes("PCB"))) isTargetComp = true;
@@ -1333,538 +1725,193 @@
                     if (filterComp === 'SPEAKER' && (fullType.includes("SPEAKER") || fullType.includes("DRIVER") || fullType.includes("SPK"))) isTargetComp = true;
                     if (!isTargetComp) return;
                 }
-
-                let q = parseFloat(row[12])||0; 
-                let val = q * (parseFloat(row[11])||0);
-
-                if(!modelDataMap[model]) modelDataMap[model] = { 
-                    cat: prodName, prodQty:0, prodVal:0, scrapQty:0, scrapVal:0,
-                    caseScrapVal: 0, budsScrapVal: 0, otherScrapVal: 0,
-                    caseScrapQty: 0, budsScrapQty: 0, otherScrapQty: 0
-                };
-                
+                let q = parseFloat(row[12])||0; let val = q * (parseFloat(row[11])||0);
+                if(!modelDataMap[model]) modelDataMap[model] = { cat: prodName, prodQty:0, prodVal:0, scrapQty:0, scrapVal:0, caseScrapVal: 0, budsScrapVal: 0, otherScrapVal: 0, caseScrapQty: 0, budsScrapQty: 0, otherScrapQty: 0 };
                 modelDataMap[model].scrapQty += q;
                 modelDataMap[model].scrapVal += val;
-                
-                // --- SPLIT LOGIC ---
-                if(prodName === 'CHARGING CASE') {
-                    modelDataMap[model].caseScrapVal += val;
-                    modelDataMap[model].caseScrapQty += q;
-                } else if (prodName === 'EARBUDS') {
-                    modelDataMap[model].budsScrapVal += val;
-                    modelDataMap[model].budsScrapQty += q;
-                } else {
-                    modelDataMap[model].otherScrapVal += val;
-                    modelDataMap[model].otherScrapQty += q;
-                }
-
+                if(prodName === 'CHARGING CASE') { modelDataMap[model].caseScrapVal += val; modelDataMap[model].caseScrapQty += q; } 
+                else if (prodName === 'EARBUDS') { modelDataMap[model].budsScrapVal += val; modelDataMap[model].budsScrapQty += q; } 
+                else { modelDataMap[model].otherScrapVal += val; modelDataMap[model].otherScrapQty += q; }
                 if(modelDataMap[model].cat === 'OTHER' && prodName !== 'OTHER') modelDataMap[model].cat = prodName;
             });
         }
 
-        // Separate Arrays for Value and Qty
-        let valList = [];
-        let qtyList = [];
-
+        let valList = []; let qtyList = [];
         Object.keys(modelDataMap).forEach(m => {
             let d = modelDataMap[m];
             if (filterProd !== 'ALL' && d.cat !== filterProd) return;
             if (d.prodQty === 0 && d.scrapQty === 0) return;
-
-            // --- VALUE LOGIC with SPLIT ---
             let totalScrapVal = d.caseScrapVal + d.budsScrapVal + d.otherScrapVal;
             let den = d.prodVal;
-            
             let caseRate = den > 0 ? (d.caseScrapVal / den * 100) : 0;
             let budsRate = den > 0 ? (d.budsScrapVal / den * 100) : 0;
             let overallRate = den > 0 ? (totalScrapVal / den * 100) : 0;
-            
-            valList.push({
-                model: m, cat: d.cat,
-                prodQty: d.prodQty, prodVal: d.prodVal,
-                caseVal: d.caseScrapVal, caseRate: caseRate,
-                budsVal: d.budsScrapVal, budsRate: budsRate,
-                overallVal: totalScrapVal, overallRate: overallRate
-            });
-
-            // --- QTY LOGIC with SPLIT (2x for Buds) ---
+            valList.push({ model: m, cat: d.cat, prodQty: d.prodQty, prodVal: d.prodVal, caseVal: d.caseScrapVal, caseRate: caseRate, budsVal: d.budsScrapVal, budsRate: budsRate, overallVal: totalScrapVal, overallRate: overallRate });
             let totalScrapQty = d.caseScrapQty + d.budsScrapQty + d.otherScrapQty;
-            
-            // Case Rate (1x)
             let caseQtyRate = d.prodQty > 0 ? (d.caseScrapQty / d.prodQty * 100) : 0;
-            
-            // Buds Rate (2x)
             let budsQtyRate = d.prodQty > 0 ? (d.budsScrapQty / (d.prodQty * 2) * 100) : 0; 
-
-            qtyList.push({
-                model: m, cat: d.cat,
-                prodQty: d.prodQty, 
-                caseScrap: d.caseScrapQty, caseRate: caseQtyRate,
-                budsScrap: d.budsScrapQty, budsRate: budsQtyRate,
-                totalScrap: totalScrapQty
-            });
+            qtyList.push({ model: m, cat: d.cat, prodQty: d.prodQty, caseScrap: d.caseScrapQty, caseRate: caseQtyRate, budsScrap: d.budsScrapQty, budsRate: budsQtyRate, totalScrap: totalScrapQty });
         });
 
-        // --- RENDER TAB 1: VALUE ---
         valList.sort((a,b) => b.overallVal - a.overallVal); 
         renderValueTab(valList);
-
-        // --- RENDER TAB 2: QTY ---
         qtyList.sort((a,b) => b.totalScrap - a.totalScrap);
         renderQtyTab(qtyList);
     }
 
-    // MODIFIED: STRUCTURED AS PER SCREENSHOT + DATA-VAL
     function renderValueTab(data) {
         const tbody = document.getElementById('modelValueTableBody');
         tbody.innerHTML = "";
-        
-        // Table
         data.forEach((m, idx) => {
-            let row = `<tr>
-                <td class="align-middle" data-val="${idx+1}">${idx+1}</td>
-                <td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td>
-                <td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td>
-                <td class="text-dark align-middle fw-bold" data-val="${m.prodVal}">${formatCurrency(m.prodVal)}</td>
-                
-                <!-- Charging Case -->
-                <td class="align-middle" data-val="${m.caseVal}">${m.caseVal > 0 ? formatCurrency(m.caseVal) : '-'}</td>
-                <td class="align-middle text-muted small" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
-                
-                <!-- Earbuds -->
-                <td class="align-middle" data-val="${m.budsVal}">${m.budsVal > 0 ? formatCurrency(m.budsVal) : '-'}</td>
-                <td class="align-middle text-muted small" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
-                
-                <!-- Overall -->
-                <td class="text-danger fw-bold align-middle border-start" data-val="${m.overallVal}">${formatCurrency(m.overallVal)}</td>
-                <td class="fw-bold align-middle ${m.overallRate>1?'text-danger':'text-success'}" data-val="${m.overallRate}">${m.overallRate.toFixed(2)}%</td>
-            </tr>`;
+            let row = `<tr><td class="align-middle" data-val="${idx+1}">${idx+1}</td><td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td><td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td><td class="text-dark align-middle fw-bold" data-val="${m.prodVal}">${formatCurrency(m.prodVal)}</td>
+                <td class="align-middle" data-val="${m.caseVal}">${m.caseVal > 0 ? formatCurrency(m.caseVal) : '-'}</td><td class="align-middle text-muted small" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
+                <td class="align-middle" data-val="${m.budsVal}">${m.budsVal > 0 ? formatCurrency(m.budsVal) : '-'}</td><td class="align-middle text-muted small" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
+                <td class="text-danger fw-bold align-middle border-start" data-val="${m.overallVal}">${formatCurrency(m.overallVal)}</td><td class="fw-bold align-middle ${m.overallRate>1?'text-danger':'text-success'}" data-val="${m.overallRate}">${m.overallRate.toFixed(2)}%</td></tr>`;
             tbody.innerHTML += row;
         });
-
-        // Graph (Points to Overall Value)
         let graphData = data.slice(0, 15);
         const ctx = document.getElementById('modelValueCanvas').getContext('2d');
         if (modelValueChart) modelValueChart.destroy();
-
         const lblStyle = { display: true, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 3, color: 'black', font: { weight: 'bold', size: 9 }, padding: 3 };
-
         modelValueChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: graphData.map(m => m.model),
                 datasets: [
-                    {
-                        label: 'Total Scrap Value (₹)',
-                        data: graphData.map(m => m.overallVal),
-                        backgroundColor: '#198754',
-                        order: 2,
-                        yAxisID: 'y',
-                        datalabels: { align: 'end', anchor: 'end', ...lblStyle, formatter: v => formatCurrency(v) }
-                    },
-                    {
-                        label: 'Overall Rate %',
-                        data: graphData.map(m => m.overallRate),
-                        type: 'line',
-                        borderColor: '#dc3545',
-                        backgroundColor: '#dc3545',
-                        borderWidth: 2,
-                        pointRadius: 4,
-                        order: 1,
-                        yAxisID: 'y1',
-                        datalabels: { align: 'top', anchor: 'start', offset: 5, ...lblStyle, color: '#dc3545', formatter: v => v.toFixed(2) + '%' }
-                    }
+                    { label: 'Total Scrap Value (₹)', data: graphData.map(m => m.overallVal), backgroundColor: '#198754', order: 2, yAxisID: 'y', datalabels: { align: 'end', anchor: 'end', ...lblStyle, formatter: v => formatCurrency(v) } },
+                    { label: 'Overall Rate %', data: graphData.map(m => m.overallRate), type: 'line', borderColor: '#dc3545', backgroundColor: '#dc3545', borderWidth: 2, pointRadius: 4, order: 1, yAxisID: 'y1', datalabels: { align: 'top', anchor: 'start', offset: 5, ...lblStyle, color: '#dc3545', formatter: v => v.toFixed(2) + '%' } }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'Value (INR)' } },
-                    y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Rate %' }, grid: { drawOnChartArea: false } }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: 'Value (INR)' } }, y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Rate %' }, grid: { drawOnChartArea: false } } } }
         });
     }
 
     function renderQtyTab(data) {
         const tbody = document.getElementById('modelQtyTableBody');
         tbody.innerHTML = "";
-        
-        // Table
         data.forEach((m, idx) => {
-            let row = `<tr>
-                <td class="align-middle" data-val="${idx+1}">${idx+1}</td>
-                <td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td>
-                <td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td>
-                
-                <!-- Charging Case (1x Logic) -->
-                <td class="align-middle text-danger" data-val="${m.caseScrap}">${m.caseScrap > 0 ? m.caseScrap : '-'}</td>
-                <td class="align-middle small fw-bold" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
-                
-                <!-- Earbuds (2x Logic) -->
-                <td class="align-middle text-danger" data-val="${m.budsScrap}">${m.budsScrap > 0 ? m.budsScrap : '-'}</td>
-                <td class="align-middle small fw-bold" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
-                
-                <!-- Total -->
-                <td class="text-danger fw-bold align-middle border-start" data-val="${m.totalScrap}">${m.totalScrap.toLocaleString()}</td>
-            </tr>`;
+            let row = `<tr><td class="align-middle" data-val="${idx+1}">${idx+1}</td><td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td><td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td>
+                <td class="align-middle text-danger" data-val="${m.caseScrap}">${m.caseScrap > 0 ? m.caseScrap : '-'}</td><td class="align-middle small fw-bold" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
+                <td class="align-middle text-danger" data-val="${m.budsScrap}">${m.budsScrap > 0 ? m.budsScrap : '-'}</td><td class="align-middle small fw-bold" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
+                <td class="text-danger fw-bold align-middle border-start" data-val="${m.totalScrap}">${m.totalScrap.toLocaleString()}</td></tr>`;
             tbody.innerHTML += row;
         });
-
-        // Graph
         let graphData = data.slice(0, 15);
         const ctx = document.getElementById('modelQtyCanvas').getContext('2d');
         if (modelQtyChart) modelQtyChart.destroy();
-
         const lblStyle = { display: true, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 3, color: 'black', font: { weight: 'bold', size: 9 }, padding: 3 };
-
         modelQtyChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: graphData.map(m => m.model),
                 datasets: [
-                    {
-                        label: 'Total Scrap Qty',
-                        data: graphData.map(m => m.totalScrap),
-                        backgroundColor: '#0d6efd',
-                        order: 2,
-                        yAxisID: 'y',
-                        datalabels: { align: 'end', anchor: 'end', ...lblStyle }
-                    },
-                    {
-                        label: 'Case Rate %',
-                        data: graphData.map(m => m.caseRate),
-                        type: 'line',
-                        borderColor: '#dc3545',
-                        backgroundColor: '#dc3545', // needed for legend
-                        borderWidth: 2,
-                        pointRadius: 3,
-                        order: 1,
-                        yAxisID: 'y1',
-                        datalabels: { 
-                            display: true, 
-                            align: 'top', 
-                            anchor: 'start', 
-                            offset: 4, 
-                            ...lblStyle, 
-                            color: '#dc3545', 
-                            formatter: v => v > 0 ? v.toFixed(1) + '%' : '' 
-                        }
-                    },
-                    {
-                        label: 'Buds Rate %',
-                        data: graphData.map(m => m.budsRate),
-                        type: 'line',
-                        borderColor: '#fd7e14',
-                        backgroundColor: '#fd7e14', // needed for legend
-                        borderWidth: 2,
-                        pointRadius: 3,
-                        order: 1,
-                        yAxisID: 'y1',
-                        datalabels: { 
-                            display: true, 
-                            align: 'bottom', // Offset to avoid overlap
-                            anchor: 'start', 
-                            offset: 4, 
-                            ...lblStyle, 
-                            color: '#fd7e14', 
-                            formatter: v => v > 0 ? v.toFixed(1) + '%' : '' 
-                        }
-                    }
+                    { label: 'Total Scrap Qty', data: graphData.map(m => m.totalScrap), backgroundColor: '#0d6efd', order: 2, yAxisID: 'y', datalabels: { align: 'end', anchor: 'end', ...lblStyle } },
+                    { label: 'Case Rate %', data: graphData.map(m => m.caseRate), type: 'line', borderColor: '#dc3545', backgroundColor: '#dc3545', borderWidth: 2, pointRadius: 3, order: 1, yAxisID: 'y1', datalabels: { display: true, align: 'top', anchor: 'start', offset: 4, ...lblStyle, color: '#dc3545', formatter: v => v > 0 ? v.toFixed(1) + '%' : '' } },
+                    { label: 'Buds Rate %', data: graphData.map(m => m.budsRate), type: 'line', borderColor: '#fd7e14', backgroundColor: '#fd7e14', borderWidth: 2, pointRadius: 3, order: 1, yAxisID: 'y1', datalabels: { display: true, align: 'bottom', anchor: 'start', offset: 4, ...lblStyle, color: '#fd7e14', formatter: v => v > 0 ? v.toFixed(1) + '%' : '' } }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'Quantity' } },
-                    y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Rate %' }, grid: { drawOnChartArea: false } }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: 'Quantity' } }, y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Rate %' }, grid: { drawOnChartArea: false } } } }
         });
     }
 
-    // --- UPDATED TREND GRAPH (MASTER FIX) ---
     function renderTrendChart() {
         const pFilter = document.getElementById('trendGraphProduct').value;
         const tFilter = document.getElementById('trendGraphType').value;
         const dFrom = document.getElementById('dateFrom').value;
         const dTo = document.getElementById('dateTo').value;
-
-        // 1. Calculate Daily Production Value for Rate Denominator
         let dailyProd = {};
         if(rawData.production.length > 0) {
             rawData.production.slice(1).forEach(row => {
                 let d = normalizeDate(row[0]);
                 if(!d || d < dFrom || d > dTo) return;
-                
                 let productCol = (row[1] || "").toString().toUpperCase(); 
                 let ln = normalizeLine(row[3]);
-                
-                // *** FIX: STRICT MODEL NAME NORMALIZATION ***
                 let model = (row[2] || "").toString().trim().toUpperCase(); 
-                
                 let cat = "";
-                
-                if(productCol !== "") cat = getProductCategory(productCol, "");
-                else cat = getProductCategory(model, ln);
-                
-                if (productCol.includes("EARBUDS") && productCol.includes("CHARGING")) {
-                    if (pFilter === 'EARBUDS') {
-                        cat = 'EARBUDS';
-                    } else if (pFilter === 'CHARGING CASE') {
-                        cat = 'CHARGING CASE';
-                    }
-                }
-
-                // *** FIX: IF FILTER IS 'ALL', INCLUDE EVERYTHING ***
+                if(productCol !== "") cat = getProductCategory(productCol, ""); else cat = getProductCategory(model, ln);
+                if (productCol.includes("EARBUDS") && productCol.includes("CHARGING")) { if (pFilter === 'EARBUDS') cat = 'EARBUDS'; else if (pFilter === 'CHARGING CASE') cat = 'CHARGING CASE'; }
                 if(pFilter !== 'ALL' && cat !== pFilter) return;
-
                 let val = (parseFloat(row[4])||0) * (modelPrices[model]||0);
-                if(!dailyProd[d]) dailyProd[d] = 0;
-                dailyProd[d] += val;
+                if(!dailyProd[d]) dailyProd[d] = 0; dailyProd[d] += val;
             });
         }
-
-        // 2. Calculate Daily Scrap Value
         let trendData = {}; 
         if(rawData.scrap.length > 0) {
             rawData.scrap.slice(1).forEach(row => {
                 let d = normalizeDate(row[0]);
                 if(!d || d < dFrom || d > dTo) return;
-
-                let ln = normalizeLine(row[4]); 
-                let floorVal = row[5]; 
-                let cat = getProductCategory(floorVal, ln);
-                
-                // *** FIX: IF FILTER IS 'ALL', INCLUDE EVERYTHING ***
+                let ln = normalizeLine(row[4]); let floorVal = row[5]; let cat = getProductCategory(floorVal, ln);
                 if(pFilter !== 'ALL' && cat !== pFilter) return;
-
                 let val = (parseFloat(row[11])||0) * (parseFloat(row[12])||0); 
-                let storeVal = String(row[1]||"").toUpperCase();
-                let rejVal = String(row[10]||"").toUpperCase();
-
+                let storeVal = String(row[1]||"").toUpperCase(); let rejVal = String(row[10]||"").toUpperCase();
                 let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejVal.includes('PROCESS');
                 let isRMD = storeVal.includes('6002') || storeVal.includes('RMD') || rejVal.includes('RMD');
-
                 if(!trendData[d]) trendData[d] = { proc:0, rmd:0 };
-                if(isProc) trendData[d].proc += val;
-                if(isRMD) trendData[d].rmd += val;
+                if(isProc) trendData[d].proc += val; if(isRMD) trendData[d].rmd += val;
             });
         }
-
-        // --- MASTER DATE LIST (Merge both lists) ---
         let allDates = new Set([...Object.keys(dailyProd), ...Object.keys(trendData)]);
         let labels = Array.from(allDates).sort();
-        
-        let barData = [];
-        let lineRateData = [];
-        let lbl = '';
-
+        let barData = []; let lineRateData = []; let lbl = '';
         labels.forEach(d => {
-            let scrapVal = 0;
-            let currentScrap = trendData[d] || { proc:0, rmd:0 }; // Default 0 if no scrap
-
-            if(tFilter === 'PROCESS') scrapVal = currentScrap.proc;
-            else if (tFilter === 'RMD') scrapVal = currentScrap.rmd;
-            else scrapVal = currentScrap.proc + currentScrap.rmd;
-
+            let scrapVal = 0; let currentScrap = trendData[d] || { proc:0, rmd:0 };
+            if(tFilter === 'PROCESS') scrapVal = currentScrap.proc; else if (tFilter === 'RMD') scrapVal = currentScrap.rmd; else scrapVal = currentScrap.proc + currentScrap.rmd;
             barData.push(scrapVal);
-
-            let prodVal = dailyProd[d] || 0; // Default 0 if no production
+            let prodVal = dailyProd[d] || 0; 
             let rate = prodVal > 0 ? (scrapVal / prodVal) * 100 : 0;
             lineRateData.push(rate);
         });
-
-        if(tFilter === 'PROCESS') lbl = 'Process';
-        else if(tFilter === 'RMD') lbl = 'RMD';
-        else lbl = 'Total';
-
+        if(tFilter === 'PROCESS') lbl = 'Process'; else if(tFilter === 'RMD') lbl = 'RMD'; else lbl = 'Total';
         const ctx = document.getElementById('scrapTrendCanvas').getContext('2d');
         if(scrapTrendChart) scrapTrendChart.destroy();
-
         scrapTrendChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        type: 'bar',
-                        label: lbl + ' Value (₹)',
-                        data: barData,
-                        backgroundColor: '#dc3545',
-                        order: 2,
-                        yAxisID: 'y',
-                        datalabels: {
-                            display: true,
-                            color: 'white',
-                            anchor: 'end',
-                            align: 'bottom',
-                            backgroundColor: 'rgba(220, 53, 69, 0.9)',
-                            borderRadius: 4,
-                            padding: 4,
-                            font: { size: 10, weight: 'bold' },
-                            formatter: function(value) { return value >= 1000 ? (value/1000).toFixed(1) + 'k' : Math.round(value); }
-                        }
-                    },
-                    {
-                        type: 'line',
-                        label: lbl + ' Rate (%)',
-                        data: lineRateData,
-                        borderColor: '#0d6efd',
-                        backgroundColor: '#0d6efd',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        order: 1,
-                        yAxisID: 'y1',
-                        datalabels: {
-                            display: true,
-                            color: 'white',
-                            align: 'top',
-                            backgroundColor: '#0d6efd',
-                            borderRadius: 4,
-                            padding: 4,
-                            font: { size: 10, weight: 'bold' },
-                            formatter: function(value) { return value.toFixed(2) + '%'; }
-                        }
-                    }
+                    { type: 'bar', label: lbl + ' Value (₹)', data: barData, backgroundColor: '#dc3545', order: 2, yAxisID: 'y', datalabels: { display: true, color: 'white', anchor: 'end', align: 'bottom', backgroundColor: 'rgba(220, 53, 69, 0.9)', borderRadius: 4, padding: 4, font: { size: 10, weight: 'bold' }, formatter: function(value) { return value >= 1000 ? (value/1000).toFixed(1) + 'k' : Math.round(value); } } },
+                    { type: 'line', label: lbl + ' Rate (%)', data: lineRateData, borderColor: '#0d6efd', backgroundColor: '#0d6efd', borderWidth: 2, tension: 0.3, pointRadius: 4, order: 1, yAxisID: 'y1', datalabels: { display: true, color: 'white', align: 'top', backgroundColor: '#0d6efd', borderRadius: 4, padding: 4, font: { size: 10, weight: 'bold' }, formatter: function(value) { return value.toFixed(2) + '%'; } } }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: true },
-                    tooltip: { mode: 'index', intersect: false }
-                },
-                scales: { 
-                    y: { 
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: { display: true, text: 'Value (₹)' },
-                        beginAtZero: true,
-                        ticks: { callback: function(value) { return value >= 1000 ? (value/1000) + 'K' : value; } }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: { display: true, text: 'Rate (%)' },
-                        beginAtZero: true,
-                        grid: { drawOnChartArea: false } 
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true }, tooltip: { mode: 'index', intersect: false } }, scales: { y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Value (₹)' }, beginAtZero: true, ticks: { callback: function(value) { return value >= 1000 ? (value/1000) + 'K' : value; } } }, y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Rate (%)' }, beginAtZero: true, grid: { drawOnChartArea: false } } } }
         });
     }
 
-    // --- UPDATED LINE ANALYSIS GRAPH ---
     function renderLineComponentAnalysis(lineCompStats, lineProdQtyMap) {
         const prodFilter = document.getElementById('laProduct').value;
         const typeFilter = document.getElementById('laType').value; 
         const compFilter = document.getElementById('laComponent').value; 
-
         let allKeys = new Set([...Object.keys(lineCompStats), ...Object.keys(lineProdQtyMap)]);
         let keys = Array.from(allKeys).sort(); 
-
-        let processedData = []; 
-        let totalEffectiveProd = 0; 
-        let totalRawProd = 0; 
-        let totalP = 0, totalS = 0, totalB = 0;
-
+        let processedData = []; let totalEffectiveProd = 0; let totalRawProd = 0; let totalP = 0, totalS = 0, totalB = 0;
         keys.forEach(k => {
             let [ln, cat] = k.split("|");
-            
             if (prodFilter !== 'ALL' && cat !== prodFilter) return;
-
-            let stats = lineCompStats[k] || { raw: {} };
-            let raw = stats.raw || {};
-            
+            let stats = lineCompStats[k] || { raw: {} }; let raw = stats.raw || {};
             let pQ = 0, sQ = 0, bQ = 0;
-            if(typeFilter === 'ALL') {
-                pQ = (raw.pcba_proc||0) + (raw.pcba_rmd||0);
-                sQ = (raw.spkr_proc||0) + (raw.spkr_rmd||0);
-                bQ = (raw.batt_proc||0) + (raw.batt_rmd||0);
-            } else if (typeFilter === 'PROCESS') {
-                pQ = raw.pcba_proc||0; sQ = raw.spkr_proc||0; bQ = raw.batt_proc||0;
-            } else { 
-                pQ = raw.pcba_rmd||0; sQ = raw.spkr_rmd||0; bQ = raw.batt_rmd||0;
-            }
-
+            if(typeFilter === 'ALL') { pQ = (raw.pcba_proc||0) + (raw.pcba_rmd||0); sQ = (raw.spkr_proc||0) + (raw.spkr_rmd||0); bQ = (raw.batt_proc||0) + (raw.batt_rmd||0); } 
+            else if (typeFilter === 'PROCESS') { pQ = raw.pcba_proc||0; sQ = raw.spkr_proc||0; bQ = raw.batt_proc||0; } 
+            else { pQ = raw.pcba_rmd||0; sQ = raw.spkr_rmd||0; bQ = raw.batt_rmd||0; }
             let prodRaw = lineProdQtyMap[k] || 0;
-            
             let effectiveProd = prodRaw; 
-            if (cat === 'EARBUDS') { effectiveProd = prodRaw * 2; } 
-            else { effectiveProd = prodRaw * 1; }
-            
+            if (cat === 'EARBUDS') { effectiveProd = prodRaw * 2; } else { effectiveProd = prodRaw * 1; }
             if(prodRaw === 0 && pQ === 0 && sQ === 0 && bQ === 0) return;
-
             let pR = effectiveProd > 0 ? (pQ / effectiveProd * 100) : 0;
             let sR = effectiveProd > 0 ? (sQ / effectiveProd * 100) : 0;
             let bR = effectiveProd > 0 ? (bQ / effectiveProd * 100) : 0;
-
-            totalEffectiveProd += effectiveProd;
-            totalRawProd += prodRaw; 
-            totalP += pQ; totalS += sQ; totalB += bQ;
-            
-            processedData.push({
-                ln: ln, cat: cat, 
-                prodDisplay: prodRaw,
-                prodEffective: effectiveProd,
-                pQ: pQ, pR: pR,
-                sQ: sQ, sR: sR,
-                bQ: bQ, bR: bR,
-                sortMetric: (compFilter==='ALL'?(pQ+sQ+bQ):(compFilter==='PCBA'?pQ:(compFilter==='SPEAKER'?sQ:bQ)))
-            });
+            totalEffectiveProd += effectiveProd; totalRawProd += prodRaw; totalP += pQ; totalS += sQ; totalB += bQ;
+            processedData.push({ ln: ln, cat: cat, prodDisplay: prodRaw, prodEffective: effectiveProd, pQ: pQ, pR: pR, sQ: sQ, sR: sR, bQ: bQ, bR: bR, sortMetric: (compFilter==='ALL'?(pQ+sQ+bQ):(compFilter==='PCBA'?pQ:(compFilter==='SPEAKER'?sQ:bQ))) });
         });
-
-        processedData.sort((a,b) => {
-            if (a.cat < b.cat) return -1;
-            if (a.cat > b.cat) return 1;
-            if (a.ln < b.ln) return -1;
-            if (a.ln > b.ln) return 1;
-            return 0;
-        });
-
-        // --- RENDER TABLE ---
+        processedData.sort((a,b) => { if (a.cat < b.cat) return -1; if (a.cat > b.cat) return 1; if (a.ln < b.ln) return -1; if (a.ln > b.ln) return 1; return 0; });
         let totPR = totalEffectiveProd > 0 ? (totalP/totalEffectiveProd*100) : 0;
         let totSR = totalEffectiveProd > 0 ? (totalS/totalEffectiveProd*100) : 0;
         let totBR = totalEffectiveProd > 0 ? (totalB/totalEffectiveProd*100) : 0;
-
-        let tableHTML = `
-            <tr class="fw-bold bg-secondary text-white border-top border-3 border-dark" id="subtotalRow">
-                <td class="text-end">GRAND TOTAL</td>
-                <td>-</td>
-                <td data-val="${totalRawProd}">${totalRawProd.toLocaleString()}</td> 
-                <td data-val="${totalP}">${totalP}</td>
-                <td class="small text-danger fw-bold" data-val="${totPR}">${totPR.toFixed(2)}%</td>
-                <td data-val="${totalS}">${totalS}</td>
-                <td class="small text-danger fw-bold" data-val="${totSR}">${totSR.toFixed(2)}%</td>
-                <td data-val="${totalB}">${totalB}</td>
-                <td class="small text-danger fw-bold" data-val="${totBR}">${totBR.toFixed(2)}%</td>
-            </tr>`;
-        
+        let tableHTML = `<tr class="fw-bold bg-secondary text-white border-top border-3 border-dark" id="subtotalRow"><td class="text-end">GRAND TOTAL</td><td>-</td><td data-val="${totalRawProd}">${totalRawProd.toLocaleString()}</td><td data-val="${totalP}">${totalP}</td><td class="small text-danger fw-bold" data-val="${totPR}">${totPR.toFixed(2)}%</td><td data-val="${totalS}">${totalS}</td><td class="small text-danger fw-bold" data-val="${totSR}">${totSR.toFixed(2)}%</td><td data-val="${totalB}">${totalB}</td><td class="small text-danger fw-bold" data-val="${totBR}">${totBR.toFixed(2)}%</td></tr>`;
         processedData.forEach(d => {
             let bClass = d.cat === 'EARBUDS' ? 'bg-primary' : (d.cat === 'CHARGING CASE' ? 'bg-danger' : 'bg-dark');
-            tableHTML += `
-            <tr>
-                <td class="fw-bold" data-val="${d.ln}">${d.ln}</td>
-                <td data-val="${d.cat}"><span class="badge ${bClass} badge-prod">${d.cat}</span></td>
-                <td class="bg-light fw-bold" data-val="${d.prodDisplay}">${d.prodDisplay.toLocaleString()}</td>
-                <td class="text-primary" data-val="${d.pQ}">${d.pQ}</td>
-                <td class="text-danger fw-bold small" data-val="${d.pR}">${d.pR.toFixed(2)}%</td>
-                <td class="text-warning text-dark" data-val="${d.sQ}">${d.sQ}</td>
-                <td class="text-danger fw-bold small" data-val="${d.sR}">${d.sR.toFixed(2)}%</td>
-                <td class="text-success" data-val="${d.bQ}">${d.bQ}</td>
-                <td class="text-danger fw-bold small" data-val="${d.bR}">${d.bR.toFixed(2)}%</td>
-            </tr>`;
+            tableHTML += `<tr><td class="fw-bold" data-val="${d.ln}">${d.ln}</td><td data-val="${d.cat}"><span class="badge ${bClass} badge-prod">${d.cat}</span></td><td class="bg-light fw-bold" data-val="${d.prodDisplay}">${d.prodDisplay.toLocaleString()}</td><td class="text-primary" data-val="${d.pQ}">${d.pQ}</td><td class="text-danger fw-bold small" data-val="${d.pR}">${d.pR.toFixed(2)}%</td><td class="text-warning text-dark" data-val="${d.sQ}">${d.sQ}</td><td class="text-danger fw-bold small" data-val="${d.sR}">${d.sR.toFixed(2)}%</td><td class="text-success" data-val="${d.bQ}">${d.bQ}</td><td class="text-danger fw-bold small" data-val="${d.bR}">${d.bR.toFixed(2)}%</td></tr>`;
         });
         document.getElementById('compTableBody').innerHTML = tableHTML;
-
-        // Graph
         let graphData = [...processedData].sort((a,b) => b.sortMetric - a.sortMetric);
         const ctx = document.getElementById('componentAnalysisCanvas').getContext('2d');
         if (componentChart) componentChart.destroy();
@@ -1872,9 +1919,7 @@
         let gpQ = graphData.map(d => d.pQ); let gpR = graphData.map(d => d.pR);
         let gsQ = graphData.map(d => d.sQ); let gsR = graphData.map(d => d.sR);
         let gbQ = graphData.map(d => d.bQ); let gbR = graphData.map(d => d.bR);
-        
         const lblStyle = { display: true, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 3, color: 'black', font: { weight: 'bold', size: 9 }, padding: 3 };
-        
         let datasets = [];
         if(compFilter === 'ALL') {
              datasets.push({ label: 'PCBA Qty', data: gpQ, backgroundColor: '#0d6efd', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle } });
@@ -1893,88 +1938,54 @@
         componentChart = new Chart(ctx, {
             type: 'bar',
             data: { labels: gl, datasets: datasets },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, title: {display:true, text:'Quantity'} },
-                    y1: { display: (compFilter!=='ALL'), position: 'right', beginAtZero: true, title: {display:true, text:'Rate %'}, grid: {drawOnChartArea:false} }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: {display:true, text:'Quantity'} }, y1: { display: (compFilter!=='ALL'), position: 'right', beginAtZero: true, title: {display:true, text:'Rate %'}, grid: {drawOnChartArea:false} } } }
         });
     }
 
-    // --- GENERIC SORT FUNCTIONS ---
-    // For Line Wise Table
     function triggerSort(colIndex, type, selectEl) { 
         let dir = selectEl.value; if(!dir) return; 
         document.querySelectorAll('#analysisTable .sort-select').forEach(el => { if(el !== selectEl && el.id !== 'prodFilterDropdown') el.selectedIndex = 0; }); 
         sortTable(colIndex, type, dir, 'tableBody'); 
     }
-
-    // For Model Value Table (NEW)
     function triggerModelSort(colIndex, type, selectEl, tbodyId) {
         let dir = selectEl.value; if(!dir) return;
-        // Reset other dropdowns in this table
         const headerRow = selectEl.closest('tr');
         headerRow.querySelectorAll('.sort-select').forEach(el => { if(el !== selectEl) el.selectedIndex = 0; });
         sortTable(colIndex, type, dir, tbodyId);
     }
-
-    // For Component Table
     function triggerCompSort(colIndex, type, selectEl) { 
         let dir = selectEl.value; if(!dir) return; 
-        // Reset other dropdowns is handled manually in layout, but let's add logic if needed
         sortCompTable(colIndex, type, dir); 
     }
-
-    // Generic Sort Logic
     function sortTable(colIndex, type, dir, tbodyId) { 
         const tbody = document.getElementById(tbodyId); 
         const rows = Array.from(tbody.querySelectorAll('tr')); 
-        
         rows.sort((rowA, rowB) => { 
             const cellA = rowA.children[colIndex]; 
             const cellB = rowB.children[colIndex]; 
             let valA, valB; 
-            
-            if (type === 'num') { 
-                valA = parseFloat(cellA.getAttribute('data-val')) || 0; 
-                valB = parseFloat(cellB.getAttribute('data-val')) || 0; 
-            } else { 
-                // Fallback to data-val or innerText
-                valA = (cellA.getAttribute('data-val') || cellA.innerText).trim().toLowerCase(); 
-                valB = (cellB.getAttribute('data-val') || cellB.innerText).trim().toLowerCase(); 
-            } 
-            
+            if (type === 'num') { valA = parseFloat(cellA.getAttribute('data-val')) || 0; valB = parseFloat(cellB.getAttribute('data-val')) || 0; } 
+            else { valA = (cellA.getAttribute('data-val') || cellA.innerText).trim().toLowerCase(); valB = (cellB.getAttribute('data-val') || cellB.innerText).trim().toLowerCase(); } 
             if (valA < valB) return dir === 'asc' ? -1 : 1; 
             if (valA > valB) return dir === 'asc' ? 1 : -1; 
             return 0; 
         }); 
-        
         rows.forEach(row => tbody.appendChild(row)); 
     }
-
     function sortCompTable(colIndex, type, dir) { 
         const tbody = document.getElementById('compTableBody'); 
         const rows = Array.from(tbody.querySelectorAll('tr')); 
-        const subtotalRow = rows.shift(); // Remove subtotal
-        
+        const subtotalRow = rows.shift(); 
         rows.sort((rowA, rowB) => { 
             const cellA = rowA.children[colIndex]; 
             const cellB = rowB.children[colIndex]; 
             let valA, valB; 
-            if (type === 'num') { 
-                valA = parseFloat(cellA.getAttribute('data-val')) || 0; 
-                valB = parseFloat(cellB.getAttribute('data-val')) || 0; 
-            } else { 
-                valA = cellA.innerText.trim().toLowerCase(); 
-                valB = cellB.innerText.trim().toLowerCase(); 
-            } 
+            if (type === 'num') { valA = parseFloat(cellA.getAttribute('data-val')) || 0; valB = parseFloat(cellB.getAttribute('data-val')) || 0; } 
+            else { valA = cellA.innerText.trim().toLowerCase(); valB = cellB.innerText.trim().toLowerCase(); } 
             if (valA < valB) return dir === 'asc' ? -1 : 1; 
             if (valA > valB) return dir === 'asc' ? 1 : -1; 
             return 0; 
         }); 
-        
         tbody.appendChild(subtotalRow); 
         rows.forEach(row => tbody.appendChild(row)); 
     }
@@ -2003,7 +2014,6 @@
         } 
     }
     
-    // Existing functions (upload, save, export) remain same...
     function uploadExcel() { let f = document.getElementById('uploadFile').files[0]; if(!f) return Swal.fire("Error","Select file","warning"); let r = new FileReader(); r.onload = e => { let w = XLSX.read(e.target.result,{type:'array'}); let j = XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]); document.getElementById('loader').style.display='flex'; fetch(API_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'bulk_scrap',rows:j})}).then(()=>{ document.getElementById('loader').style.display='none'; Swal.fire("Success","Uploaded","success"); }); }; r.readAsArrayBuffer(f); }
     function saveProduction() { 
         let dateVal = document.getElementById('pDate').value;
