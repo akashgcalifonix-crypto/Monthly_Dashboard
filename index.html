@@ -836,7 +836,7 @@
                                 <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(3, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
                                 <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(4, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
                                 <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(5, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
-                                <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(6, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(4, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
                                 <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(7, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
                                 <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(8, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
                             </tr>
@@ -954,16 +954,22 @@
         document.getElementById('loader').style.display = 'none';
     }
 
+    // UPDATED DATE NORMALIZATION TO FIX 1-DAY LAG
     function normalizeDate(dateInput) {
         if(!dateInput) return null;
-        if (typeof dateInput === 'string') return dateInput.substring(0, 10);
+        let d;
         if (typeof dateInput === 'number') {
-            const date = new Date(Math.round((dateInput - 25569) * 86400 * 1000));
-            return date.toISOString().substring(0, 10);
+            d = new Date(Math.round((dateInput - 25569) * 86400 * 1000));
+        } else {
+            d = new Date(dateInput);
         }
-        let d = new Date(dateInput);
         if(isNaN(d.getTime())) return null;
-        return d.toISOString().substring(0, 10);
+        
+        // Return date in Local format (YYYY-MM-DD) instead of ISO (UTC)
+        let year = d.getFullYear();
+        let month = String(d.getMonth() + 1).padStart(2, '0');
+        let day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     function normalizeLine(str) { return str ? str.toString().toUpperCase().trim().replace("L-", "").replace("LINE", "").replace(/^0+/, '') : "Unknown"; }
@@ -1915,7 +1921,7 @@
             let pQ = 0, sQ = 0, bQ = 0;
             if(typeFilter === 'ALL') { pQ = (raw.pcba_proc||0) + (raw.pcba_rmd||0); sQ = (raw.spkr_proc||0) + (raw.spkr_rmd||0); bQ = (raw.batt_proc||0) + (raw.batt_rmd||0); } 
             else if (typeFilter === 'PROCESS') { pQ = raw.pcba_proc||0; sQ = raw.spkr_proc||0; bQ = raw.batt_proc||0; } 
-            else { pQ = raw.pcba_rmd||0; sQ = raw.spkr_rmd||0; bQ = raw.batt_rmd||0; }
+            else { pQ = raw.pcba_rmd||0; sQ = raw.spkr_proc||0; bQ = raw.batt_rmd||0; }
             let prodRaw = lineProdQtyMap[k] || 0;
             let effectiveProd = prodRaw; 
             if (cat === 'EARBUDS') { effectiveProd = prodRaw * 2; } else { effectiveProd = prodRaw * 1; }
@@ -2053,4 +2059,4 @@
     function exportTable() { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById("analysisTable")), "Quality_Report.xlsx"); }
 </script>
 </body>
-</html>	
+</html>
