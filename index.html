@@ -27,7 +27,7 @@
         
         /* Scorecard */
         .scorecard-row { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .score-card { flex: 1; min-width: 140px; background: white; padding: 15px 10px; text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-bottom: 4px solid transparent; }
+        .score-card { flex: 1; min-width: 140px; background: white; padding: 15px 10px; text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-bottom: 4px solid transparent; transition: 0.3s; }
         .score-val { font-size: 1.3rem; font-weight: 700; color: #333; margin-bottom: 5px; }
         .score-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #888; }
         
@@ -61,7 +61,7 @@
         
         #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
-        /* NEW STYLES FOR DETAIL ANALYSIS */
+        /* Detail Analysis Grids */
         .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; padding: 15px 0; }
         .line-box { 
             background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px 10px; 
@@ -71,20 +71,19 @@
         .line-box h5 { margin: 0; font-weight: bold; color: var(--primary); }
         .line-box small { color: #777; font-size: 0.7rem; }
         
-        /* Modal Styles */
         .modal-xl { max-width: 95%; }
         .chart-container-sm { height: 250px; width: 100%; margin-bottom: 20px; }
         .chart-container-xs { height: 250px; width: 100%; margin-bottom: 10px; }
-        
-        /* Table Input Filter Styles */
         .filter-input { width: 100%; font-size: 0.7rem; padding: 2px 5px; border: 1px solid #ccc; border-radius: 3px; }
 
-        /* Comparison Table */
         .comp-header-1 { background-color: #e0f2f1; color: #004d40; border-bottom: 2px solid #004d40; }
         .comp-header-2 { background-color: #fff3e0; color: #e65100; border-bottom: 2px solid #e65100; }
         .comp-header-3 { background-color: #f3e5f5; color: #4a148c; border-bottom: 2px solid #4a148c; }
         .comp-header-4 { background-color: #e3f2fd; color: #0d47a1; border-bottom: 2px solid #0d47a1; }
         .comp-header-diff { background-color: #212529; color: #fff; border-bottom: 2px solid #000; }
+
+        /* EA Multi Select Height */
+        select[multiple] { height: 75px; }
     </style>
 </head>
 <body>
@@ -103,10 +102,9 @@
     </div>
     <nav class="nav flex-column">
         <a class="nav-link active" onclick="switchSection('dashboard')"><i class="fas fa-chart-pie me-2"></i> Main Dashboard</a>
-        <!-- NEW TAB START -->
         <a class="nav-link" onclick="switchSection('category-analysis')"><i class="fas fa-layer-group me-2"></i> Category & Floor</a>
-        <!-- NEW TAB END -->
         <a class="nav-link" onclick="switchSection('weekly-comparison')"><i class="fas fa-balance-scale me-2"></i> Weekly Comparison</a>
+        <a class="nav-link" onclick="switchSection('exception-analysis')"><i class="fas fa-exclamation-triangle me-2"></i> Model Deep Dive</a>
         <a class="nav-link" onclick="switchSection('detail-analysis')"><i class="fas fa-search-plus me-2"></i> Detail Analysis</a>
         <a class="nav-link" onclick="switchSection('model-analysis')"><i class="fas fa-cubes me-2"></i> Model Analysis</a>
         <a class="nav-link" onclick="switchSection('line-analysis')"><i class="fas fa-microchip me-2"></i> Line Analysis</a>
@@ -116,13 +114,13 @@
 </div>
 
 <div class="main-content">
+    <!-- MAIN DASHBOARD -->
     <div id="dashboard-section" class="content-section">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold text-dark">Main Dashboard</h3>
             <button class="btn btn-success btn-sm" onclick="exportTable()"><i class="fas fa-file-excel me-1"></i> Excel Export</button>
         </div>
 
-        <!-- OVERALL SCORECARD -->
         <div class="scorecard-row">
             <div class="score-card" style="border-color:#333"><div class="score-val" id="ovr-qty">0</div><div class="score-label">Total Output</div></div>
             <div class="score-card" style="border-color:#2a9d8f"><div class="score-val" id="ovr-val" style="color:#2a9d8f">₹0</div><div class="score-label">Prod Value</div></div>
@@ -134,11 +132,9 @@
             <div class="score-card" style="background:#2c3e50"><div class="score-val text-white" id="ovr-all-rate">0%</div><div class="score-label text-white-50">Overall Rate</div></div>
         </div>
 
-        <!-- PRODUCT SUMMARY -->
         <h6 class="fw-bold text-dark mb-2"><i class="fas fa-layer-group me-2"></i>Product Wise Performance</h6>
         <div class="prod-summary-container" id="productSummaryContainer"></div>
 
-        <!-- DATE WISE SCRAP TREND -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap py-2">
                 <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-chart-line me-2"></i>Date Wise Scrap Trend (Value vs Rate)</h6>
@@ -165,7 +161,6 @@
             </div>
         </div>
 
-        <!-- GLOBAL FILTERS -->
         <div class="bg-white p-3 rounded shadow-sm mb-3 d-flex gap-2 align-items-center flex-wrap">
             <div class="input-group input-group-sm" style="width: 200px;">
                 <span class="input-group-text fw-bold">Defect</span>
@@ -180,7 +175,6 @@
             <button class="btn btn-primary btn-sm ms-auto" onclick="loadData()"><i class="fas fa-sync"></i> Refresh Data</button>
         </div>
 
-        <!-- DETAILED TABLE -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white fw-bold py-3"><i class="fas fa-list me-2"></i> Line Wise Breakdown</div>
             <div class="card-body p-0">
@@ -203,7 +197,6 @@
                                 <th class="bg-danger bg-opacity-75 text-white">Value (₹)</th>
                                 <th class="bg-danger bg-opacity-75 text-white">Rate %</th>
                             </tr>
-                            <!-- SORT/FILTER ROW -->
                             <tr class="filter-row">
                                 <th><select class="sort-select" onchange="triggerSort(0, 'text', this)"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select></th>
                                 <th>
@@ -232,7 +225,7 @@
         </div>
     </div>
 
-    <!-- NEW SECTION: CATEGORY & FLOOR ANALYSIS -->
+    <!-- CATEGORY & FLOOR ANALYSIS -->
     <div id="category-analysis-section" class="content-section" style="display:none;">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold text-dark">Category & Floor Analysis</h3>
@@ -281,16 +274,13 @@
                                     <th>Scrap Rate %</th>
                                 </tr>
                             </thead>
-                            <tbody id="caTableBody">
-                                <!-- Data injected here -->
-                            </tbody>
+                            <tbody id="caTableBody"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- END NEW SECTION -->
 
     <!-- WEEKLY COMPARISON REPORT -->
     <div id="weekly-comparison-section" class="content-section" style="display:none;">
@@ -413,6 +403,103 @@
                             <canvas id="wcChartCanvas"></canvas>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXCEPTION / DEEP DIVE ANALYSIS -->
+    <div id="exception-analysis-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Detailed Model Deep Dive</h3>
+        </div>
+        
+        <div class="bg-white p-3 rounded shadow-sm mb-4 d-flex gap-3 align-items-start flex-wrap">
+            <div>
+                <label class="small fw-bold text-secondary">Product Category</label>
+                <select id="eaCatSelect" class="form-select form-select-sm" style="width:140px" onchange="prepareExceptionAnalysis()">
+                    <option value="ALL">All Categories</option>
+                    <option value="EARBUDS">Earbuds</option>
+                    <option value="CHARGING CASE">Charging Case</option>
+                    <option value="SMART WATCH">Smart Watch</option>
+                    <option value="DASHCAM">Dashcam</option>
+                    <option value="HEADPHONE">Headphone</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Lines (Hold Ctrl)</label>
+                <select id="eaLineSelect" class="form-select form-select-sm" multiple style="width:120px" onchange="prepareExceptionAnalysis()">
+                    <!-- Options populated via JS -->
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Select Models (Hold Ctrl)</label>
+                <select id="eaModelSelect" class="form-select form-select-sm" multiple style="width:300px"></select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Process / RMD</label>
+                <select id="eaTypeSelect" class="form-select form-select-sm" style="width:140px">
+                    <option value="ALL">Total (Proc + RMD)</option>
+                    <option value="PROCESS">Process Only</option>
+                    <option value="RMD">RMD Only</option>
+                </select>
+            </div>
+            <div class="ms-auto align-self-end d-flex gap-2 pb-1">
+                <button class="btn btn-primary btn-sm" onclick="renderExceptionDetails()"><i class="fas fa-search me-1"></i> Analyze Models</button>
+                <button class="btn btn-success btn-sm" onclick="exportExceptionTable()"><i class="fas fa-file-excel me-1"></i> Excel</button>
+            </div>
+        </div>
+
+        <div class="scorecard-row" id="eaScorecards"></div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold">Category Contribution</div>
+                    <div class="card-body">
+                        <div style="height: 250px;">
+                            <canvas id="eaCategoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold">Rejection (Component) Wise Scrap Value</div>
+                    <div class="card-body">
+                        <div style="height: 250px;">
+                            <canvas id="eaTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold">Material & Type Wise Detailed Analysis</div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover text-center mb-0 custom-table" id="eaMaterialTable">
+                        <thead class="bg-dark text-white" style="position: sticky; top: 0; z-index: 10;">
+                            <tr>
+                                <th>Material Description</th>
+                                <th>Category</th>
+                                <th>Type (Process/RMD)</th>
+                                <th>Rejection Component</th>
+                                <th>Scrap Qty</th>
+                                <th>Scrap Value (₹)</th>
+                            </tr>
+                            <tr class="bg-light">
+                                <th><input type="text" id="eaSDesc" class="filter-input" placeholder="Search..." onkeyup="filterEaMaterials()"></th>
+                                <th><input type="text" id="eaSCat" class="filter-input" placeholder="Search..." onkeyup="filterEaMaterials()"></th>
+                                <th><input type="text" id="eaSType" class="filter-input" placeholder="Search..." onkeyup="filterEaMaterials()"></th>
+                                <th><input type="text" id="eaSRej" class="filter-input" placeholder="Search..." onkeyup="filterEaMaterials()"></th>
+                                <th><input type="text" id="eaSQty" class="filter-input" placeholder="Filter..." onkeyup="filterEaMaterials()"></th>
+                                <th><input type="text" id="eaSVal" class="filter-input" placeholder="Filter..." onkeyup="filterEaMaterials()"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="eaMaterialTableBody"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -658,7 +745,6 @@
 
         <div class="tab-content" id="modelTabsContent">
             
-            <!-- TAB 1: VALUE WISE -->
             <div class="tab-pane fade show active" id="val-content" role="tabpanel">
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white fw-bold py-2 text-success">Top Models by Scrap Value (INR)</div>
@@ -710,7 +796,6 @@
                 </div>
             </div>
 
-            <!-- TAB 2: QTY WISE -->
             <div class="tab-pane fade" id="qty-content" role="tabpanel">
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white fw-bold py-2 text-primary">Top Models by Scrap Quantity</div>
@@ -856,7 +941,6 @@
         </div>
     </div>
 
-    <!-- PRODUCTION ENTRY SECTION -->
     <div id="production-section" class="content-section" style="display:none;">
         <h4 class="mb-4">Production Entry</h4>
         <div class="card p-4 shadow-sm" style="max-width: 500px;">
@@ -884,9 +968,7 @@
     </div>
 </div>
 
-<!-- BootStrap JS (Required for Tabs) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyD8FFtDs-2BR-9k2UkvdhaMcF1WrCWoVNOYcm8qI9aq0uT8OntsthgjgMIwNFlyFCtGw/exec"; 
 
@@ -907,15 +989,30 @@
     let daBattChart = null;
     let wcChart = null;
     let caChart = null; 
+    let eaCategoryChart = null;
+    let eaTypeChart = null;
 
     let currentMaterialsList = [];
     let currentLineWeeklyData = {}; 
+    let eaCurrentMaterialsList = [];
 
     window.onload = function() {
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         document.getElementById('dateFrom').value = firstDay.toISOString().split('T')[0];
         document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+        
+        // Populate EA Lines
+        const eaLineSelect = document.getElementById('eaLineSelect');
+        if(eaLineSelect) {
+            for(let i=1; i<=24; i++) {
+                let opt = document.createElement('option');
+                opt.value = i.toString();
+                opt.textContent = `Line ${i}`;
+                eaLineSelect.appendChild(opt);
+            }
+        }
+        
         loadData();
     };
 
@@ -928,6 +1025,7 @@
         });
         if (id === 'detail-analysis') { renderDetailLines(); }
         if (id === 'category-analysis') { renderCategoryAnalysis(); }
+        if (id === 'exception-analysis') { prepareExceptionAnalysis(); }
     }
 
     async function loadData() {
@@ -954,7 +1052,6 @@
         document.getElementById('loader').style.display = 'none';
     }
 
-    // UPDATED DATE NORMALIZATION TO FIX 1-DAY LAG
     function normalizeDate(dateInput) {
         if(!dateInput) return null;
         let d;
@@ -965,7 +1062,6 @@
         }
         if(isNaN(d.getTime())) return null;
         
-        // Return date in Local format (YYYY-MM-DD) instead of ISO (UTC)
         let year = d.getFullYear();
         let month = String(d.getMonth() + 1).padStart(2, '0');
         let day = String(d.getDate()).padStart(2, '0');
@@ -994,9 +1090,8 @@
     }
 
     function processAndRender() {
-        if(document.getElementById('category-analysis-section').style.display !== 'none') {
-            renderCategoryAnalysis();
-        }
+        if(document.getElementById('category-analysis-section').style.display !== 'none') renderCategoryAnalysis();
+        if(document.getElementById('exception-analysis-section').style.display !== 'none') prepareExceptionAnalysis();
         
         const dFrom = document.getElementById('dateFrom').value;
         const dTo = document.getElementById('dateTo').value;
@@ -1152,16 +1247,284 @@
         renderModelAnalysisTabs();
     }
 
-    // *****************************************************************
-    // UPDATED FUNCTION: CATEGORY AND FLOOR ANALYSIS
-    // NOW USING COLUMN O (Index 14) for Category
-    // *****************************************************************
+    // -----------------------------------------------------
+    // EXCEPTION ANALYSIS & DEEP DIVE
+    // -----------------------------------------------------
+    function prepareExceptionAnalysis() {
+        const dFrom = document.getElementById('dateFrom').value;
+        const dTo = document.getElementById('dateTo').value;
+        const catFilter = document.getElementById('eaCatSelect').value;
+        
+        let selectedLines = Array.from(document.getElementById('eaLineSelect').selectedOptions).map(o => o.value);
+        
+        let modelStats = {};
+        
+        if(rawData.production.length > 0) {
+            rawData.production.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+                
+                let ln = normalizeLine(row[3]);
+                if (selectedLines.length > 0 && !selectedLines.includes(ln) && !selectedLines.includes("0"+ln)) return;
+
+                let model = (row[2] || "").toString().trim().toUpperCase();
+                let productCol = (row[1] || "").toString().toUpperCase(); 
+                let cat = productCol !== "" ? getProductCategory(productCol, "") : getProductCategory(model, ln);
+                if (catFilter !== 'ALL' && cat !== catFilter) {
+                    if (catFilter === 'EARBUDS' && (productCol.includes("EARBUDS") || cat === 'EARBUDS')) {}
+                    else if (catFilter === 'CHARGING CASE' && (productCol.includes("CHARGING") || cat === 'CHARGING CASE')) {}
+                    else return;
+                }
+
+                let rawOut = parseFloat(row[4]) || 0;
+                let val = rawOut * (modelPrices[model]||0);
+                
+                if(!modelStats[model]) modelStats[model] = { prodQty:0, prodVal:0, scrapQty:0, scrapVal:0 };
+                modelStats[model].prodQty += rawOut;
+                modelStats[model].prodVal += val;
+            });
+        }
+        
+        if(rawData.scrap.length > 0) {
+            rawData.scrap.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+                
+                let ln = normalizeLine(row[4]);
+                if (selectedLines.length > 0 && !selectedLines.includes(ln) && !selectedLines.includes("0"+ln)) return;
+
+                let floorVal = row[5]; 
+                let cat = getProductCategory(floorVal, ln);
+                if (catFilter !== 'ALL' && cat !== catFilter) return;
+
+                let model = (row[8] || "").toString().trim().toUpperCase();
+                let q = parseFloat(row[12])||0; 
+                let val = q * (parseFloat(row[11])||0);
+                
+                if(!modelStats[model]) modelStats[model] = { prodQty:0, prodVal:0, scrapQty:0, scrapVal:0 };
+                modelStats[model].scrapQty += q;
+                modelStats[model].scrapVal += val;
+            });
+        }
+        
+        let eaModelSelect = document.getElementById('eaModelSelect');
+        if (!eaModelSelect) return;
+        eaModelSelect.innerHTML = "";
+        
+        let modelList = [];
+        Object.keys(modelStats).forEach(m => {
+            let st = modelStats[m];
+            if(st.prodVal === 0 && st.scrapVal === 0) return; 
+            let rate = st.prodVal > 0 ? (st.scrapVal / st.prodVal * 100) : 0;
+            modelList.push({ model: m, rate: rate, prodVal: st.prodVal, scrapVal: st.scrapVal });
+        });
+        
+        modelList.sort((a,b) => b.scrapVal - a.scrapVal);
+        
+        modelList.forEach(item => {
+            let opt = document.createElement('option');
+            opt.value = item.model;
+            let rateStr = item.prodVal === 0 ? "No Prod" : item.rate.toFixed(2) + "%";
+            let indicator = item.prodVal === 0 ? "⚠️" : (item.rate <= 0.2 ? "✅" : "❌");
+            opt.textContent = `${indicator} ${item.model} | Scrap: ${formatCurrency(item.scrapVal)} | Rate: ${rateStr}`;
+            eaModelSelect.appendChild(opt);
+        });
+    }
+
+    function renderExceptionDetails() {
+        let selectedModels = Array.from(document.getElementById('eaModelSelect').selectedOptions).map(o => o.value);
+        if(selectedModels.length === 0) {
+            document.getElementById('eaScorecards').innerHTML = "<div class='alert alert-warning w-100 text-center'>Please select at least one model.</div>";
+            document.getElementById('eaMaterialTableBody').innerHTML = "";
+            if(eaCategoryChart) eaCategoryChart.destroy();
+            if(eaTypeChart) eaTypeChart.destroy();
+            return;
+        }
+        
+        const dFrom = document.getElementById('dateFrom').value;
+        const dTo = document.getElementById('dateTo').value;
+        const eaTypeFilter = document.getElementById('eaTypeSelect').value;
+        const catFilter = document.getElementById('eaCatSelect').value;
+        let selectedLines = Array.from(document.getElementById('eaLineSelect').selectedOptions).map(o => o.value);
+        
+        let mProdQty = 0, mProdVal = 0;
+        
+        if(rawData.production.length > 0) {
+            rawData.production.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+                
+                let ln = normalizeLine(row[3]);
+                if (selectedLines.length > 0 && !selectedLines.includes(ln) && !selectedLines.includes("0"+ln)) return;
+
+                let model = (row[2] || "").toString().trim().toUpperCase();
+                if(!selectedModels.includes(model)) return;
+
+                let productCol = (row[1] || "").toString().toUpperCase(); 
+                let cat = productCol !== "" ? getProductCategory(productCol, "") : getProductCategory(model, ln);
+                if (catFilter !== 'ALL' && cat !== catFilter) {
+                    if (catFilter === 'EARBUDS' && (productCol.includes("EARBUDS") || cat === 'EARBUDS')) {}
+                    else if (catFilter === 'CHARGING CASE' && (productCol.includes("CHARGING") || cat === 'CHARGING CASE')) {}
+                    else return;
+                }
+
+                let rawOut = parseFloat(row[4]) || 0;
+                let val = rawOut * (modelPrices[model]||0);
+                mProdQty += rawOut;
+                mProdVal += val;
+            });
+        }
+        
+        let mScrapQty = 0, mScrapVal = 0;
+        let cats = {};
+        let rejections = {};
+        let materials = {};
+        
+        if(rawData.scrap.length > 0) {
+            rawData.scrap.slice(1).forEach(row => {
+                let d = normalizeDate(row[0]);
+                if(!d || d < dFrom || d > dTo) return;
+
+                let ln = normalizeLine(row[4]);
+                if (selectedLines.length > 0 && !selectedLines.includes(ln) && !selectedLines.includes("0"+ln)) return;
+
+                let floorVal = row[5]; 
+                let cat = getProductCategory(floorVal, ln);
+                if (catFilter !== 'ALL' && cat !== catFilter) return;
+
+                let model = (row[8] || "").toString().trim().toUpperCase();
+                if(!selectedModels.includes(model)) return;
+                
+                let storeVal = String(row[1] || "").toUpperCase();
+                let rejTypeVal = (row[10] || "").toString().toUpperCase();
+                let isProc = storeVal.includes('6003') || storeVal.includes('PROCESS') || rejTypeVal.includes('PROCESS');
+                let isRMD = storeVal.includes('6002') || storeVal.includes('RMD') || rejTypeVal.includes('RMD');
+                
+                if (eaTypeFilter === 'PROCESS' && !isProc) return;
+                if (eaTypeFilter === 'RMD' && !isRMD) return;
+
+                let q = parseFloat(row[12])||0; 
+                let val = q * (parseFloat(row[11])||0);
+                
+                mScrapQty += q;
+                mScrapVal += val;
+                
+                let categoryStr = (row[14] || "").toString().toUpperCase();
+                let catKey = "OTHER";
+                if (categoryStr.includes("FRESH")) catKey = 'FRESH';
+                else if (categoryStr.includes("REWORK")) catKey = 'REWORK';
+                else if (categoryStr.includes("OLD WIP")) catKey = 'OLD WIP';
+                else if (categoryStr.includes("WIP")) catKey = 'WIP';
+                else if (categoryStr.includes("SHORT")) catKey = 'SHORT';
+                else if (categoryStr !== "") catKey = categoryStr;
+                
+                if(!cats[catKey]) cats[catKey] = 0;
+                cats[catKey] += val;
+                
+                let tKey = isProc ? 'PROCESS' : (isRMD ? 'RMD' : 'OTHER');
+                let typeVal = (row[9]||"").toString().toUpperCase(); 
+                let fullType = typeVal + " " + rejTypeVal; 
+                let rejKey = "OTHER";
+                if(fullType.includes("PCBA") || fullType.includes("MAIN BOARD")) rejKey = "PCBA";
+                else if(fullType.includes("BATTERY") || fullType.includes("CELL")) rejKey = "BATTERY";
+                else if(fullType.includes("SPEAKER") || fullType.includes("DRIVER")) rejKey = "SPEAKER";
+                else rejKey = typeVal || "OTHER";
+                
+                if(!rejections[rejKey]) rejections[rejKey] = 0;
+                rejections[rejKey] += val;
+                
+                let matDesc = (row[7] || row[6] || "Unknown").toString();
+                let matKey = `${matDesc}|${catKey}|${tKey}|${rejKey}`;
+                if(!materials[matKey]) materials[matKey] = { desc: matDesc, cat: catKey, type: tKey, rej: rejKey, q: 0, v: 0 };
+                materials[matKey].q += q;
+                materials[matKey].v += val;
+            });
+        }
+        
+        let rate = mProdVal > 0 ? (mScrapVal / mProdVal * 100) : 0;
+        let isGreen = mProdVal > 0 && rate <= 0.20;
+        let rateStr = mProdVal === 0 && mScrapVal > 0 ? "No Prod" : rate.toFixed(2) + "%";
+        
+        let cardBg = isGreen ? '#d1e7dd' : '#fff5f5';
+        let cardBorder = isGreen ? '#0f5132' : '#dc3545';
+        let textCol = isGreen ? 'text-success' : 'text-danger';
+
+        document.getElementById('eaScorecards').innerHTML = `
+            <div class="score-card" style="border-color:#0d6efd"><div class="score-val text-primary">${mProdQty.toLocaleString()}</div><div class="score-label">Prod Qty</div></div>
+            <div class="score-card" style="border-color:#198754"><div class="score-val text-success">${formatCurrency(mProdVal)}</div><div class="score-label">Prod Value</div></div>
+            <div class="score-card" style="border-color:#ffb703"><div class="score-val text-warning">${mScrapQty.toLocaleString()}</div><div class="score-label">Scrap Qty</div></div>
+            <div class="score-card" style="border-color:${cardBorder}"><div class="score-val ${textCol}">${formatCurrency(mScrapVal)}</div><div class="score-label">Scrap Value</div></div>
+            <div class="score-card" style="background:${cardBg}; border-color:${cardBorder}"><div class="score-val ${textCol} fw-bold">${rateStr}</div><div class="score-label">Scrap Rate</div></div>
+        `;
+        
+        const ctxCat = document.getElementById('eaCategoryChart').getContext('2d');
+        if(eaCategoryChart) eaCategoryChart.destroy();
+        eaCategoryChart = new Chart(ctxCat, {
+            type: 'pie',
+            data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#6c757d', '#dc3545', '#6610f2'] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' }, datalabels: { color: '#fff', formatter: (val) => val > 0 ? formatCurrency(val) : '' } } }
+        });
+        
+        const ctxType = document.getElementById('eaTypeChart').getContext('2d');
+        if(eaTypeChart) eaTypeChart.destroy();
+        eaTypeChart = new Chart(ctxType, {
+            type: 'bar',
+            data: { labels: Object.keys(rejections), datasets: [{ label: 'Scrap Value (₹)', data: Object.values(rejections), backgroundColor: '#dc3545' }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false }, datalabels: { color: '#000', anchor: 'end', align: 'top', formatter: (val) => val > 0 ? formatCurrency(val) : '' } } }
+        });
+        
+        eaCurrentMaterialsList = Object.values(materials);
+        filterEaMaterials();
+    }
+
+    function filterEaMaterials() {
+        const sDesc = document.getElementById('eaSDesc').value.toLowerCase();
+        const sCat = document.getElementById('eaSCat').value.toLowerCase();
+        const sType = document.getElementById('eaSType').value.toLowerCase();
+        const sRej = document.getElementById('eaSRej').value.toLowerCase();
+        const sQty = document.getElementById('eaSQty').value.toLowerCase();
+        const sVal = document.getElementById('eaSVal').value.toLowerCase();
+        
+        const tbody = document.getElementById('eaMaterialTableBody');
+        tbody.innerHTML = "";
+
+        let filtered = eaCurrentMaterialsList.filter(m => {
+            return m.desc.toLowerCase().includes(sDesc) &&
+                   m.cat.toLowerCase().includes(sCat) &&
+                   m.type.toLowerCase().includes(sType) &&
+                   m.rej.toLowerCase().includes(sRej) &&
+                   m.q.toString().includes(sQty) &&
+                   Math.round(m.v).toString().includes(sVal);
+        });
+
+        filtered.sort((a,b) => b.v - a.v);
+
+        filtered.forEach(m => {
+            tbody.innerHTML += `<tr>
+                <td class="text-start">${m.desc}</td>
+                <td><span class="badge bg-secondary">${m.cat}</span></td>
+                <td><span class="badge ${m.type==='PROCESS'?'bg-warning text-dark':'bg-info'}">${m.type}</span></td>
+                <td>${m.rej}</td>
+                <td class="fw-bold">${m.q}</td>
+                <td class="text-danger fw-bold">${formatCurrency(m.v)}</td>
+            </tr>`;
+        });
+    }
+
+    function exportExceptionTable() {
+        let table = document.getElementById("eaMaterialTable");
+        if(!table) return;
+        let typeName = document.getElementById('eaTypeSelect').value;
+        let fileName = `Exception_Analysis_Report_${typeName}.xlsx`;
+        XLSX.writeFile(XLSX.utils.table_to_book(table), fileName);
+    }
+
     function getFloorFromLine(lineStr) {
         let ln = parseInt(lineStr.replace(/\D/g, ''));
         if (isNaN(ln)) return "Unknown";
-        if (ln >= 1 && ln <= 8) return "1"; // 1st Floor
-        if (ln >= 9 && ln <= 16) return "2"; // 2nd Floor
-        if (ln >= 17 && ln <= 24) return "B"; // Basement
+        if (ln >= 1 && ln <= 8) return "1"; 
+        if (ln >= 9 && ln <= 16) return "2"; 
+        if (ln >= 17 && ln <= 24) return "B"; 
         return "Unknown";
     }
 
@@ -1172,7 +1535,6 @@
         const typeFilter = document.getElementById('caType').value;
 
         let totalFloorProdVal = 0;
-        // Step 1: Calculate Total Production Value for the Selected Floor/Filter
         if(rawData.production.length > 0) {
             rawData.production.slice(1).forEach(row => {
                 let d = normalizeDate(row[0]);
@@ -1190,10 +1552,8 @@
             });
         }
 
-        // Categories Map
         let cats = { 'FRESH': 0, 'REWORK': 0, 'WIP': 0, 'OLD WIP': 0, 'SHORT': 0, 'OTHER': 0 };
 
-        // Step 2: Iterate Scrap Data
         if(rawData.scrap.length > 0) {
             rawData.scrap.slice(1).forEach(row => {
                 let d = normalizeDate(row[0]);
@@ -1216,21 +1576,17 @@
                 let q = parseFloat(row[12])||0;
                 let val = q * (parseFloat(row[11])||0);
                 
-                // *** UPDATED LOGIC: CHECK SPECIFICALLY COLUMN O (Index 14) ***
-                // Row structure from screenshot: A=0... O=14
-                // We use .toString() to be safe if cell is empty or numeric
                 let categoryStr = (row[14] || "").toString().toUpperCase();
 
                 if (categoryStr.includes("FRESH")) { cats['FRESH'] += val; }
                 else if (categoryStr.includes("REWORK")) { cats['REWORK'] += val; }
-                else if (categoryStr.includes("OLD WIP")) { cats['OLD WIP'] += val; } // Specific check for OLD WIP
-                else if (categoryStr.includes("WIP")) { cats['WIP'] += val; } // General WIP check
+                else if (categoryStr.includes("OLD WIP")) { cats['OLD WIP'] += val; } 
+                else if (categoryStr.includes("WIP")) { cats['WIP'] += val; } 
                 else if (categoryStr.includes("SHORT")) { cats['SHORT'] += val; }
                 else { cats['OTHER'] += val; }
             });
         }
 
-        // Step 3: Render Table
         const tbody = document.getElementById('caTableBody');
         tbody.innerHTML = "";
         let labels = ['FRESH', 'REWORK', 'WIP', 'OLD WIP', 'SHORT'];
@@ -1240,12 +1596,13 @@
         labels.forEach(lbl => {
             let sVal = cats[lbl];
             let rate = totalFloorProdVal > 0 ? (sVal / totalFloorProdVal * 100) : 0;
+            let rateDisplay = totalFloorProdVal === 0 && sVal > 0 ? "No Prod" : rate.toFixed(3) + "%";
             chartData.push(sVal);
             
             let row = `<tr>
                 <td class="fw-bold text-start">${lbl}</td>
                 <td class="fw-bold">${formatCurrency(sVal)}</td>
-                <td class="text-danger fw-bold">${rate.toFixed(3)}%</td>
+                <td class="text-danger fw-bold">${rateDisplay}</td>
             </tr>`;
             tbody.innerHTML += row;
         });
@@ -1253,10 +1610,12 @@
         if(cats['OTHER'] > 0) {
             let sVal = cats['OTHER'];
             let rate = totalFloorProdVal > 0 ? (sVal / totalFloorProdVal * 100) : 0;
+            let rateDisplay = totalFloorProdVal === 0 && sVal > 0 ? "No Prod" : rate.toFixed(3) + "%";
+            
              let row = `<tr>
                 <td class="fw-bold text-start text-muted">OTHER</td>
                 <td class="fw-bold text-muted">${formatCurrency(sVal)}</td>
-                <td class="text-muted">${rate.toFixed(3)}%</td>
+                <td class="text-muted">${rateDisplay}</td>
             </tr>`;
             tbody.innerHTML += row;
         }
@@ -1266,37 +1625,11 @@
 
         caChart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Scrap Value (₹)',
-                    data: chartData,
-                    backgroundColor: chartColors,
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                        color: '#000',
-                        anchor: 'end',
-                        align: 'top',
-                        formatter: (val) => val > 0 ? formatCurrency(val) : ''
-                    }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
+            data: { labels: labels, datasets: [{ label: 'Scrap Value (₹)', data: chartData, backgroundColor: chartColors, borderRadius: 5 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { color: '#000', anchor: 'end', align: 'top', formatter: (val) => val > 0 ? formatCurrency(val) : '' } }, scales: { y: { beginAtZero: true } } }
         });
     }
 
-    // ******************************************************
-    // WEEKLY COMPARISON
-    // ******************************************************
     function renderWeeklyComparison() {
         const ranges = [
             { from: document.getElementById('wcFrom1').value, to: document.getElementById('wcTo1').value, name: 'Week 1' },
@@ -1388,9 +1721,9 @@
             { lbl: "Production Qty", fmt: v=>v.toLocaleString(), key: 'prodQty', isProd:true },
             { lbl: "Production Value", fmt: formatCurrency, key: 'prodVal', isProd:true },
             { lbl: "Total Scrap Value", fmt: formatCurrency, key: 'scrapVal' },
-            { lbl: "Overall Scrap Rate %", fmt: v=>v.toFixed(2)+'%', calc: (s)=> s.prodVal>0 ? (s.scrapVal/s.prodVal*100) : 0 },
-            { lbl: "Process Scrap Rate %", fmt: v=>v.toFixed(2)+'%', calc: (s)=> s.prodVal>0 ? (s.proc/s.prodVal*100) : 0 },
-            { lbl: "RMD Scrap Rate %", fmt: v=>v.toFixed(2)+'%', calc: (s)=> s.prodVal>0 ? (s.rmd/s.prodVal*100) : 0 },
+            { lbl: "Overall Scrap Rate %", fmt: v=>(v==="No Prod"?v:v.toFixed(2)+'%'), calc: (s)=> s.prodVal>0 ? (s.scrapVal/s.prodVal*100) : (s.scrapVal>0?"No Prod":0) },
+            { lbl: "Process Scrap Rate %", fmt: v=>(v==="No Prod"?v:v.toFixed(2)+'%'), calc: (s)=> s.prodVal>0 ? (s.proc/s.prodVal*100) : (s.proc>0?"No Prod":0) },
+            { lbl: "RMD Scrap Rate %", fmt: v=>(v==="No Prod"?v:v.toFixed(2)+'%'), calc: (s)=> s.prodVal>0 ? (s.rmd/s.prodVal*100) : (s.rmd>0?"No Prod":0) },
             { lbl: "Process Scrap (₹)", fmt: formatCurrency, key: 'proc' },
             { lbl: "RMD Scrap (₹)", fmt: formatCurrency, key: 'rmd' },
             { lbl: "PCBA Defect Qty", fmt: v=>v, key: 'pcba' },
@@ -1401,16 +1734,16 @@
         metrics.forEach(m => {
             let vals = results.map(r => m.key ? r[m.key] : m.calc(r));
             let row = `<tr><td class="text-start fw-bold">${m.lbl}</td>`;
-            vals.forEach(v => row += `<td>${m.fmt(v)}</td>`);
+            vals.forEach(v => row += `<td class="${v==='No Prod'?'text-danger fw-bold':''}">${m.fmt(v)}</td>`);
             if(diffMode !== 'none') {
-                let valA = vals[iA];
-                let valB = vals[iB];
+                let valA = vals[iA] === "No Prod" ? 0 : vals[iA];
+                let valB = vals[iB] === "No Prod" ? 0 : vals[iB];
                 let diff = valA - valB;
                 let colorClass = "";
                 if (m.isProd) { colorClass = diff > 0 ? "text-success" : (diff < 0 ? "text-danger" : "text-white"); } 
                 else { colorClass = diff > 0 ? "text-danger" : (diff < 0 ? "text-success" : "text-white"); }
                 let diffStr = m.fmt(diff);
-                if (diff > 0) diffStr = "+" + diffStr;
+                if (diff > 0 && typeof diff === 'number') diffStr = "+" + diffStr;
                 row += `<td class="bg-dark fw-bold ${colorClass}">${diffStr}</td>`;
             }
             row += `</tr>`;
@@ -1451,14 +1784,8 @@
         let labels = ranges.map(r => r.name);
         wcChart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [ { label: 'Total Scrap Value', data: barData, backgroundColor: colors } ]
-            },
-            options: { 
-                responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } },
-                plugins: { datalabels: { color: 'white', anchor: 'end', align: 'bottom', formatter: (val) => formatCurrency(val) } }
-            }
+            data: { labels: labels, datasets: [ { label: 'Total Scrap Value', data: barData, backgroundColor: colors } ] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { datalabels: { color: 'white', anchor: 'end', align: 'bottom', formatter: (val) => formatCurrency(val) } } }
         });
     }
 
@@ -1597,14 +1924,8 @@
             data: {
                 labels: chartLabels,
                 datasets: [
-                    { 
-                        label: 'Scrap Value', data: scrapVals, backgroundColor: '#dc3545', order: 2, yAxisID: 'y',
-                        datalabels: { display: true, color: '#fff', backgroundColor: 'rgba(220, 53, 69, 0.9)', borderRadius: 4, font: { weight: 'bold', size: 10 }, padding: 4, anchor: 'end', align: 'top', formatter: (v) => v > 0 ? formatCurrency(v) : '' }
-                    },
-                    { 
-                        type: 'line', label: 'Rate %', data: scrapRates, borderColor: '#0d6efd', borderWidth: 2, order: 1, yAxisID: 'y1',
-                        datalabels: { display: true, color: '#fff', backgroundColor: '#0d6efd', borderRadius: 4, font: { weight: 'bold', size: 10 }, padding: 4, anchor: 'end', align: 'top', formatter: (v) => v > 0 ? v.toFixed(2) + '%' : '' }
-                    }
+                    { label: 'Scrap Value', data: scrapVals, backgroundColor: '#dc3545', order: 2, yAxisID: 'y', datalabels: { display: true, color: '#fff', backgroundColor: 'rgba(220, 53, 69, 0.9)', borderRadius: 4, font: { weight: 'bold', size: 10 }, padding: 4, anchor: 'end', align: 'top', formatter: (v) => v > 0 ? formatCurrency(v) : '' } },
+                    { type: 'line', label: 'Rate %', data: scrapRates, borderColor: '#0d6efd', borderWidth: 2, order: 1, yAxisID: 'y1', datalabels: { display: true, color: '#fff', backgroundColor: '#0d6efd', borderRadius: 4, font: { weight: 'bold', size: 10 }, padding: 4, anchor: 'end', align: 'top', formatter: (v) => v > 0 ? v.toFixed(2) + '%' : '' } }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: {display:true, text:'Value'} }, y1: { position:'right', beginAtZero: true, title: {display:true, text:'Rate %'}, grid:{drawOnChartArea:false} } } }
@@ -1667,7 +1988,8 @@
         Object.keys(weeklyData).sort().forEach(w => {
             let item = weeklyData[w];
             let rate = item.prodVal > 0 ? (item.scrapVal / item.prodVal * 100) : 0;
-            tbody.innerHTML += `<tr><td>${w}</td><td>${item.prodQty}</td><td>${formatCurrency(item.scrapVal)}</td><td class="fw-bold ${rate>1?'text-danger':'text-success'}">${rate.toFixed(2)}%</td></tr>`;
+            let displayRate = item.prodVal === 0 && item.scrapVal > 0 ? "No Prod" : rate.toFixed(2) + "%";
+            tbody.innerHTML += `<tr><td>${w}</td><td>${item.prodQty}</td><td>${formatCurrency(item.scrapVal)}</td><td class="fw-bold ${rate>1?'text-danger':'text-success'}">${displayRate}</td></tr>`;
         });
     }
 
@@ -1793,10 +2115,14 @@
         const tbody = document.getElementById('modelValueTableBody');
         tbody.innerHTML = "";
         data.forEach((m, idx) => {
+            let caseRateHtml = (m.prodVal === 0 && m.caseVal > 0) ? `<span class="badge bg-danger">No Prod</span>` : (m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-');
+            let budsRateHtml = (m.prodVal === 0 && m.budsVal > 0) ? `<span class="badge bg-danger">No Prod</span>` : (m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-');
+            let overallRateHtml = (m.prodVal === 0 && m.overallVal > 0) ? `<span class="badge bg-danger">No Prod</span>` : m.overallRate.toFixed(2) + '%';
+            
             let row = `<tr><td class="align-middle" data-val="${idx+1}">${idx+1}</td><td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td><td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td><td class="text-dark align-middle fw-bold" data-val="${m.prodVal}">${formatCurrency(m.prodVal)}</td>
-                <td class="align-middle" data-val="${m.caseVal}">${m.caseVal > 0 ? formatCurrency(m.caseVal) : '-'}</td><td class="align-middle text-muted small" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
-                <td class="align-middle" data-val="${m.budsVal}">${m.budsVal > 0 ? formatCurrency(m.budsVal) : '-'}</td><td class="align-middle text-muted small" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
-                <td class="text-danger fw-bold align-middle border-start" data-val="${m.overallVal}">${formatCurrency(m.overallVal)}</td><td class="fw-bold align-middle ${m.overallRate>1?'text-danger':'text-success'}" data-val="${m.overallRate}">${m.overallRate.toFixed(2)}%</td></tr>`;
+                <td class="align-middle" data-val="${m.caseVal}">${m.caseVal > 0 ? formatCurrency(m.caseVal) : '-'}</td><td class="align-middle text-muted small" data-val="${m.prodVal === 0 && m.caseVal > 0 ? 999 : m.caseRate}">${caseRateHtml}</td>
+                <td class="align-middle" data-val="${m.budsVal}">${m.budsVal > 0 ? formatCurrency(m.budsVal) : '-'}</td><td class="align-middle text-muted small" data-val="${m.prodVal === 0 && m.budsVal > 0 ? 999 : m.budsRate}">${budsRateHtml}</td>
+                <td class="text-danger fw-bold align-middle border-start" data-val="${m.overallVal}">${formatCurrency(m.overallVal)}</td><td class="fw-bold align-middle ${m.overallRate>1?'text-danger':'text-success'}" data-val="${m.prodVal === 0 && m.overallVal > 0 ? 999 : m.overallRate}">${overallRateHtml}</td></tr>`;
             tbody.innerHTML += row;
         });
         let graphData = data.slice(0, 15);
@@ -1809,7 +2135,7 @@
                 labels: graphData.map(m => m.model),
                 datasets: [
                     { label: 'Total Scrap Value (₹)', data: graphData.map(m => m.overallVal), backgroundColor: '#198754', order: 2, yAxisID: 'y', datalabels: { align: 'end', anchor: 'end', ...lblStyle, formatter: v => formatCurrency(v) } },
-                    { label: 'Overall Rate %', data: graphData.map(m => m.overallRate), type: 'line', borderColor: '#dc3545', backgroundColor: '#dc3545', borderWidth: 2, pointRadius: 4, order: 1, yAxisID: 'y1', datalabels: { align: 'top', anchor: 'start', offset: 5, ...lblStyle, color: '#dc3545', formatter: v => v.toFixed(2) + '%' } }
+                    { label: 'Overall Rate %', data: graphData.map(m => m.prodVal === 0 && m.overallVal > 0 ? 0 : m.overallRate), type: 'line', borderColor: '#dc3545', backgroundColor: '#dc3545', borderWidth: 2, pointRadius: 4, order: 1, yAxisID: 'y1', datalabels: { align: 'top', anchor: 'start', offset: 5, ...lblStyle, color: '#dc3545', formatter: (v, ctx) => graphData[ctx.dataIndex].prodVal === 0 && graphData[ctx.dataIndex].overallVal > 0 ? "No Prod" : v.toFixed(2) + '%' } }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: 'Value (INR)' } }, y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Rate %' }, grid: { drawOnChartArea: false } } } }
@@ -1820,9 +2146,12 @@
         const tbody = document.getElementById('modelQtyTableBody');
         tbody.innerHTML = "";
         data.forEach((m, idx) => {
+            let caseRateHtml = (m.prodQty === 0 && m.caseScrap > 0) ? `<span class="badge bg-danger">No Prod</span>` : (m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-');
+            let budsRateHtml = (m.prodQty === 0 && m.budsScrap > 0) ? `<span class="badge bg-danger">No Prod</span>` : (m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-');
+
             let row = `<tr><td class="align-middle" data-val="${idx+1}">${idx+1}</td><td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td><td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td>
-                <td class="align-middle text-danger" data-val="${m.caseScrap}">${m.caseScrap > 0 ? m.caseScrap : '-'}</td><td class="align-middle small fw-bold" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
-                <td class="align-middle text-danger" data-val="${m.budsScrap}">${m.budsScrap > 0 ? m.budsScrap : '-'}</td><td class="align-middle small fw-bold" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
+                <td class="align-middle text-danger" data-val="${m.caseScrap}">${m.caseScrap > 0 ? m.caseScrap : '-'}</td><td class="align-middle small fw-bold" data-val="${m.prodQty === 0 && m.caseScrap > 0 ? 999 : m.caseRate}">${caseRateHtml}</td>
+                <td class="align-middle text-danger" data-val="${m.budsScrap}">${m.budsScrap > 0 ? m.budsScrap : '-'}</td><td class="align-middle small fw-bold" data-val="${m.prodQty === 0 && m.budsScrap > 0 ? 999 : m.budsRate}">${budsRateHtml}</td>
                 <td class="text-danger fw-bold align-middle border-start" data-val="${m.totalScrap}">${m.totalScrap.toLocaleString()}</td></tr>`;
             tbody.innerHTML += row;
         });
@@ -1836,8 +2165,8 @@
                 labels: graphData.map(m => m.model),
                 datasets: [
                     { label: 'Total Scrap Qty', data: graphData.map(m => m.totalScrap), backgroundColor: '#0d6efd', order: 2, yAxisID: 'y', datalabels: { align: 'end', anchor: 'end', ...lblStyle } },
-                    { label: 'Case Rate %', data: graphData.map(m => m.caseRate), type: 'line', borderColor: '#dc3545', backgroundColor: '#dc3545', borderWidth: 2, pointRadius: 3, order: 1, yAxisID: 'y1', datalabels: { display: true, align: 'top', anchor: 'start', offset: 4, ...lblStyle, color: '#dc3545', formatter: v => v > 0 ? v.toFixed(1) + '%' : '' } },
-                    { label: 'Buds Rate %', data: graphData.map(m => m.budsRate), type: 'line', borderColor: '#fd7e14', backgroundColor: '#fd7e14', borderWidth: 2, pointRadius: 3, order: 1, yAxisID: 'y1', datalabels: { display: true, align: 'bottom', anchor: 'start', offset: 4, ...lblStyle, color: '#fd7e14', formatter: v => v > 0 ? v.toFixed(1) + '%' : '' } }
+                    { label: 'Case Rate %', data: graphData.map(m => m.prodQty === 0 && m.caseScrap > 0 ? 0 : m.caseRate), type: 'line', borderColor: '#dc3545', backgroundColor: '#dc3545', borderWidth: 2, pointRadius: 3, order: 1, yAxisID: 'y1', datalabels: { display: true, align: 'top', anchor: 'start', offset: 4, ...lblStyle, color: '#dc3545', formatter: (v, ctx) => graphData[ctx.dataIndex].prodQty === 0 && graphData[ctx.dataIndex].caseScrap > 0 ? 'No Prod' : (v > 0 ? v.toFixed(1) + '%' : '') } },
+                    { label: 'Buds Rate %', data: graphData.map(m => m.prodQty === 0 && m.budsScrap > 0 ? 0 : m.budsRate), type: 'line', borderColor: '#fd7e14', backgroundColor: '#fd7e14', borderWidth: 2, pointRadius: 3, order: 1, yAxisID: 'y1', datalabels: { display: true, align: 'bottom', anchor: 'start', offset: 4, ...lblStyle, color: '#fd7e14', formatter: (v, ctx) => graphData[ctx.dataIndex].prodQty === 0 && graphData[ctx.dataIndex].budsScrap > 0 ? 'No Prod' : (v > 0 ? v.toFixed(1) + '%' : '') } }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: 'Quantity' } }, y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Rate %' }, grid: { drawOnChartArea: false } } } }
@@ -1889,7 +2218,7 @@
             barData.push(scrapVal);
             let prodVal = dailyProd[d] || 0; 
             let rate = prodVal > 0 ? (scrapVal / prodVal) * 100 : 0;
-            lineRateData.push(rate);
+            lineRateData.push(prodVal === 0 && scrapVal > 0 ? null : rate);
         });
         if(tFilter === 'PROCESS') lbl = 'Process'; else if(tFilter === 'RMD') lbl = 'RMD'; else lbl = 'Total';
         const ctx = document.getElementById('scrapTrendCanvas').getContext('2d');
@@ -1899,8 +2228,8 @@
             data: {
                 labels: labels,
                 datasets: [
-                    { type: 'bar', label: lbl + ' Value (₹)', data: barData, backgroundColor: '#dc3545', order: 2, yAxisID: 'y', datalabels: { display: true, color: 'white', anchor: 'end', align: 'bottom', backgroundColor: 'rgba(220, 53, 69, 0.9)', borderRadius: 4, padding: 4, font: { size: 10, weight: 'bold' }, formatter: function(value) { return value >= 1000 ? (value/1000).toFixed(1) + 'k' : Math.round(value); } } },
-                    { type: 'line', label: lbl + ' Rate (%)', data: lineRateData, borderColor: '#0d6efd', backgroundColor: '#0d6efd', borderWidth: 2, tension: 0.3, pointRadius: 4, order: 1, yAxisID: 'y1', datalabels: { display: true, color: 'white', align: 'top', backgroundColor: '#0d6efd', borderRadius: 4, padding: 4, font: { size: 10, weight: 'bold' }, formatter: function(value) { return value.toFixed(2) + '%'; } } }
+                    { type: 'bar', label: lbl + ' Value (₹)', data: barData, backgroundColor: '#dc3545', order: 2, yAxisID: 'y', datalabels: { display: true, color: 'white', anchor: 'end', align: 'bottom', backgroundColor: 'rgba(220, 53, 69, 0.9)', borderRadius: 4, padding: 4, font: { size: 10, weight: 'bold' }, formatter: function(value) { return value >= 1000 ? (value/1000).toFixed(1) + 'k' : (value > 0 ? Math.round(value) : ''); } } },
+                    { type: 'line', label: lbl + ' Rate (%)', data: lineRateData, spanGaps: true, borderColor: '#0d6efd', backgroundColor: '#0d6efd', borderWidth: 2, tension: 0.3, pointRadius: 4, order: 1, yAxisID: 'y1', datalabels: { display: true, color: 'white', align: 'top', backgroundColor: '#0d6efd', borderRadius: 4, padding: 4, font: { size: 10, weight: 'bold' }, formatter: function(value) { return value !== null && value > 0 ? value.toFixed(2) + '%' : ''; } } }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true }, tooltip: { mode: 'index', intersect: false } }, scales: { y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Value (₹)' }, beginAtZero: true, ticks: { callback: function(value) { return value >= 1000 ? (value/1000) + 'K' : value; } } }, y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Rate (%)' }, beginAtZero: true, grid: { drawOnChartArea: false } } } }
@@ -1939,31 +2268,35 @@
         let tableHTML = `<tr class="fw-bold bg-secondary text-white border-top border-3 border-dark" id="subtotalRow"><td class="text-end">GRAND TOTAL</td><td>-</td><td data-val="${totalRawProd}">${totalRawProd.toLocaleString()}</td><td data-val="${totalP}">${totalP}</td><td class="small text-danger fw-bold" data-val="${totPR}">${totPR.toFixed(2)}%</td><td data-val="${totalS}">${totalS}</td><td class="small text-danger fw-bold" data-val="${totSR}">${totSR.toFixed(2)}%</td><td data-val="${totalB}">${totalB}</td><td class="small text-danger fw-bold" data-val="${totBR}">${totBR.toFixed(2)}%</td></tr>`;
         processedData.forEach(d => {
             let bClass = d.cat === 'EARBUDS' ? 'bg-primary' : (d.cat === 'CHARGING CASE' ? 'bg-danger' : 'bg-dark');
-            tableHTML += `<tr><td class="fw-bold" data-val="${d.ln}">${d.ln}</td><td data-val="${d.cat}"><span class="badge ${bClass} badge-prod">${d.cat}</span></td><td class="bg-light fw-bold" data-val="${d.prodDisplay}">${d.prodDisplay.toLocaleString()}</td><td class="text-primary" data-val="${d.pQ}">${d.pQ}</td><td class="text-danger fw-bold small" data-val="${d.pR}">${d.pR.toFixed(2)}%</td><td class="text-warning text-dark" data-val="${d.sQ}">${d.sQ}</td><td class="text-danger fw-bold small" data-val="${d.sR}">${d.sR.toFixed(2)}%</td><td class="text-success" data-val="${d.bQ}">${d.bQ}</td><td class="text-danger fw-bold small" data-val="${d.bR}">${d.bR.toFixed(2)}%</td></tr>`;
+            let pRateHtml = d.prodDisplay === 0 && d.pQ > 0 ? `<span class="badge bg-danger">No Prod</span>` : d.pR.toFixed(2)+'%';
+            let sRateHtml = d.prodDisplay === 0 && d.sQ > 0 ? `<span class="badge bg-danger">No Prod</span>` : d.sR.toFixed(2)+'%';
+            let bRateHtml = d.prodDisplay === 0 && d.bQ > 0 ? `<span class="badge bg-danger">No Prod</span>` : d.bR.toFixed(2)+'%';
+
+            tableHTML += `<tr><td class="fw-bold" data-val="${d.ln}">${d.ln}</td><td data-val="${d.cat}"><span class="badge ${bClass} badge-prod">${d.cat}</span></td><td class="bg-light fw-bold" data-val="${d.prodDisplay}">${d.prodDisplay.toLocaleString()}</td><td class="text-primary" data-val="${d.pQ}">${d.pQ}</td><td class="text-danger fw-bold small" data-val="${d.prodDisplay===0&&d.pQ>0?999:d.pR}">${pRateHtml}</td><td class="text-warning text-dark" data-val="${d.sQ}">${d.sQ}</td><td class="text-danger fw-bold small" data-val="${d.prodDisplay===0&&d.sQ>0?999:d.sR}">${sRateHtml}</td><td class="text-success" data-val="${d.bQ}">${d.bQ}</td><td class="text-danger fw-bold small" data-val="${d.prodDisplay===0&&d.bQ>0?999:d.bR}">${bRateHtml}</td></tr>`;
         });
         document.getElementById('compTableBody').innerHTML = tableHTML;
         let graphData = [...processedData].sort((a,b) => b.sortMetric - a.sortMetric);
         const ctx = document.getElementById('componentAnalysisCanvas').getContext('2d');
         if (componentChart) componentChart.destroy();
         let gl = graphData.map(d => d.ln);
-        let gpQ = graphData.map(d => d.pQ); let gpR = graphData.map(d => d.pR);
-        let gsQ = graphData.map(d => d.sQ); let gsR = graphData.map(d => d.sR);
-        let gbQ = graphData.map(d => d.bQ); let gbR = graphData.map(d => d.bR);
+        let gpQ = graphData.map(d => d.pQ); let gpR = graphData.map(d => d.prodDisplay === 0 && d.pQ > 0 ? 0 : d.pR);
+        let gsQ = graphData.map(d => d.sQ); let gsR = graphData.map(d => d.prodDisplay === 0 && d.sQ > 0 ? 0 : d.sR);
+        let gbQ = graphData.map(d => d.bQ); let gbR = graphData.map(d => d.prodDisplay === 0 && d.bQ > 0 ? 0 : d.bR);
         const lblStyle = { display: true, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 3, color: 'black', font: { weight: 'bold', size: 9 }, padding: 3 };
         let datasets = [];
         if(compFilter === 'ALL') {
-             datasets.push({ label: 'PCBA Qty', data: gpQ, backgroundColor: '#0d6efd', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle } });
-             datasets.push({ label: 'Spkr Qty', data: gsQ, backgroundColor: '#ffc107', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle } });
-             datasets.push({ label: 'Batt Qty', data: gbQ, backgroundColor: '#198754', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle } });
+             datasets.push({ label: 'PCBA Qty', data: gpQ, backgroundColor: '#0d6efd', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle, formatter: v => v > 0 ? v : '' } });
+             datasets.push({ label: 'Spkr Qty', data: gsQ, backgroundColor: '#ffc107', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle, formatter: v => v > 0 ? v : '' } });
+             datasets.push({ label: 'Batt Qty', data: gbQ, backgroundColor: '#198754', order:2, datalabels: { align:'end', anchor:'end', ...lblStyle, formatter: v => v > 0 ? v : '' } });
         } else if (compFilter === 'PCBA') {
             datasets.push({ label: 'PCBA Qty', data: gpQ, backgroundColor: '#0d6efd', order:2, yAxisID: 'y', datalabels: { align:'end', anchor:'end', ...lblStyle } });
-            datasets.push({ label: 'PCBA Rate %', data: gpR, type: 'line', borderColor: '#0d6efd', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#0d6efd', formatter: v=>v.toFixed(2)+'%' } });
+            datasets.push({ label: 'PCBA Rate %', data: gpR, type: 'line', borderColor: '#0d6efd', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#0d6efd', formatter: (v, ctx) => graphData[ctx.dataIndex].prodDisplay === 0 && graphData[ctx.dataIndex].pQ > 0 ? "No Prod" : (v > 0 ? v.toFixed(2)+'%' : '') } });
         } else if (compFilter === 'SPEAKER') {
             datasets.push({ label: 'Spkr Qty', data: gsQ, backgroundColor: '#ffc107', order:2, yAxisID: 'y', datalabels: { align:'end', anchor:'end', ...lblStyle } });
-            datasets.push({ label: 'Spkr Rate %', data: gsR, type: 'line', borderColor: '#ffc107', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#d39e00', formatter: v=>v.toFixed(2)+'%' } });
+            datasets.push({ label: 'Spkr Rate %', data: gsR, type: 'line', borderColor: '#ffc107', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#d39e00', formatter: (v, ctx) => graphData[ctx.dataIndex].prodDisplay === 0 && graphData[ctx.dataIndex].sQ > 0 ? "No Prod" : (v > 0 ? v.toFixed(2)+'%' : '') } });
         } else if (compFilter === 'BATTERY') {
             datasets.push({ label: 'Batt Qty', data: gbQ, backgroundColor: '#198754', order:2, yAxisID: 'y', datalabels: { align:'end', anchor:'end', ...lblStyle } });
-            datasets.push({ label: 'Batt Rate %', data: gbR, type: 'line', borderColor: '#198754', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#198754', formatter: v=>v.toFixed(2)+'%' } });
+            datasets.push({ label: 'Batt Rate %', data: gbR, type: 'line', borderColor: '#198754', borderWidth: 2, pointRadius: 4, order:1, yAxisID: 'y1', datalabels: { align:'top', anchor:'start', offset:5, ...lblStyle, color:'#198754', formatter: (v, ctx) => graphData[ctx.dataIndex].prodDisplay === 0 && graphData[ctx.dataIndex].bQ > 0 ? "No Prod" : (v > 0 ? v.toFixed(2)+'%' : '') } });
         }
         componentChart = new Chart(ctx, {
             type: 'bar',
